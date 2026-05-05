@@ -1,0 +1,1458 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#F6EFDC" />
+<title>Exercise</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream: #F6EFDC;
+  --cream-2: #EFE7CD;
+  --persimmon: #C9542A;
+  --ink: #1B1A17;
+  --ink-soft: #5C5849;
+  --line: #1B1A17;
+  --muted: #8A8576;
+  --bg-input: #FBF6E6;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: 'Atkinson Hyperlegible', ui-sans-serif, system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+.mono {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-feature-settings: "tnum" 1;
+}
+button {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+input {
+  font-family: inherit;
+  color: inherit;
+}
+
+/* ============== App shell ============== */
+.app {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding-bottom: 88px;
+  display: flex;
+  flex-direction: column;
+}
+.app-head {
+  padding: 14px 16px 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.app-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+.app-main {
+  flex: 1;
+  padding: 6px 12px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ============== Panel ============== */
+.panel {
+  border: 1px solid var(--line);
+  background: var(--cream);
+}
+.panel-head {
+  background: var(--persimmon);
+  color: var(--cream);
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+}
+.panel-title {
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.panel-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--cream);
+  font-size: 11px;
+  text-transform: lowercase;
+  opacity: 0.9;
+}
+.panel-back:active { opacity: 0.7; }
+.panel-body {
+  padding: 10px;
+}
+
+/* ============== Buttons ============== */
+.btn {
+  border: 1px solid var(--line);
+  background: var(--cream);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+.btn-primary {
+  background: var(--ink);
+  color: var(--cream);
+}
+.btn-primary:active { background: var(--persimmon); }
+.btn-md { padding: 9px 16px; font-size: 14px; }
+.btn-disabled { opacity: 0.4; cursor: not-allowed; }
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+/* ============== Date bar ============== */
+.datebar {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--line);
+  background: var(--cream);
+}
+.datebar-step {
+  padding: 8px 14px;
+  border-right: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.datebar-step:last-child {
+  border-right: 0;
+  border-left: 1px solid var(--line);
+}
+.datebar-step:disabled { opacity: 0.25; }
+.datebar-step:active:not(:disabled) {
+  background: var(--cream-2);
+}
+.datebar-label {
+  flex: 1;
+  text-align: center;
+  padding: 6px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  align-items: center;
+  justify-content: center;
+}
+.datebar-day {
+  font-size: 13px;
+  font-weight: 500;
+}
+.datebar-jump {
+  font-size: 10px;
+  color: var(--ink-soft);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ============== Totals bar ============== */
+.totals-bar {
+  display: flex;
+  border: 1px solid var(--line);
+  background: var(--cream);
+}
+.totals-cell {
+  flex: 1;
+  padding: 8px 6px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-right: 1px solid var(--line);
+}
+.totals-cell:last-child { border-right: 0; }
+.totals-num {
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1.1;
+}
+.totals-lbl {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  margin-top: 2px;
+}
+
+/* ============== Empty state ============== */
+.empty-state {
+  border: 1px dashed var(--line);
+  padding: 28px 12px;
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+
+/* ============== Strength: list ============== */
+.exercise-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: -1px;
+  margin: -1px;
+}
+.exercise-btn {
+  border: 1px solid var(--line);
+  margin: -1px 0 0 -1px;
+  padding: 12px 10px;
+  text-align: left;
+  background: var(--cream);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-height: 48px;
+}
+.exercise-btn:active {
+  background: var(--cream-2);
+}
+.exercise-name {
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+.exercise-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  font-size: 11px;
+  background: var(--persimmon);
+  color: var(--cream);
+  font-weight: 500;
+}
+
+/* ============== Strength: set table ============== */
+.set-table {
+  border: 1px solid var(--line);
+  margin-bottom: 8px;
+}
+.set-row {
+  display: grid;
+  grid-template-columns: 32px 1fr 1fr 38px;
+  align-items: stretch;
+  border-bottom: 1px solid var(--line);
+}
+.set-row:last-child { border-bottom: 0; }
+.set-row.set-head {
+  background: var(--cream-2);
+}
+.set-head .set-col-idx,
+.set-head .set-col-w,
+.set-head .set-col-r {
+  padding: 6px 8px;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+}
+.set-col-idx {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  border-right: 1px solid var(--line);
+}
+.set-input {
+  border: 0;
+  border-right: 1px solid var(--line);
+  background: var(--bg-input);
+  padding: 10px 8px;
+  font-size: 15px;
+  width: 100%;
+  text-align: center;
+  -moz-appearance: textfield;
+}
+.set-input::-webkit-outer-spin-button,
+.set-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.set-input:focus {
+  outline: 0;
+  background: var(--cream);
+}
+.set-del {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cream);
+}
+.set-del:disabled { opacity: 0.25; }
+.set-del:active:not(:disabled) { background: var(--cream-2); }
+
+.add-set {
+  width: 100%;
+  border: 1px dashed var(--line);
+  padding: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--ink-soft);
+  background: transparent;
+}
+.add-set:active { background: var(--cream-2); }
+
+/* ============== Cardio: form ============== */
+.cardio-types {
+  display: flex;
+  border: 1px solid var(--line);
+  margin-bottom: 12px;
+}
+.cardio-type {
+  flex: 1;
+  padding: 9px 4px;
+  font-size: 12.5px;
+  font-weight: 500;
+  border-right: 1px solid var(--line);
+  background: var(--cream);
+  letter-spacing: 0.01em;
+}
+.cardio-type:last-child { border-right: 0; }
+.cardio-type.active {
+  background: var(--ink);
+  color: var(--cream);
+}
+
+.cardio-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.cardio-input label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  margin-bottom: 4px;
+}
+.auto-tag {
+  font-size: 9.5px;
+  padding: 1px 5px;
+  background: var(--persimmon);
+  color: var(--cream);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.cardio-field {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--line);
+  background: var(--bg-input);
+}
+.cardio-field input {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  padding: 10px 10px;
+  font-size: 16px;
+  width: 100%;
+  -moz-appearance: textfield;
+}
+.cardio-field input::-webkit-outer-spin-button,
+.cardio-field input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.cardio-field input:focus { outline: 0; }
+.cardio-field .unit {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--ink-soft);
+  padding: 0 10px;
+  border-left: 1px solid var(--line);
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+}
+
+/* ============== Today: strength group ============== */
+.strength-group {
+  border-bottom: 1px solid var(--line);
+  padding: 8px 0;
+}
+.strength-group:first-child { padding-top: 0; }
+.strength-group:last-child { border-bottom: 0; padding-bottom: 0; }
+.sg-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+.sg-name {
+  font-weight: 700;
+  font-size: 14px;
+}
+.sg-summary {
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+.sg-sets {
+  display: flex;
+  flex-direction: column;
+}
+.sg-set {
+  display: grid;
+  grid-template-columns: 32px 64px 16px 1fr 28px;
+  align-items: center;
+  padding: 3px 0;
+  font-size: 13px;
+  gap: 4px;
+}
+.sg-idx { color: var(--ink-soft); }
+.sg-x { color: var(--ink-soft); text-align: center; }
+.sg-r { font-weight: 500; }
+.sg-del {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-soft);
+  padding: 4px;
+}
+.sg-del:active { color: var(--persimmon); }
+
+/* ============== Today: cardio rows ============== */
+.cardio-list {
+  display: flex;
+  flex-direction: column;
+}
+.cardio-row {
+  display: grid;
+  grid-template-columns: 64px 1fr 60px 60px 28px;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--cream-2);
+  font-size: 13px;
+  gap: 4px;
+}
+.cardio-row:last-child { border-bottom: 0; }
+.cardio-time {
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+.cardio-type-lbl {
+  font-weight: 500;
+}
+.cardio-dur, .cardio-kcal {
+  font-size: 12px;
+  text-align: right;
+}
+.cardio-del {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-soft);
+  padding: 4px;
+}
+.cardio-del:active { color: var(--persimmon); }
+
+/* ============== Segment control (Strength/Cardio toggle) ============== */
+.segment {
+  display: flex;
+  border: 1px solid var(--line);
+}
+.segment-btn {
+  flex: 1;
+  padding: 10px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-weight: 500;
+  font-size: 13px;
+  border-right: 1px solid var(--line);
+  background: var(--cream);
+}
+.segment-btn:last-child { border-right: 0; }
+.segment-btn.active {
+  background: var(--ink);
+  color: var(--cream);
+}
+
+/* ============== Bottom nav ============== */
+.bottom-nav {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  background: var(--cream);
+  border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  z-index: 50;
+}
+.bottom-nav-inner {
+  max-width: 480px;
+  margin: 0 auto;
+  display: flex;
+}
+.tab {
+  flex: 1;
+  padding: 10px 0 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  color: var(--ink-soft);
+}
+.tab-active { color: var(--persimmon); }
+.tab-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 500;
+}
+
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script>
+// =============================================================================
+// Standalone Exercise Tracker
+// Mobile-first single-page app. Strength + Cardio only.
+// React from CDN; JSX pre-compiled via Babel CLI; persistence in localStorage.
+// =============================================================================
+
+const {
+  useState,
+  useEffect,
+  useRef
+} = React;
+
+// =============================================================================
+// Storage — async-shaped localStorage wrapper, separate key prefix so this
+// won't collide with the parent daily-tracker app on the same domain.
+// =============================================================================
+const STORAGE_PREFIX = "exercise-tracker:";
+const storage = {
+  async get(key, fallback = null) {
+    try {
+      const raw = localStorage.getItem(STORAGE_PREFIX + key);
+      if (raw === null) return fallback;
+      return JSON.parse(raw);
+    } catch (err) {
+      console.error(`storage.get(${key}) failed:`, err);
+      return fallback;
+    }
+  },
+  async set(key, value) {
+    try {
+      localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(value));
+      return true;
+    } catch (err) {
+      console.error(`storage.set(${key}) failed:`, err);
+      return false;
+    }
+  },
+  async remove(key) {
+    try {
+      localStorage.removeItem(STORAGE_PREFIX + key);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+};
+
+// =============================================================================
+// Time & date — Australia/Melbourne is the source of truth.
+// =============================================================================
+const TZ = "Australia/Melbourne";
+function todayKey() {
+  // YYYY-MM-DD in local timezone.
+  return new Date().toLocaleDateString("en-CA", {
+    timeZone: TZ
+  });
+}
+function nowISO() {
+  return new Date().toISOString();
+}
+function genId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+
+// 12-hour AM/PM display, eg "8:32 PM"
+function formatTime(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return d.toLocaleTimeString("en-US", {
+    timeZone: TZ,
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true
+  }).toUpperCase();
+}
+function formatDateLong(dateKey) {
+  // dateKey is YYYY-MM-DD; render "Tue 5 May" etc.
+  const d = new Date(dateKey + "T12:00:00");
+  return d.toLocaleDateString("en-AU", {
+    timeZone: TZ,
+    weekday: "short",
+    day: "numeric",
+    month: "short"
+  });
+}
+function dateKeyOffset(dateKey, offsetDays) {
+  const d = new Date(dateKey + "T12:00:00");
+  d.setDate(d.getDate() + offsetDays);
+  return d.toLocaleDateString("en-CA", {
+    timeZone: TZ
+  });
+}
+function isToday(dateKey) {
+  return dateKey === todayKey();
+}
+
+// =============================================================================
+// Exercise constants — same as parent app
+// =============================================================================
+const EXERCISES = ["Squat", "Bench press", "Barbell row", "Pull-ups", "Deadlift", "Overhead press", "Machine crunches", "Hanging leg raises", "Lat pulldown", "Shoulder press", "Leg extensions", "Lat raises"];
+const CARDIO_TYPES = [{
+  id: "jog",
+  label: "Jog"
+}, {
+  id: "run",
+  label: "Run"
+}, {
+  id: "bike",
+  label: "Bike"
+}, {
+  id: "stairs",
+  label: "Stairs"
+}, {
+  id: "other",
+  label: "Other"
+}];
+
+// kcal/min for 28M, 72kg, 175cm, "relatively fit"
+// MET × 3.5 × kg ÷ 200, with MET values from the Compendium of Physical Activities:
+//   - Jog 5:30/km (10.9 km/h) ≈ 10.5 MET → 13 kcal/min
+//   - Run 4:30/km (13.3 km/h) ≈ 12.5 MET → 16 kcal/min
+//   - Bike at 180W            ≈ 11.0 MET → 13 kcal/min
+//   - Stairs 90 spm           ≈  9.5 MET → 12 kcal/min
+const KCAL_PER_MIN = {
+  jog: 13,
+  run: 16,
+  bike: 13,
+  stairs: 12
+};
+function groupByExercise(sets) {
+  const map = {};
+  for (const s of sets) {
+    if (!map[s.exercise_name]) map[s.exercise_name] = [];
+    map[s.exercise_name].push(s);
+  }
+  return map;
+}
+function totalVolume(sets) {
+  return sets.reduce((a, s) => a + (s.weight_kg || 0) * (s.reps || 0), 0);
+}
+
+// =============================================================================
+// Inline SVG icons — replaces lucide-react. All accept size + strokeWidth.
+// =============================================================================
+function svgProps(size, strokeWidth) {
+  return {
+    width: size,
+    height: size,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth,
+    strokeLinecap: "round",
+    strokeLinejoin: "round"
+  };
+}
+function Dumbbell({
+  size = 22,
+  strokeWidth = 1.75
+}) {
+  return /*#__PURE__*/React.createElement("svg", svgProps(size, strokeWidth), /*#__PURE__*/React.createElement("path", {
+    d: "M6.5 6.5l11 11"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M21 21l-1-1"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M3 3l1 1"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M18 22l4-4"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M2 6l4-4"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M3 10l7-7"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M14 21l7-7"
+  }));
+}
+function Activity({
+  size = 22,
+  strokeWidth = 1.75
+}) {
+  return /*#__PURE__*/React.createElement("svg", svgProps(size, strokeWidth), /*#__PURE__*/React.createElement("polyline", {
+    points: "22 12 18 12 15 21 9 3 6 12 2 12"
+  }));
+}
+function Plus({
+  size = 16,
+  strokeWidth = 2
+}) {
+  return /*#__PURE__*/React.createElement("svg", svgProps(size, strokeWidth), /*#__PURE__*/React.createElement("line", {
+    x1: "12",
+    y1: "5",
+    x2: "12",
+    y2: "19"
+  }), /*#__PURE__*/React.createElement("line", {
+    x1: "5",
+    y1: "12",
+    x2: "19",
+    y2: "12"
+  }));
+}
+function Trash({
+  size = 14,
+  strokeWidth = 1.75
+}) {
+  return /*#__PURE__*/React.createElement("svg", svgProps(size, strokeWidth), /*#__PURE__*/React.createElement("polyline", {
+    points: "3 6 5 6 21 6"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M10 11v6"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M14 11v6"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"
+  }));
+}
+function ChevronLeft({
+  size = 18,
+  strokeWidth = 1.75
+}) {
+  return /*#__PURE__*/React.createElement("svg", svgProps(size, strokeWidth), /*#__PURE__*/React.createElement("polyline", {
+    points: "15 18 9 12 15 6"
+  }));
+}
+function ChevronRight({
+  size = 18,
+  strokeWidth = 1.75
+}) {
+  return /*#__PURE__*/React.createElement("svg", svgProps(size, strokeWidth), /*#__PURE__*/React.createElement("polyline", {
+    points: "9 18 15 12 9 6"
+  }));
+}
+function ArrowLeft({
+  size = 18,
+  strokeWidth = 1.75
+}) {
+  return /*#__PURE__*/React.createElement("svg", svgProps(size, strokeWidth), /*#__PURE__*/React.createElement("line", {
+    x1: "19",
+    y1: "12",
+    x2: "5",
+    y2: "12"
+  }), /*#__PURE__*/React.createElement("polyline", {
+    points: "12 19 5 12 12 5"
+  }));
+}
+function Calendar({
+  size = 18,
+  strokeWidth = 1.75
+}) {
+  return /*#__PURE__*/React.createElement("svg", svgProps(size, strokeWidth), /*#__PURE__*/React.createElement("rect", {
+    x: "3",
+    y: "4",
+    width: "18",
+    height: "18",
+    rx: "1"
+  }), /*#__PURE__*/React.createElement("line", {
+    x1: "16",
+    y1: "2",
+    x2: "16",
+    y2: "6"
+  }), /*#__PURE__*/React.createElement("line", {
+    x1: "8",
+    y1: "2",
+    x2: "8",
+    y2: "6"
+  }), /*#__PURE__*/React.createElement("line", {
+    x1: "3",
+    y1: "10",
+    x2: "21",
+    y2: "10"
+  }));
+}
+
+// =============================================================================
+// Building-block components
+// =============================================================================
+function Panel({
+  title,
+  children,
+  action
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "panel"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "panel-head"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "panel-title"
+  }, title), action), /*#__PURE__*/React.createElement("div", {
+    className: "panel-body"
+  }, children));
+}
+function Button({
+  onClick,
+  disabled,
+  children,
+  variant = "primary",
+  size = "md"
+}) {
+  const cls = `btn btn-${variant} btn-${size}${disabled ? " btn-disabled" : ""}`;
+  return /*#__PURE__*/React.createElement("button", {
+    className: cls,
+    onClick: onClick,
+    disabled: disabled
+  }, children);
+}
+
+// =============================================================================
+// Date picker — single-line bar with prev/next + label + "today" jump.
+// Used to log/view sessions on past dates.
+// =============================================================================
+function DateBar({
+  dateKey,
+  onChange
+}) {
+  const today = todayKey();
+  const isToday_ = dateKey === today;
+  return /*#__PURE__*/React.createElement("div", {
+    className: "datebar"
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "datebar-step",
+    onClick: () => onChange(dateKeyOffset(dateKey, -1)),
+    "aria-label": "Previous day"
+  }, /*#__PURE__*/React.createElement(ChevronLeft, {
+    size: 16,
+    strokeWidth: 1.75
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "datebar-label"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "datebar-day mono"
+  }, isToday_ ? "Today" : formatDateLong(dateKey)), !isToday_ && /*#__PURE__*/React.createElement("button", {
+    className: "datebar-jump mono",
+    onClick: () => onChange(today)
+  }, "jump to today")), /*#__PURE__*/React.createElement("button", {
+    className: "datebar-step",
+    onClick: () => onChange(dateKeyOffset(dateKey, 1)),
+    "aria-label": "Next day",
+    disabled: dateKey >= today
+  }, /*#__PURE__*/React.createElement(ChevronRight, {
+    size: 16,
+    strokeWidth: 1.75
+  })));
+}
+
+// =============================================================================
+// Strength group — read view of one exercise's sets on a given date.
+// Per-set delete via trash icon.
+// =============================================================================
+function StrengthGroup({
+  name,
+  sets,
+  onDeleteSet
+}) {
+  const sorted = [...sets].sort((a, b) => a.set_index - b.set_index);
+  const vol = totalVolume(sorted);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "strength-group"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "sg-head"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "sg-name"
+  }, name), /*#__PURE__*/React.createElement("span", {
+    className: "sg-summary mono"
+  }, sorted.length, " ", sorted.length === 1 ? "set" : "sets", " \xB7 ", vol, " kg vol")), /*#__PURE__*/React.createElement("div", {
+    className: "sg-sets"
+  }, sorted.map((s, i) => /*#__PURE__*/React.createElement("div", {
+    key: s.id,
+    className: "sg-set"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "sg-idx mono"
+  }, "#", i + 1), /*#__PURE__*/React.createElement("span", {
+    className: "sg-w mono"
+  }, s.weight_kg > 0 ? `${s.weight_kg} kg` : "BW"), /*#__PURE__*/React.createElement("span", {
+    className: "sg-x mono"
+  }, "\xD7"), /*#__PURE__*/React.createElement("span", {
+    className: "sg-r mono"
+  }, s.reps), /*#__PURE__*/React.createElement("button", {
+    className: "sg-del",
+    onClick: () => onDeleteSet(s.id),
+    "aria-label": "Delete set"
+  }, /*#__PURE__*/React.createElement(Trash, {
+    size: 13
+  }))))));
+}
+
+// =============================================================================
+// Cardio row — read view of one cardio session.
+// =============================================================================
+function CardioRow({
+  session,
+  onDelete
+}) {
+  var _CARDIO_TYPES$find;
+  const label = ((_CARDIO_TYPES$find = CARDIO_TYPES.find(t => t.id === session.type)) === null || _CARDIO_TYPES$find === void 0 ? void 0 : _CARDIO_TYPES$find.label) || session.type;
+  return /*#__PURE__*/React.createElement("div", {
+    className: "cardio-row"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "cardio-time mono"
+  }, formatTime(session.started_at)), /*#__PURE__*/React.createElement("span", {
+    className: "cardio-type-lbl"
+  }, label), /*#__PURE__*/React.createElement("span", {
+    className: "cardio-dur mono"
+  }, session.duration_min, " min"), /*#__PURE__*/React.createElement("span", {
+    className: "cardio-kcal mono"
+  }, session.kcal_burned, " kcal"), /*#__PURE__*/React.createElement("button", {
+    className: "cardio-del",
+    onClick: () => onDelete(session.id),
+    "aria-label": "Delete cardio"
+  }, /*#__PURE__*/React.createElement(Trash, {
+    size: 13
+  })));
+}
+
+// =============================================================================
+// Today view — read-only summary of strength + cardio for the selected date.
+// =============================================================================
+function TodayView({
+  dateKey,
+  setDateKey,
+  refreshKey,
+  onChange
+}) {
+  const [sets, setSets] = useState([]);
+  const [sessions, setSessions] = useState([]);
+  useEffect(() => {
+    storage.get(`strength:${dateKey}`, []).then(setSets);
+    storage.get(`cardio:${dateKey}`, []).then(setSessions);
+  }, [dateKey, refreshKey]);
+  async function deleteSet(id) {
+    const next = sets.filter(s => s.id !== id);
+    await storage.set(`strength:${dateKey}`, next);
+    setSets(next);
+    onChange === null || onChange === void 0 || onChange();
+  }
+  async function deleteSession(id) {
+    const next = sessions.filter(s => s.id !== id);
+    await storage.set(`cardio:${dateKey}`, next);
+    setSessions(next);
+    onChange === null || onChange === void 0 || onChange();
+  }
+  const groups = groupByExercise(sets);
+  const totalSets = sets.length;
+  const totalVol = totalVolume(sets);
+  const totalBurn = sessions.reduce((a, s) => a + (s.kcal_burned || 0), 0);
+  const empty = sets.length === 0 && sessions.length === 0;
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(DateBar, {
+    dateKey: dateKey,
+    onChange: setDateKey
+  }), !empty && /*#__PURE__*/React.createElement("div", {
+    className: "totals-bar"
+  }, totalSets > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "totals-cell"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "totals-num mono"
+  }, totalSets), /*#__PURE__*/React.createElement("span", {
+    className: "totals-lbl"
+  }, totalSets === 1 ? "set" : "sets")), totalSets > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "totals-cell"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "totals-num mono"
+  }, totalVol), /*#__PURE__*/React.createElement("span", {
+    className: "totals-lbl"
+  }, "kg vol")), totalBurn > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "totals-cell"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "totals-num mono"
+  }, totalBurn), /*#__PURE__*/React.createElement("span", {
+    className: "totals-lbl"
+  }, "kcal"))), Object.keys(groups).length > 0 && /*#__PURE__*/React.createElement(Panel, {
+    title: "Strength"
+  }, Object.entries(groups).map(([name, grp]) => /*#__PURE__*/React.createElement(StrengthGroup, {
+    key: name,
+    name: name,
+    sets: grp,
+    onDeleteSet: deleteSet
+  }))), sessions.length > 0 && /*#__PURE__*/React.createElement(Panel, {
+    title: "Cardio"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "cardio-list"
+  }, [...sessions].sort((a, b) => a.started_at.localeCompare(b.started_at)).map(s => /*#__PURE__*/React.createElement(CardioRow, {
+    key: s.id,
+    session: s,
+    onDelete: deleteSession
+  })))), empty && /*#__PURE__*/React.createElement("div", {
+    className: "empty-state"
+  }, /*#__PURE__*/React.createElement("span", null, "No sessions logged for ", isToday(dateKey) ? "today" : formatDateLong(dateKey), " yet.")));
+}
+
+// =============================================================================
+// Strength logging — pick exercise, then log sets prefilled from last session.
+// =============================================================================
+function StrengthLog({
+  dateKey,
+  refreshKey,
+  onChange
+}) {
+  const [todaySets, setTodaySets] = useState([]);
+  const [exerciseDict, setExerciseDict] = useState({});
+  const [selected, setSelected] = useState(null);
+  const [sets, setSets] = useState([]);
+  const [logging, setLogging] = useState(false);
+  useEffect(() => {
+    storage.get(`strength:${dateKey}`, []).then(setTodaySets);
+    storage.get("exercise_dict", {}).then(setExerciseDict);
+  }, [dateKey, refreshKey]);
+  function selectExercise(name) {
+    var _exerciseDict$name;
+    const last = (_exerciseDict$name = exerciseDict[name]) === null || _exerciseDict$name === void 0 ? void 0 : _exerciseDict$name.last_session;
+    if (last && last.length > 0) {
+      setSets(last.map(s => {
+        var _s$weight_kg, _s$reps;
+        return {
+          weight_kg: String((_s$weight_kg = s.weight_kg) !== null && _s$weight_kg !== void 0 ? _s$weight_kg : ""),
+          reps: String((_s$reps = s.reps) !== null && _s$reps !== void 0 ? _s$reps : "")
+        };
+      }));
+    } else {
+      setSets([{
+        weight_kg: "",
+        reps: ""
+      }]);
+    }
+    setSelected(name);
+  }
+  function backToList() {
+    setSelected(null);
+    setSets([]);
+  }
+  function updateSet(i, field, value) {
+    setSets(prev => prev.map((s, idx) => idx === i ? {
+      ...s,
+      [field]: value
+    } : s));
+  }
+  function addSet() {
+    // Prefill from last row for fast iteration on the same lift.
+    setSets(prev => {
+      const last = prev[prev.length - 1];
+      return [...prev, last ? {
+        weight_kg: last.weight_kg,
+        reps: last.reps
+      } : {
+        weight_kg: "",
+        reps: ""
+      }];
+    });
+  }
+  function removeSet(i) {
+    setSets(prev => prev.filter((_, idx) => idx !== i));
+  }
+  async function logExercise() {
+    if (logging || !selected) return;
+
+    // Reps > 0 is the validity test. Weight 0 is fine (bodyweight exercises).
+    const valid = sets.map(s => ({
+      weight_kg: Math.max(0, Number(s.weight_kg) || 0),
+      reps: Math.max(0, Number(s.reps) || 0)
+    })).filter(s => s.reps > 0);
+    if (valid.length === 0) return;
+    setLogging(true);
+    const now = nowISO();
+    const newEntries = valid.map((s, idx) => ({
+      id: genId(),
+      performed_at: now,
+      exercise_name: selected,
+      set_index: idx + 1,
+      reps: s.reps,
+      weight_kg: s.weight_kg
+    }));
+    const nextSets = [...todaySets, ...newEntries];
+    await storage.set(`strength:${dateKey}`, nextSets);
+    setTodaySets(nextSets);
+    const nextDict = {
+      ...exerciseDict,
+      [selected]: {
+        last_session: valid,
+        last_used_at: now
+      }
+    };
+    await storage.set("exercise_dict", nextDict);
+    setExerciseDict(nextDict);
+    setSelected(null);
+    setSets([]);
+    setLogging(false);
+    onChange === null || onChange === void 0 || onChange();
+  }
+
+  // === Set-entry view ===
+  if (selected) {
+    const canLog = sets.some(s => Number(s.reps) > 0) && !logging;
+    return /*#__PURE__*/React.createElement(Panel, {
+      title: selected,
+      action: /*#__PURE__*/React.createElement("button", {
+        className: "panel-back mono",
+        onClick: backToList,
+        "aria-label": "Back"
+      }, /*#__PURE__*/React.createElement(ArrowLeft, {
+        size: 14,
+        strokeWidth: 1.75
+      }), /*#__PURE__*/React.createElement("span", null, "back"))
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "set-table"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "set-row set-head"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "set-col-idx mono"
+    }, "#"), /*#__PURE__*/React.createElement("span", {
+      className: "set-col-w mono"
+    }, "kg"), /*#__PURE__*/React.createElement("span", {
+      className: "set-col-r mono"
+    }, "reps"), /*#__PURE__*/React.createElement("span", {
+      className: "set-col-del"
+    })), sets.map((s, i) => /*#__PURE__*/React.createElement("div", {
+      key: i,
+      className: "set-row"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "set-col-idx mono"
+    }, i + 1), /*#__PURE__*/React.createElement("input", {
+      className: "set-input mono",
+      type: "number",
+      inputMode: "decimal",
+      min: "0",
+      step: "any",
+      value: s.weight_kg,
+      onChange: e => updateSet(i, "weight_kg", e.target.value),
+      placeholder: "0"
+    }), /*#__PURE__*/React.createElement("input", {
+      className: "set-input mono",
+      type: "number",
+      inputMode: "numeric",
+      min: "0",
+      step: "1",
+      value: s.reps,
+      onChange: e => updateSet(i, "reps", e.target.value),
+      placeholder: "0"
+    }), /*#__PURE__*/React.createElement("button", {
+      className: "set-del",
+      onClick: () => removeSet(i),
+      disabled: sets.length === 1,
+      "aria-label": "Remove set"
+    }, /*#__PURE__*/React.createElement(Trash, {
+      size: 13
+    }))))), /*#__PURE__*/React.createElement("button", {
+      className: "add-set",
+      onClick: addSet
+    }, /*#__PURE__*/React.createElement(Plus, {
+      size: 14,
+      strokeWidth: 2
+    }), /*#__PURE__*/React.createElement("span", null, "Add set")), /*#__PURE__*/React.createElement("div", {
+      className: "form-actions"
+    }, /*#__PURE__*/React.createElement(Button, {
+      onClick: logExercise,
+      disabled: !canLog
+    }, logging ? "Logging…" : "Log")));
+  }
+
+  // === List view ===
+  const todayCounts = {};
+  for (const s of todaySets) {
+    todayCounts[s.exercise_name] = (todayCounts[s.exercise_name] || 0) + 1;
+  }
+  return /*#__PURE__*/React.createElement(Panel, {
+    title: "Pick an exercise"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "exercise-grid"
+  }, EXERCISES.map(name => {
+    const count = todayCounts[name];
+    return /*#__PURE__*/React.createElement("button", {
+      key: name,
+      onClick: () => selectExercise(name),
+      className: "exercise-btn"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "exercise-name"
+    }, name), count > 0 && /*#__PURE__*/React.createElement("span", {
+      className: "exercise-count mono"
+    }, count));
+  })));
+}
+
+// =============================================================================
+// Cardio logging — pick type, enter duration; kcal auto-calcs unless overridden.
+// =============================================================================
+function CardioLog({
+  dateKey,
+  refreshKey,
+  onChange
+}) {
+  const [type, setType] = useState("jog");
+  const [duration, setDuration] = useState("");
+  const [kcal, setKcal] = useState("");
+  const [kcalEdited, setKcalEdited] = useState(false);
+  const [logging, setLogging] = useState(false);
+  const [todaySessions, setTodaySessions] = useState([]);
+  useEffect(() => {
+    storage.get(`cardio:${dateKey}`, []).then(setTodaySessions);
+  }, [dateKey, refreshKey]);
+
+  // Auto-recalc kcal on type/duration change unless user has manually overridden.
+  useEffect(() => {
+    if (kcalEdited) return;
+    if (type === "other") {
+      setKcal("");
+      return;
+    }
+    const dur = Number(duration);
+    if (!dur || dur <= 0) {
+      setKcal("");
+      return;
+    }
+    setKcal(String(Math.round(KCAL_PER_MIN[type] * dur)));
+  }, [type, duration, kcalEdited]);
+  function selectType(t) {
+    setType(t);
+    setKcalEdited(false);
+  }
+  function changeKcal(v) {
+    setKcal(v);
+    setKcalEdited(true);
+  }
+  async function logCardio() {
+    const dur = Number(duration);
+    const burn = Number(kcal);
+    if (!dur || dur <= 0 || !burn || burn <= 0 || logging) return;
+    setLogging(true);
+    const session = {
+      id: genId(),
+      started_at: nowISO(),
+      type,
+      duration_min: dur,
+      kcal_burned: Math.round(burn),
+      source: kcalEdited || type === "other" ? "manual" : "auto"
+    };
+    const nextSessions = [...todaySessions, session];
+    await storage.set(`cardio:${dateKey}`, nextSessions);
+    setTodaySessions(nextSessions);
+    setDuration("");
+    setKcal("");
+    setKcalEdited(false);
+    setLogging(false);
+    onChange === null || onChange === void 0 || onChange();
+  }
+  const canLog = Number(duration) > 0 && Number(kcal) > 0 && !logging;
+  return /*#__PURE__*/React.createElement(Panel, {
+    title: "New cardio"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "cardio-types"
+  }, CARDIO_TYPES.map(({
+    id,
+    label
+  }) => /*#__PURE__*/React.createElement("button", {
+    key: id,
+    onClick: () => selectType(id),
+    className: `cardio-type ${type === id ? "active" : ""}`
+  }, label))), /*#__PURE__*/React.createElement("div", {
+    className: "cardio-grid"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "cardio-input"
+  }, /*#__PURE__*/React.createElement("label", null, "Duration"), /*#__PURE__*/React.createElement("div", {
+    className: "cardio-field"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    inputMode: "decimal",
+    min: "0",
+    step: "any",
+    value: duration,
+    onChange: e => setDuration(e.target.value),
+    placeholder: "0"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "unit"
+  }, "min"))), /*#__PURE__*/React.createElement("div", {
+    className: "cardio-input"
+  }, /*#__PURE__*/React.createElement("label", null, "Calories", !kcalEdited && type !== "other" && Number(duration) > 0 && /*#__PURE__*/React.createElement("span", {
+    className: "auto-tag mono"
+  }, "auto")), /*#__PURE__*/React.createElement("div", {
+    className: "cardio-field"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    inputMode: "decimal",
+    min: "0",
+    step: "any",
+    value: kcal,
+    onChange: e => changeKcal(e.target.value),
+    placeholder: "0"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "unit"
+  }, "kcal")))), /*#__PURE__*/React.createElement("div", {
+    className: "form-actions"
+  }, /*#__PURE__*/React.createElement(Button, {
+    onClick: logCardio,
+    disabled: !canLog
+  }, logging ? "Logging…" : "Log")));
+}
+
+// =============================================================================
+// Log screen — Strength/Cardio segmented control + the matching form
+// =============================================================================
+function LogScreen({
+  dateKey,
+  setDateKey,
+  refreshKey,
+  onChange
+}) {
+  const [mode, setMode] = useState("strength");
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(DateBar, {
+    dateKey: dateKey,
+    onChange: setDateKey
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "segment"
+  }, /*#__PURE__*/React.createElement("button", {
+    className: `segment-btn ${mode === "strength" ? "active" : ""}`,
+    onClick: () => setMode("strength")
+  }, /*#__PURE__*/React.createElement(Dumbbell, {
+    size: 16,
+    strokeWidth: 1.75
+  }), /*#__PURE__*/React.createElement("span", null, "Strength")), /*#__PURE__*/React.createElement("button", {
+    className: `segment-btn ${mode === "cardio" ? "active" : ""}`,
+    onClick: () => setMode("cardio")
+  }, /*#__PURE__*/React.createElement(Activity, {
+    size: 16,
+    strokeWidth: 1.75
+  }), /*#__PURE__*/React.createElement("span", null, "Cardio"))), mode === "strength" ? /*#__PURE__*/React.createElement(StrengthLog, {
+    dateKey: dateKey,
+    refreshKey: refreshKey,
+    onChange: onChange
+  }) : /*#__PURE__*/React.createElement(CardioLog, {
+    dateKey: dateKey,
+    refreshKey: refreshKey,
+    onChange: onChange
+  }));
+}
+
+// =============================================================================
+// Bottom nav
+// =============================================================================
+const TABS = [{
+  id: "today",
+  label: "Today",
+  Icon: Calendar
+}, {
+  id: "log",
+  label: "Log",
+  Icon: Plus
+}];
+function BottomNav({
+  active,
+  onChange
+}) {
+  return /*#__PURE__*/React.createElement("nav", {
+    className: "bottom-nav"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bottom-nav-inner"
+  }, TABS.map(({
+    id,
+    label,
+    Icon
+  }) => {
+    const isActive = active === id;
+    return /*#__PURE__*/React.createElement("button", {
+      key: id,
+      onClick: () => onChange(id),
+      className: `tab ${isActive ? "tab-active" : ""}`,
+      "aria-label": label,
+      title: label
+    }, /*#__PURE__*/React.createElement(Icon, {
+      size: 22,
+      strokeWidth: isActive ? 2 : 1.75
+    }), /*#__PURE__*/React.createElement("span", {
+      className: "tab-label"
+    }, label));
+  })));
+}
+
+// =============================================================================
+// App shell
+// =============================================================================
+function App() {
+  const [tab, setTab] = useState("today");
+  const [dateKey, setDateKey] = useState(todayKey());
+  // refreshKey forces other screens to re-read storage on tab switch / mutation
+  const [refreshKey, setRefreshKey] = useState(0);
+  const bump = () => setRefreshKey(x => x + 1);
+
+  // When user switches tabs, snap date back to today on the read-only Today view.
+  useEffect(() => {
+    bump();
+  }, [tab]);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "app"
+  }, /*#__PURE__*/React.createElement("header", {
+    className: "app-head"
+  }, /*#__PURE__*/React.createElement("h1", {
+    className: "app-title"
+  }, "Exercise")), /*#__PURE__*/React.createElement("main", {
+    className: "app-main"
+  }, tab === "today" && /*#__PURE__*/React.createElement(TodayView, {
+    dateKey: dateKey,
+    setDateKey: setDateKey,
+    refreshKey: refreshKey,
+    onChange: bump
+  }), tab === "log" && /*#__PURE__*/React.createElement(LogScreen, {
+    dateKey: dateKey,
+    setDateKey: setDateKey,
+    refreshKey: refreshKey,
+    onChange: bump
+  })), /*#__PURE__*/React.createElement(BottomNav, {
+    active: tab,
+    onChange: setTab
+  }));
+}
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(/*#__PURE__*/React.createElement(App, null));
+</script>
+</body>
+</html>
