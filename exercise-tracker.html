@@ -156,24 +156,40 @@ input[type=number] { -moz-appearance: textfield; }
 .sw-stop:active { background: #C9542A; }
 .sw-reset:active { background: var(--cream-2); }
 
-/* Suggested session */
-.suggested-list { display: flex; flex-direction: column; }
-.sug-row {
+/* Suggested sessions (Full body / Targeted) */
+.sessions { display: flex; flex-direction: column; gap: 6px; }
+.session-card { border: 1px solid var(--line); }
+.session-btn {
+  width: 100%;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px;
+  background: #C9542A; color: var(--cream);
+  font-size: 12.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+}
+.session-btn.session-open { border-bottom: 1px solid var(--line); }
+.session-btn:active { background: #B04420; }
+.session-chev { font-size: 16px; font-weight: 500; line-height: 1; }
+.session-body { background: var(--cream); display: flex; flex-direction: column; }
+.session-empty { padding: 14px; text-align: center; color: var(--ink-s); font-size: 12px; }
+.session-row {
+  width: 100%;
   display: grid;
   grid-template-columns: 36px 1fr auto;
   align-items: center; gap: 10px;
-  padding: 9px 2px;
+  padding: 10px 12px 10px 14px;
   border-bottom: 1px solid var(--cream-2);
-  text-align: left; width: 100%; background: none;
+  border-left: 4px solid transparent;
+  text-align: left;
+  background: var(--cream);
 }
-.sug-row:last-child { border-bottom: 0; }
-.sug-row:active { background: var(--cream-2); }
-.sug-cat {
+.session-row:last-child { border-bottom: 0; }
+.session-row:active { background: var(--cream-2); }
+.session-cat {
   font-size: 9.5px; font-weight: 600; letter-spacing: 0.06em;
   border: 1px solid; padding: 2px 3px; text-align: center;
 }
-.sug-name { font-size: 13.5px; font-weight: 500; }
-.sug-ago  { font-size: 11px; color: var(--ink-s); }
+.session-name { font-size: 13.5px; font-weight: 500; }
+.session-sets { font-size: 12px; color: var(--ink-s); font-weight: 500; }
 
 /* Category groups (exercise list) */
 .cat-group { border: 1px solid var(--line); }
@@ -1283,60 +1299,149 @@ function Stopwatch() {
 }
 
 // =============================================================================
-// Suggested session panel (Today tab)
-// One exercise per category — the least recently done (or never done).
+// Suggested sessions (Today tab)
+// Two collapsible sessions:
+//   - Full body: 4 exercises from {push, pull, legs}.
+//     Least-used of those three over 7 days contributes 2; the other two each contribute 1.
+//   - Targeted: 4 exercises. Variant chosen by least-used primary:
+//     push least → 3 push + 1 isolation
+//     pull least → 3 pull + 1 isolation
+//     legs least → 3 legs + 1 core
+//   Within each category, oldest last_used_at first.
 // =============================================================================
-function SuggestedSession({
+const SUGGESTED_SETS = 3;
+function pickFromCat(catId, n, exerciseDict) {
+  const pool = EXERCISES.filter(e => e.cat === catId);
+  return [...pool].sort((a, b) => {
+    var _exerciseDict$a$name, _exerciseDict$b$name;
+    const aIso = (_exerciseDict$a$name = exerciseDict[a.name]) === null || _exerciseDict$a$name === void 0 ? void 0 : _exerciseDict$a$name.last_used_at;
+    const bIso = (_exerciseDict$b$name = exerciseDict[b.name]) === null || _exerciseDict$b$name === void 0 ? void 0 : _exerciseDict$b$name.last_used_at;
+    if (!aIso && !bIso) return 0;
+    if (!aIso) return -1;
+    if (!bIso) return 1;
+    return new Date(aIso) - new Date(bIso);
+  }).slice(0, n);
+}
+function SuggestedSessions({
   exerciseDict,
+  refreshKey,
   onSelectExercise
 }) {
-  const suggestions = CATEGORIES.map(cat => {
-    var _exerciseDict$best$na;
-    const pool = EXERCISES.filter(e => e.cat === cat.id);
-    const sorted = [...pool].sort((a, b) => {
-      var _exerciseDict$a$name, _exerciseDict$b$name;
-      const aIso = (_exerciseDict$a$name = exerciseDict[a.name]) === null || _exerciseDict$a$name === void 0 ? void 0 : _exerciseDict$a$name.last_used_at;
-      const bIso = (_exerciseDict$b$name = exerciseDict[b.name]) === null || _exerciseDict$b$name === void 0 ? void 0 : _exerciseDict$b$name.last_used_at;
-      if (!aIso && !bIso) return 0;
-      if (!aIso) return -1;
-      if (!bIso) return 1;
-      return new Date(aIso) - new Date(bIso);
-    });
-    const best = sorted[0];
-    const ago = best ? daysAgo((_exerciseDict$best$na = exerciseDict[best.name]) === null || _exerciseDict$best$na === void 0 ? void 0 : _exerciseDict$best$na.last_used_at) : null;
-    return {
-      cat,
-      exercise: best,
-      ago
+  const [usage, setUsage] = useState(null);
+  const [openFull, setOpenFull] = useState(false);
+  const [openTargeted, setOpenTargeted] = useState(false);
+
+  // Tally sets per category over the last 7 days (today + 6 prior).
+  useEffect(() => {
+    async function load() {
+      const counts = {
+        push: 0,
+        pull: 0,
+        legs: 0,
+        core: 0,
+        isolation: 0
+      };
+      const today = todayKey();
+      for (let i = 0; i < 7; i++) {
+        const dk = dateKeyOffset(today, -i);
+        const sets = await storage.get(`strength:${dk}`, []);
+        for (const s of sets) {
+          const ex = getExercise(s.exercise_name);
+          if (counts[ex.cat] !== undefined) counts[ex.cat]++;
+        }
+      }
+      setUsage(counts);
+    }
+    load();
+  }, [refreshKey]);
+  function buildFullBody() {
+    if (!usage) return [];
+    const cats = ["push", "pull", "legs"];
+    const sorted = [...cats].sort((a, b) => usage[a] - usage[b]);
+    const dbl = sorted[0];
+    const counts = {
+      push: 1,
+      pull: 1,
+      legs: 1,
+      [dbl]: 2
     };
-  });
-  return /*#__PURE__*/React.createElement(Panel, {
-    title: "Suggested session"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "suggested-list"
-  }, suggestions.map(({
-    cat,
-    exercise,
-    ago
-  }) => {
-    if (!exercise) return null;
-    const color = CAT_COLORS[cat.id];
-    const agoStr = ago === null ? "never" : ago === 0 ? "today" : `${ago}d ago`;
+    const result = [];
+    for (const c of cats) {
+      // fixed display order: push → pull → legs
+      result.push(...pickFromCat(c, counts[c], exerciseDict).map(e => ({
+        ...e,
+        sets: SUGGESTED_SETS
+      })));
+    }
+    return result;
+  }
+  function buildTargeted() {
+    if (!usage) return [];
+    const cats = ["push", "pull", "legs"];
+    const sorted = [...cats].sort((a, b) => usage[a] - usage[b]);
+    const primary = sorted[0];
+    const secondary = primary === "legs" ? "core" : "isolation";
+    return [...pickFromCat(primary, 3, exerciseDict), ...pickFromCat(secondary, 1, exerciseDict)].map(e => ({
+      ...e,
+      sets: SUGGESTED_SETS
+    }));
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "sessions"
+  }, /*#__PURE__*/React.createElement(SessionCard, {
+    label: "Full body session",
+    open: openFull,
+    onToggle: () => setOpenFull(!openFull),
+    exercises: buildFullBody(),
+    onSelectExercise: onSelectExercise
+  }), /*#__PURE__*/React.createElement(SessionCard, {
+    label: "Targeted session",
+    open: openTargeted,
+    onToggle: () => setOpenTargeted(!openTargeted),
+    exercises: buildTargeted(),
+    onSelectExercise: onSelectExercise
+  }));
+}
+function SessionCard({
+  label,
+  open,
+  onToggle,
+  exercises,
+  onSelectExercise
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "session-card"
+  }, /*#__PURE__*/React.createElement("button", {
+    className: `session-btn${open ? " session-open" : ""}`,
+    onClick: onToggle
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "session-label"
+  }, label), /*#__PURE__*/React.createElement("span", {
+    className: "session-chev mono"
+  }, open ? "−" : "+")), open && /*#__PURE__*/React.createElement("div", {
+    className: "session-body"
+  }, exercises.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "session-empty mono"
+  }, "Loading\u2026") : exercises.map((ex, i) => {
+    const color = CAT_COLORS[ex.cat];
     return /*#__PURE__*/React.createElement("button", {
-      key: cat.id,
-      className: "sug-row",
-      onClick: () => onSelectExercise(exercise.name)
+      key: ex.name + i,
+      className: "session-row",
+      style: {
+        borderLeftColor: color
+      },
+      onClick: () => onSelectExercise(ex.name)
     }, /*#__PURE__*/React.createElement("span", {
-      className: "sug-cat mono",
+      className: "session-cat mono",
       style: {
         color,
         borderColor: color
       }
-    }, cat.label.slice(0, 3).toUpperCase()), /*#__PURE__*/React.createElement("span", {
-      className: "sug-name"
-    }, exercise.name), /*#__PURE__*/React.createElement("span", {
-      className: "sug-ago mono"
-    }, agoStr));
+    }, ex.cat.slice(0, 3).toUpperCase()), /*#__PURE__*/React.createElement("span", {
+      className: "session-name"
+    }, ex.name), /*#__PURE__*/React.createElement("span", {
+      className: "session-sets mono"
+    }, ex.sets, "\xD7"));
   })));
 }
 
@@ -1474,8 +1579,9 @@ function TodayView({
   return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(DateBar, {
     dateKey: dateKey,
     onChange: setDateKey
-  }), /*#__PURE__*/React.createElement(SuggestedSession, {
+  }), /*#__PURE__*/React.createElement(SuggestedSessions, {
     exerciseDict: exerciseDict,
+    refreshKey: refreshKey,
     onSelectExercise: onSelectExercise
   }), !empty && /*#__PURE__*/React.createElement("div", {
     className: "totals-bar"
