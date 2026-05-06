@@ -191,6 +191,42 @@ input[type=number] { -moz-appearance: textfield; }
 .session-name { font-size: 13.5px; font-weight: 500; }
 .session-sets { font-size: 12px; color: var(--ink-s); font-weight: 500; }
 
+/* Start session button at bottom of expanded suggested session card */
+.start-session-btn {
+  width: 100%;
+  border: 0; border-top: 1px solid var(--line);
+  background: var(--ink); color: var(--cream);
+  padding: 12px 14px;
+  font-size: 12.5px; font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase;
+}
+.start-session-btn:active { background: #C9542A; }
+
+/* Active session queue (Log tab) */
+.queue-panel { }
+.queue-body { padding: 4px 0; }
+.queue-row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  align-items: center; gap: 10px;
+  padding: 10px 12px 10px 14px;
+  border-bottom: 1px solid var(--cream-2);
+  border-left: 4px solid transparent;
+  text-align: left;
+  background: var(--cream);
+}
+.queue-row:last-child { border-bottom: 0; }
+.queue-row:active:not(:disabled) { background: var(--cream-2); }
+.queue-row:disabled { cursor: default; }
+.queue-mark {
+  font-size: 14px; font-weight: 700; text-align: center;
+  color: #3A7D52;
+}
+.queue-done { opacity: 0.5; }
+.queue-done .session-name { text-decoration: line-through; }
+.queue-done .queue-mark { color: #3A7D52; }
+
 /* Category groups (exercise list) */
 .cat-group { border: 1px solid var(--line); }
 .cat-header {
@@ -815,6 +851,13 @@ const CAT_COLORS = {
   core: "#B07D20",
   isolation: "#7A5C8A"
 };
+const CAT_LABELS = {
+  push: "PUSH",
+  pull: "PULL",
+  legs: "LEGS",
+  core: "CORE",
+  isolation: "ISO"
+};
 const CATEGORIES = [{
   id: "push",
   label: "Push"
@@ -1325,7 +1368,8 @@ function pickFromCat(catId, n, exerciseDict) {
 function SuggestedSessions({
   exerciseDict,
   refreshKey,
-  onSelectExercise
+  onSelectExercise,
+  onStartSession
 }) {
   const [usage, setUsage] = useState(null);
   const [openFull, setOpenFull] = useState(false);
@@ -1386,20 +1430,30 @@ function SuggestedSessions({
       sets: SUGGESTED_SETS
     }));
   }
+  const fullBody = buildFullBody();
+  const targeted = buildTargeted();
   return /*#__PURE__*/React.createElement("div", {
     className: "sessions"
   }, /*#__PURE__*/React.createElement(SessionCard, {
     label: "Full body session",
     open: openFull,
     onToggle: () => setOpenFull(!openFull),
-    exercises: buildFullBody(),
-    onSelectExercise: onSelectExercise
+    exercises: fullBody,
+    onSelectExercise: onSelectExercise,
+    onStartSession: () => onStartSession === null || onStartSession === void 0 ? void 0 : onStartSession({
+      title: "Full body session",
+      exercises: fullBody
+    })
   }), /*#__PURE__*/React.createElement(SessionCard, {
     label: "Targeted session",
     open: openTargeted,
     onToggle: () => setOpenTargeted(!openTargeted),
-    exercises: buildTargeted(),
-    onSelectExercise: onSelectExercise
+    exercises: targeted,
+    onSelectExercise: onSelectExercise,
+    onStartSession: () => onStartSession === null || onStartSession === void 0 ? void 0 : onStartSession({
+      title: "Targeted session",
+      exercises: targeted
+    })
   }));
 }
 function SessionCard({
@@ -1407,7 +1461,8 @@ function SessionCard({
   open,
   onToggle,
   exercises,
-  onSelectExercise
+  onSelectExercise,
+  onStartSession
 }) {
   return /*#__PURE__*/React.createElement("div", {
     className: "session-card"
@@ -1422,7 +1477,7 @@ function SessionCard({
     className: "session-body"
   }, exercises.length === 0 ? /*#__PURE__*/React.createElement("div", {
     className: "session-empty mono"
-  }, "Loading\u2026") : exercises.map((ex, i) => {
+  }, "Loading\u2026") : /*#__PURE__*/React.createElement(React.Fragment, null, exercises.map((ex, i) => {
     const color = CAT_COLORS[ex.cat];
     return /*#__PURE__*/React.createElement("button", {
       key: ex.name + i,
@@ -1437,12 +1492,15 @@ function SessionCard({
         color,
         borderColor: color
       }
-    }, ex.cat.slice(0, 3).toUpperCase()), /*#__PURE__*/React.createElement("span", {
+    }, CAT_LABELS[ex.cat]), /*#__PURE__*/React.createElement("span", {
       className: "session-name"
     }, ex.name), /*#__PURE__*/React.createElement("span", {
       className: "session-sets mono"
     }, ex.sets, "\xD7"));
-  })));
+  }), /*#__PURE__*/React.createElement("button", {
+    className: "start-session-btn",
+    onClick: onStartSession
+  }, "Start session"))));
 }
 
 // =============================================================================
@@ -1551,7 +1609,8 @@ function TodayView({
   refreshKey,
   onChange,
   exerciseDict,
-  onSelectExercise
+  onSelectExercise,
+  onStartSession
 }) {
   const [sets, setSets] = useState([]);
   const [sessions, setSessions] = useState([]);
@@ -1582,7 +1641,8 @@ function TodayView({
   }), /*#__PURE__*/React.createElement(SuggestedSessions, {
     exerciseDict: exerciseDict,
     refreshKey: refreshKey,
-    onSelectExercise: onSelectExercise
+    onSelectExercise: onSelectExercise,
+    onStartSession: onStartSession
   }), !empty && /*#__PURE__*/React.createElement("div", {
     className: "totals-bar"
   }, totalSets > 0 && /*#__PURE__*/React.createElement("div", {
@@ -1631,7 +1691,10 @@ function StrengthLog({
   refreshKey,
   onChange,
   pendingExercise,
-  clearPending
+  clearPending,
+  activeSession,
+  onEndSession,
+  onCompleteExercise
 }) {
   const [todaySets, setTodaySets] = useState([]);
   const [exerciseDict, setExerciseDict] = useState({});
@@ -1654,31 +1717,46 @@ function StrengthLog({
     });
     clearPending === null || clearPending === void 0 || clearPending();
   }, [pendingExercise]);
-  function doSelect(name, dict) {
+
+  // Build N rows: prefill from last_session where available, padding with the last entry,
+  // or empty rows if no history. If suggestedSets is null, fall back to existing behaviour
+  // (use last_session length, or 1 row).
+  function doSelect(name, dict, suggestedSets = null) {
     var _dict$name;
     const ex = getExercise(name);
     const last = (_dict$name = dict[name]) === null || _dict$name === void 0 ? void 0 : _dict$name.last_session;
     if (ex.input === IN.CIRCUIT) {
       setCircuitMin(last !== null && last !== void 0 && last.duration_min ? String(last.duration_min) : "");
-      setCircuitSets(last !== null && last !== void 0 && last.num_sets ? String(last.num_sets) : "");
-    } else if (Array.isArray(last) && last.length > 0) {
-      setSets(last.map(s => {
-        var _s$weight_kg, _s$reps;
-        return {
-          weight_kg: String((_s$weight_kg = s.weight_kg) !== null && _s$weight_kg !== void 0 ? _s$weight_kg : ""),
-          reps: String((_s$reps = s.reps) !== null && _s$reps !== void 0 ? _s$reps : "")
-        };
-      }));
+      if (suggestedSets != null) {
+        setCircuitSets(String(suggestedSets));
+      } else {
+        setCircuitSets(last !== null && last !== void 0 && last.num_sets ? String(last.num_sets) : "");
+      }
     } else {
-      setSets([{
-        weight_kg: "",
-        reps: ""
-      }]);
+      const lastArr = Array.isArray(last) ? last : [];
+      const targetN = suggestedSets != null ? suggestedSets : lastArr.length > 0 ? lastArr.length : 1;
+      const rows = [];
+      for (let i = 0; i < targetN; i++) {
+        if (lastArr.length > 0) {
+          var _src$weight_kg, _src$reps;
+          const src = lastArr[i] || lastArr[lastArr.length - 1];
+          rows.push({
+            weight_kg: String((_src$weight_kg = src.weight_kg) !== null && _src$weight_kg !== void 0 ? _src$weight_kg : ""),
+            reps: String((_src$reps = src.reps) !== null && _src$reps !== void 0 ? _src$reps : "")
+          });
+        } else {
+          rows.push({
+            weight_kg: "",
+            reps: ""
+          });
+        }
+      }
+      setSets(rows);
     }
     setSelected(name);
   }
-  function selectExercise(name) {
-    doSelect(name, exerciseDict);
+  function selectExercise(name, suggestedSets = null) {
+    doSelect(name, exerciseDict, suggestedSets);
   }
   function backToList() {
     setSelected(null);
@@ -1710,6 +1788,7 @@ function StrengthLog({
   async function logExercise() {
     if (logging || !selected) return;
     const ex = getExercise(selected);
+    const completedName = selected;
     if (ex.input === IN.CIRCUIT) {
       const dm = Number(circuitMin);
       const ns = Number(circuitSets);
@@ -1744,6 +1823,7 @@ function StrengthLog({
       setCircuitMin("");
       setCircuitSets("");
       setLogging(false);
+      onCompleteExercise === null || onCompleteExercise === void 0 || onCompleteExercise(completedName);
       onChange === null || onChange === void 0 || onChange();
       return;
     }
@@ -1779,6 +1859,7 @@ function StrengthLog({
     setSelected(null);
     setSets([]);
     setLogging(false);
+    onCompleteExercise === null || onCompleteExercise === void 0 || onCompleteExercise(completedName);
     onChange === null || onChange === void 0 || onChange();
   }
 
@@ -1904,7 +1985,11 @@ function StrengthLog({
     const iso = (_exerciseDict$name = exerciseDict[name]) === null || _exerciseDict$name === void 0 ? void 0 : _exerciseDict$name.last_used_at;
     return iso && new Date(iso).getTime() > fiveDaysAgoMs;
   };
-  return /*#__PURE__*/React.createElement(React.Fragment, null, CATEGORIES.map(cat => {
+  return /*#__PURE__*/React.createElement(React.Fragment, null, activeSession && /*#__PURE__*/React.createElement(SessionQueue, {
+    session: activeSession,
+    onSelectExercise: (name, sets) => selectExercise(name, sets),
+    onEndSession: onEndSession
+  }), CATEGORIES.map(cat => {
     const catExs = EXERCISES.filter(e => e.cat === cat.id);
     const color = CAT_COLORS[cat.id];
     return /*#__PURE__*/React.createElement("div", {
@@ -1936,6 +2021,54 @@ function StrengthLog({
       }, count)));
     }));
   }));
+}
+
+// =============================================================================
+// SessionQueue — active session panel rendered at top of strength log
+// =============================================================================
+function SessionQueue({
+  session,
+  onSelectExercise,
+  onEndSession
+}) {
+  const completed = session.completed || [];
+  const total = session.exercises.length;
+  const doneCount = completed.length;
+  const allDone = doneCount === total && total > 0;
+  const headBg = allDone ? "#3A7D52" : undefined;
+  return /*#__PURE__*/React.createElement("div", {
+    className: "panel queue-panel"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "panel-head",
+    style: headBg ? {
+      background: headBg
+    } : undefined
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "panel-title"
+  }, session.title, " \xB7 ", doneCount, "/", total, allDone ? " ✓" : ""), /*#__PURE__*/React.createElement("button", {
+    className: "panel-back mono",
+    onClick: onEndSession
+  }, allDone ? "Done" : "End")), /*#__PURE__*/React.createElement("div", {
+    className: "panel-body queue-body"
+  }, session.exercises.map((ex, i) => {
+    const isDone = completed.includes(ex.name);
+    const color = CAT_COLORS[ex.cat];
+    return /*#__PURE__*/React.createElement("button", {
+      key: ex.name + i,
+      className: `session-row queue-row${isDone ? " queue-done" : ""}`,
+      style: {
+        borderLeftColor: color
+      },
+      onClick: () => !isDone && onSelectExercise(ex.name, ex.sets),
+      disabled: isDone
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "queue-mark mono"
+    }, isDone ? "✓" : "·"), /*#__PURE__*/React.createElement("span", {
+      className: "session-name"
+    }, ex.name), /*#__PURE__*/React.createElement("span", {
+      className: "session-sets mono"
+    }, isDone ? "done" : `${ex.sets}×`));
+  })));
 }
 
 // =============================================================================
@@ -2102,12 +2235,15 @@ function LogScreen({
   refreshKey,
   onChange,
   pendingExercise,
-  clearPending
+  clearPending,
+  activeSession,
+  onEndSession,
+  onCompleteExercise
 }) {
   const [mode, setMode] = useState("strength");
   useEffect(() => {
-    if (pendingExercise) setMode("strength");
-  }, [pendingExercise]);
+    if (pendingExercise || activeSession) setMode("strength");
+  }, [pendingExercise, activeSession]);
   return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(DateBar, {
     dateKey: dateKey,
     onChange: setDateKey
@@ -2130,7 +2266,10 @@ function LogScreen({
     refreshKey: refreshKey,
     onChange: onChange,
     pendingExercise: pendingExercise,
-    clearPending: clearPending
+    clearPending: clearPending,
+    activeSession: activeSession,
+    onEndSession: onEndSession,
+    onCompleteExercise: onCompleteExercise
   })), mode === "cardio" && /*#__PURE__*/React.createElement(CardioLog, {
     dateKey: dateKey,
     refreshKey: refreshKey,
@@ -2210,6 +2349,17 @@ function App() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [exerciseDict, setExerciseDict] = useState({});
   const [pendingExercise, setPendingExercise] = useState(null);
+
+  // activeSession persists across reloads via localStorage.
+  // Shape: { title, exercises: [{name, cat, input, sets}], completed: [name, ...] }
+  const [activeSession, setActiveSession] = useState(() => {
+    try {
+      const raw = localStorage.getItem("exercise-tracker:active_session");
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  });
   const bump = () => setRefreshKey(x => x + 1);
   useEffect(() => {
     storage.get("exercise_dict", {}).then(setExerciseDict);
@@ -2217,9 +2367,44 @@ function App() {
   useEffect(() => {
     bump();
   }, [tab]);
+
+  // Persist activeSession on every change.
+  useEffect(() => {
+    try {
+      if (activeSession === null) {
+        localStorage.removeItem("exercise-tracker:active_session");
+      } else {
+        localStorage.setItem("exercise-tracker:active_session", JSON.stringify(activeSession));
+      }
+    } catch (err) {
+      console.error("save active_session", err);
+    }
+  }, [activeSession]);
   function handleSelectExercise(name) {
     setPendingExercise(name);
     setTab("log");
+  }
+  function handleStartSession(session) {
+    setActiveSession({
+      ...session,
+      completed: []
+    });
+    setTab("log");
+  }
+  function handleEndSession() {
+    setActiveSession(null);
+  }
+  function handleCompleteExercise(name) {
+    setActiveSession(prev => {
+      if (!prev) return null;
+      if (!prev.exercises.some(e => e.name === name)) return prev;
+      const completed = prev.completed || [];
+      if (completed.includes(name)) return prev;
+      return {
+        ...prev,
+        completed: [...completed, name]
+      };
+    });
   }
   return /*#__PURE__*/React.createElement("div", {
     className: "app"
@@ -2235,14 +2420,18 @@ function App() {
     refreshKey: refreshKey,
     onChange: bump,
     exerciseDict: exerciseDict,
-    onSelectExercise: handleSelectExercise
+    onSelectExercise: handleSelectExercise,
+    onStartSession: handleStartSession
   }), tab === "log" && /*#__PURE__*/React.createElement(LogScreen, {
     dateKey: dateKey,
     setDateKey: setDateKey,
     refreshKey: refreshKey,
     onChange: bump,
     pendingExercise: pendingExercise,
-    clearPending: () => setPendingExercise(null)
+    clearPending: () => setPendingExercise(null),
+    activeSession: activeSession,
+    onEndSession: handleEndSession,
+    onCompleteExercise: handleCompleteExercise
   }), tab === "jiggle" && /*#__PURE__*/React.createElement(JiggleTab, null)), /*#__PURE__*/React.createElement(BottomNav, {
     active: tab,
     onChange: setTab
