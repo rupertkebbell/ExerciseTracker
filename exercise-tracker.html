@@ -1,5 +1,4 @@
 <!doctype html>
-
 <html lang="en">
 <head>
 <meta charset="utf-8" />
@@ -45,41 +44,41 @@ input[type=number] { -moz-appearance: textfield; }
 
 /* App shell */
 .app {
-max-width: 480px; margin: 0 auto;
-min-height: 100dvh;
-padding-bottom: 88px;
-display: flex; flex-direction: column;
+  max-width: 480px; margin: 0 auto;
+  min-height: 100dvh;
+  padding-bottom: 88px;
+  display: flex; flex-direction: column;
 }
 .app-head {
-padding: 14px 16px 6px;
-display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px 6px;
+  display: flex; align-items: center; justify-content: space-between;
 }
 .app-title { font-size: 22px; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
 .app-main {
-flex: 1; padding: 6px 12px 24px;
-display: flex; flex-direction: column; gap: 10px;
+  flex: 1; padding: 6px 12px 24px;
+  display: flex; flex-direction: column; gap: 10px;
 }
 
 /* Panel */
-.panel { border: 1px solid var(–line); background: var(–cream); }
+.panel { border: 1px solid var(--line); background: var(--cream); }
 .panel-head {
-background: #C9542A;
-color: var(–cream);
-padding: 6px 10px;
-display: flex; align-items: center; justify-content: space-between;
-border-bottom: 1px solid var(–line);
+  background: #C9542A;
+  color: var(--cream);
+  padding: 6px 10px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--line);
 }
 .panel-title { font-weight: 700; font-size: 12.5px; letter-spacing: 0.06em; text-transform: uppercase; }
 .panel-back {
-display: inline-flex; align-items: center; gap: 4px;
-color: var(–cream); font-size: 11px; opacity: 0.9;
+  display: inline-flex; align-items: center; gap: 4px;
+  color: var(--cream); font-size: 11px; opacity: 0.9;
 }
 .panel-back:active { opacity: 0.65; }
 .panel-body { padding: 10px; }
 
 /* Buttons */
-.btn { border: 1px solid var(–line); font-weight: 700; letter-spacing: 0.01em; background: var(–cream); }
-.btn-primary { background: var(–ink); color: var(–cream); }
+.btn { border: 1px solid var(--line); font-weight: 700; letter-spacing: 0.01em; background: var(--cream); }
+.btn-primary { background: var(--ink); color: var(--cream); }
 .btn-primary:active { background: #C9542A; }
 .btn-md { padding: 9px 18px; font-size: 14px; }
 .btn-disabled { opacity: 0.38; cursor: not-allowed; }
@@ -87,120 +86,120 @@ color: var(–cream); font-size: 11px; opacity: 0.9;
 
 /* Date bar */
 .datebar {
-display: flex; align-items: stretch;
-border: 1px solid var(–line); background: var(–cream);
+  display: flex; align-items: stretch;
+  border: 1px solid var(--line); background: var(--cream);
 }
 .datebar-step {
-padding: 8px 14px;
-display: flex; align-items: center; justify-content: center;
-border-right: 1px solid var(–line);
+  padding: 8px 14px;
+  display: flex; align-items: center; justify-content: center;
+  border-right: 1px solid var(--line);
 }
-.datebar-step:last-child { border-right: 0; border-left: 1px solid var(–line); }
+.datebar-step:last-child { border-right: 0; border-left: 1px solid var(--line); }
 .datebar-step:disabled { opacity: 0.22; }
-.datebar-step:active:not(:disabled) { background: var(–cream-2); }
+.datebar-step:active:not(:disabled) { background: var(--cream-2); }
 .datebar-label {
-flex: 1; text-align: center; padding: 6px 0;
-display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  flex: 1; text-align: center; padding: 6px 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
 }
 .datebar-day { font-size: 13px; font-weight: 500; }
-.datebar-jump { font-size: 10px; color: var(–ink-s); text-decoration: underline; text-underline-offset: 2px; }
+.datebar-jump { font-size: 10px; color: var(--ink-s); text-decoration: underline; text-underline-offset: 2px; }
 
 /* Totals bar */
-.totals-bar { display: flex; border: 1px solid var(–line); background: var(–cream); }
+.totals-bar { display: flex; border: 1px solid var(--line); background: var(--cream); }
 .totals-cell {
-flex: 1; padding: 8px 6px;
-display: flex; flex-direction: column; align-items: center;
-border-right: 1px solid var(–line);
+  flex: 1; padding: 8px 6px;
+  display: flex; flex-direction: column; align-items: center;
+  border-right: 1px solid var(--line);
 }
 .totals-cell:last-child { border-right: 0; }
 .totals-num { font-size: 22px; font-weight: 500; line-height: 1.1; }
-.totals-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(–ink-s); margin-top: 2px; }
+.totals-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-s); margin-top: 2px; }
 
 /* Segment control */
-.segment { display: flex; border: 1px solid var(–line); }
+.segment { display: flex; border: 1px solid var(--line); }
 .segment-btn {
-flex: 1; padding: 10px 0;
-display: flex; align-items: center; justify-content: center; gap: 6px;
-font-weight: 500; font-size: 13px;
-border-right: 1px solid var(–line); background: var(–cream);
+  flex: 1; padding: 10px 0;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  font-weight: 500; font-size: 13px;
+  border-right: 1px solid var(--line); background: var(--cream);
 }
 .segment-btn:last-child { border-right: 0; }
-.segment-btn.active { background: var(–ink); color: var(–cream); }
+.segment-btn.active { background: var(--ink); color: var(--cream); }
 
 /* Stopwatch */
-.stopwatch { border: 1px solid var(–line); background: var(–cream-2); }
+.stopwatch { border: 1px solid var(--line); background: var(--cream-2); }
 .sw-timers {
-display: flex; align-items: stretch;
-border-bottom: 1px solid var(–line);
+  display: flex; align-items: stretch;
+  border-bottom: 1px solid var(--line);
 }
 .sw-cell {
-flex: 1; padding: 8px 6px;
-display: flex; flex-direction: column; align-items: center; justify-content: center;
+  flex: 1; padding: 8px 6px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
 }
-.sw-div { width: 1px; background: var(–line); }
-.sw-lbl { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(–ink-s); margin-bottom: 2px; }
+.sw-div { width: 1px; background: var(--line); }
+.sw-lbl { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-s); margin-bottom: 2px; }
 .sw-val { font-size: 20px; font-weight: 500; letter-spacing: 0.02em; }
 .sw-active  { color: #C9542A; }
 .sw-resting { color: #3A7D52; }
 .sw-btns { display: flex; }
 .sw-btn {
-flex: 1; padding: 9px 10px;
-display: flex; align-items: center; justify-content: center; gap: 5px;
-font-size: 12.5px; font-weight: 600;
-border-right: 1px solid var(–line); background: var(–cream);
-letter-spacing: 0.01em;
+  flex: 1; padding: 9px 10px;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  font-size: 12.5px; font-weight: 600;
+  border-right: 1px solid var(--line); background: var(--cream);
+  letter-spacing: 0.01em;
 }
 .sw-btn:last-child { border-right: 0; }
 .sw-btn:disabled { opacity: 0.28; cursor: not-allowed; }
-.sw-start:active { background: var(–cream-2); }
-.sw-stop  { background: var(–ink); color: var(–cream); }
+.sw-start:active { background: var(--cream-2); }
+.sw-stop  { background: var(--ink); color: var(--cream); }
 .sw-stop:active { background: #C9542A; }
-.sw-reset:active { background: var(–cream-2); }
-.sw-end { flex: 0 0 auto; padding: 9px 14px; font-size: 10.5px; color: var(–ink-s); }
+.sw-reset:active { background: var(--cream-2); }
+.sw-end { flex: 0 0 auto; padding: 9px 14px; font-size: 10.5px; color: var(--ink-s); }
 
 /* Suggested sessions (Full body / Targeted) */
 .sessions { display: flex; flex-direction: column; gap: 6px; }
-.session-card { border: 1px solid var(–line); }
+.session-card { border: 1px solid var(--line); }
 .session-btn {
-width: 100%;
-display: flex; align-items: center; justify-content: space-between;
-padding: 12px 14px;
-background: #C9542A; color: var(–cream);
-font-size: 12.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  width: 100%;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px;
+  background: #C9542A; color: var(--cream);
+  font-size: 12.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
 }
-.session-btn.session-open { border-bottom: 1px solid var(–line); }
+.session-btn.session-open { border-bottom: 1px solid var(--line); }
 .session-btn:active { background: #B04420; }
 .session-chev { font-size: 16px; font-weight: 500; line-height: 1; }
-.session-body { background: var(–cream); display: flex; flex-direction: column; }
-.session-empty { padding: 14px; text-align: center; color: var(–ink-s); font-size: 12px; }
+.session-body { background: var(--cream); display: flex; flex-direction: column; }
+.session-empty { padding: 14px; text-align: center; color: var(--ink-s); font-size: 12px; }
 .session-row {
-width: 100%;
-display: grid;
-grid-template-columns: 36px 1fr auto;
-align-items: center; gap: 10px;
-padding: 10px 12px 10px 14px;
-border-bottom: 1px solid var(–cream-2);
-border-left: 4px solid transparent;
-text-align: left;
-background: var(–cream);
+  width: 100%;
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  align-items: center; gap: 10px;
+  padding: 10px 12px 10px 14px;
+  border-bottom: 1px solid var(--cream-2);
+  border-left: 4px solid transparent;
+  text-align: left;
+  background: var(--cream);
 }
 .session-row:last-child { border-bottom: 0; }
-.session-row:active { background: var(–cream-2); }
+.session-row:active { background: var(--cream-2); }
 .session-cat {
-font-size: 9.5px; font-weight: 600; letter-spacing: 0.06em;
-border: 1px solid; padding: 2px 3px; text-align: center;
+  font-size: 9.5px; font-weight: 600; letter-spacing: 0.06em;
+  border: 1px solid; padding: 2px 3px; text-align: center;
 }
 .session-name { font-size: 13.5px; font-weight: 500; }
-.session-sets { font-size: 12px; color: var(–ink-s); font-weight: 500; }
+.session-sets { font-size: 12px; color: var(--ink-s); font-weight: 500; }
 
 /* Start session button at bottom of expanded suggested session card */
 .start-session-btn {
-width: 100%;
-border: 0; border-top: 1px solid var(–line);
-background: var(–ink); color: var(–cream);
-padding: 12px 14px;
-font-size: 12.5px; font-weight: 700;
-letter-spacing: 0.06em; text-transform: uppercase;
+  width: 100%;
+  border: 0; border-top: 1px solid var(--line);
+  background: var(--ink); color: var(--cream);
+  padding: 12px 14px;
+  font-size: 12.5px; font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase;
 }
 .start-session-btn:active { background: #C9542A; }
 
@@ -208,231 +207,230 @@ letter-spacing: 0.06em; text-transform: uppercase;
 .queue-panel { }
 .queue-body { padding: 4px 0; }
 .queue-row {
-width: 100%;
-display: grid;
-grid-template-columns: 36px 1fr auto;
-align-items: center; gap: 10px;
-padding: 10px 12px 10px 14px;
-border-bottom: 1px solid var(–cream-2);
-border-left: 4px solid transparent;
-text-align: left;
-background: var(–cream);
+  width: 100%;
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  align-items: center; gap: 10px;
+  padding: 10px 12px 10px 14px;
+  border-bottom: 1px solid var(--cream-2);
+  border-left: 4px solid transparent;
+  text-align: left;
+  background: var(--cream);
 }
 .queue-row:last-child { border-bottom: 0; }
-.queue-row:active:not(:disabled) { background: var(–cream-2); }
+.queue-row:active:not(:disabled) { background: var(--cream-2); }
 .queue-row:disabled { cursor: default; }
 .queue-mark {
-font-size: 14px; font-weight: 700; text-align: center;
-color: #3A7D52;
+  font-size: 14px; font-weight: 700; text-align: center;
+  color: #3A7D52;
 }
 .queue-done { opacity: 0.5; }
 .queue-done .session-name { text-decoration: line-through; }
 .queue-done .queue-mark { color: #3A7D52; }
 
 /* Category groups (exercise list) */
-.cat-group { border: 1px solid var(–line); }
+.cat-group { border: 1px solid var(--line); }
 .cat-header {
-padding: 5px 10px;
-color: var(–cream);
-font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em;
-border-bottom: 1px solid var(–line);
+  padding: 5px 10px;
+  color: var(--cream);
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em;
+  border-bottom: 1px solid var(--line);
 }
 .exercise-btn {
-width: 100%; padding: 12px 10px 12px 14px;
-display: flex; align-items: center; justify-content: space-between;
-border-bottom: 1px solid var(–cream-2);
-background: var(–cream);
-border-left: 4px solid transparent;
-text-align: left;
+  width: 100%; padding: 12px 10px 12px 14px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--cream-2);
+  background: var(--cream);
+  border-left: 4px solid transparent;
+  text-align: left;
 }
 .exercise-btn:last-child { border-bottom: 0; }
-.exercise-btn:active { background: var(–cream-2); }
+.exercise-btn:active { background: var(--cream-2); }
 .ex-name { font-size: 14px; font-weight: 500; }
 .ex-badges { display: flex; align-items: center; gap: 6px; }
 .badge-tick {
-color: #3A7D52; font-weight: 700; font-size: 14px; line-height: 1;
+  color: #3A7D52; font-weight: 700; font-size: 14px; line-height: 1;
 }
 .badge-count {
-display: inline-flex; align-items: center; justify-content: center;
-min-width: 22px; height: 22px; padding: 0 5px;
-font-size: 11px; font-weight: 500;
-background: #C9542A; color: var(–cream);
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 22px; height: 22px; padding: 0 5px;
+  font-size: 11px; font-weight: 500;
+  background: #C9542A; color: var(--cream);
 }
 
 /* Set table */
-.set-table { border: 1px solid var(–line); margin-bottom: 8px; }
+.set-table { border: 1px solid var(--line); margin-bottom: 8px; }
 .set-row {
-display: grid;
-grid-template-columns: 32px 1fr 1fr 38px;
-align-items: stretch;
-border-bottom: 1px solid var(–line);
+  display: grid;
+  grid-template-columns: 32px 1fr 1fr 38px;
+  align-items: stretch;
+  border-bottom: 1px solid var(--line);
 }
 .set-row:last-child { border-bottom: 0; }
 .set-row.reps-only { grid-template-columns: 32px 1fr 38px; }
-.set-head { background: var(–cream-2); }
+.set-head { background: var(--cream-2); }
 .set-idx {
-display: flex; align-items: center; justify-content: center;
-font-size: 11px; color: var(–ink-s);
-border-right: 1px solid var(–line);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: var(--ink-s);
+  border-right: 1px solid var(--line);
 }
 .set-head .set-idx,
 .set-head .set-kg,
 .set-head .set-reps {
-padding: 6px 8px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; color: var(–ink-s);
+  padding: 6px 8px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-s);
 }
 .set-head .set-kg,
 .set-head .set-reps { display: flex; align-items: center; }
 .set-del-h { }
 .set-input {
-border: 0; border-right: 1px solid var(–line);
-background: var(–bg-in); padding: 10px 8px;
-font-size: 15px; width: 100%; text-align: center;
+  border: 0; border-right: 1px solid var(--line);
+  background: var(--bg-in); padding: 10px 8px;
+  font-size: 15px; width: 100%; text-align: center;
 }
-.set-input:focus { outline: 0; background: var(–cream); }
+.set-input:focus { outline: 0; background: var(--cream); }
 .set-del {
-display: flex; align-items: center; justify-content: center;
-background: var(–cream);
+  display: flex; align-items: center; justify-content: center;
+  background: var(--cream);
 }
 .set-del:disabled { opacity: 0.22; }
-.set-del:active:not(:disabled) { background: var(–cream-2); }
+.set-del:active:not(:disabled) { background: var(--cream-2); }
 .add-set {
-width: 100%; border: 1px dashed var(–line);
-padding: 9px; display: flex; align-items: center; justify-content: center; gap: 6px;
-font-size: 13px; color: var(–ink-s); background: transparent;
+  width: 100%; border: 1px dashed var(--line);
+  padding: 9px; display: flex; align-items: center; justify-content: center; gap: 6px;
+  font-size: 13px; color: var(--ink-s); background: transparent;
 }
-.add-set:active { background: var(–cream-2); }
+.add-set:active { background: var(--cream-2); }
 
 /* Core circuit form */
 .circuit-form { display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px; }
 .circuit-field label {
-display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;
-color: var(–ink-s); margin-bottom: 4px;
+  display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--ink-s); margin-bottom: 4px;
 }
 
 /* Cardio form */
 .cardio-types {
-display: flex; border: 1px solid var(–line); margin-bottom: 10px;
+  display: flex; border: 1px solid var(--line); margin-bottom: 10px;
 }
 .cardio-type {
-flex: 1; padding: 9px 4px; font-size: 12.5px; font-weight: 500;
-border-right: 1px solid var(–line); background: var(–cream); letter-spacing: 0.01em;
+  flex: 1; padding: 9px 4px; font-size: 12.5px; font-weight: 500;
+  border-right: 1px solid var(--line); background: var(--cream); letter-spacing: 0.01em;
 }
 .cardio-type:last-child { border-right: 0; }
-.cardio-type.active { background: var(–ink); color: var(–cream); }
+.cardio-type.active { background: var(--ink); color: var(--cream); }
 
 .distance-row {
-display: flex; align-items: center; gap: 10px;
-margin-bottom: 10px;
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 10px;
 }
 .distance-lbl {
-font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(–ink-s);
-white-space: nowrap;
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-s);
+  white-space: nowrap;
 }
 .dist-field { flex: 1; }
 
 .cardio-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .cardio-input label {
-display: flex; align-items: center; gap: 5px;
-font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;
-color: var(–ink-s); margin-bottom: 4px;
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--ink-s); margin-bottom: 4px;
 }
 .auto-tag {
-font-size: 9.5px; padding: 1px 5px;
-background: #C9542A; color: var(–cream);
-text-transform: uppercase; letter-spacing: 0.04em;
+  font-size: 9.5px; padding: 1px 5px;
+  background: #C9542A; color: var(--cream);
+  text-transform: uppercase; letter-spacing: 0.04em;
 }
 .cardio-field {
-display: flex; align-items: stretch;
-border: 1px solid var(–line); background: var(–bg-in);
+  display: flex; align-items: stretch;
+  border: 1px solid var(--line); background: var(--bg-in);
 }
 .cardio-field input {
-flex: 1; border: 0; background: transparent;
-padding: 10px; font-size: 16px; width: 100%;
+  flex: 1; border: 0; background: transparent;
+  padding: 10px; font-size: 16px; width: 100%;
 }
 .cardio-field input:focus { outline: 0; }
 .cardio-field .unit {
-font-family: ‘JetBrains Mono’, ui-monospace, monospace;
-font-size: 12px; color: var(–ink-s); padding: 0 10px;
-border-left: 1px solid var(–line);
-display: flex; align-items: center;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 12px; color: var(--ink-s); padding: 0 10px;
+  border-left: 1px solid var(--line);
+  display: flex; align-items: center;
 }
 
 /* Today: strength groups */
 .sg {
-border-bottom: 1px solid var(–cream-2);
-border-left: 4px solid transparent;
-padding: 8px 0 8px 8px;
+  border-bottom: 1px solid var(--cream-2);
+  border-left: 4px solid transparent;
+  padding: 8px 0 8px 8px;
 }
 .sg:first-child { padding-top: 4px; }
 .sg:last-child  { border-bottom: 0; padding-bottom: 4px; }
 .sg-head {
-display: flex; align-items: baseline; justify-content: space-between;
-margin-bottom: 3px;
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-bottom: 3px;
 }
 .sg-name    { font-weight: 700; font-size: 14px; }
-.sg-summary { font-size: 11px; color: var(–ink-s); }
-.sg-circuit { font-size: 12px; color: var(–ink-s); margin-top: 2px; }
+.sg-summary { font-size: 11px; color: var(--ink-s); }
+.sg-circuit { font-size: 12px; color: var(--ink-s); margin-top: 2px; }
 .sg-rows { display: flex; flex-direction: column; }
 .sg-set {
-display: grid;
-grid-template-columns: 32px 60px 14px 1fr 28px;
-align-items: center; padding: 2px 0; font-size: 13px; gap: 3px;
+  display: grid;
+  grid-template-columns: 32px 60px 14px 1fr 28px;
+  align-items: center; padding: 2px 0; font-size: 13px; gap: 3px;
 }
-.sg-idx { color: var(–ink-s); font-size: 11px; }
-.sg-x   { color: var(–ink-s); text-align: center; }
+.sg-idx { color: var(--ink-s); font-size: 11px; }
+.sg-x   { color: var(--ink-s); text-align: center; }
 .sg-r   { font-weight: 500; }
 .sg-del {
-display: flex; align-items: center; justify-content: center;
-color: var(–ink-s); padding: 4px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--ink-s); padding: 4px;
 }
 .sg-del:active { color: #C9542A; }
 
 /* Today: cardio rows */
 .cr-list { display: flex; flex-direction: column; }
 .cr-row {
-display: grid;
-grid-template-columns: 62px 1fr 52px 48px 52px 28px;
-align-items: center; padding: 6px 0;
-border-bottom: 1px solid var(–cream-2); font-size: 12.5px; gap: 3px;
+  display: grid;
+  grid-template-columns: 62px 1fr 52px 48px 52px 28px;
+  align-items: center; padding: 6px 0;
+  border-bottom: 1px solid var(--cream-2); font-size: 12.5px; gap: 3px;
 }
 .cr-row:last-child { border-bottom: 0; }
-.cr-time { font-size: 11px; color: var(–ink-s); }
+.cr-time { font-size: 11px; color: var(--ink-s); }
 .cr-type { font-weight: 500; }
 .cr-dist, .cr-dur, .cr-kcal { text-align: right; font-size: 12px; }
 .cr-del {
-display: flex; align-items: center; justify-content: center;
-color: var(–ink-s); padding: 4px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--ink-s); padding: 4px;
 }
 .cr-del:active { color: #C9542A; }
 
 /* Empty state */
 .empty-state {
-border: 1px dashed var(–line); padding: 28px 12px;
-text-align: center; color: var(–ink-s); font-size: 13px;
+  border: 1px dashed var(--line); padding: 28px 12px;
+  text-align: center; color: var(--ink-s); font-size: 13px;
 }
 
 /* Jiggle tab */
 .jiggle-screen {
-flex: 1; display: flex; align-items: center; justify-content: center;
-padding: 40px 24px;
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  padding: 40px 24px;
 }
 
 /* Bottom nav */
 .bottom-nav {
-position: fixed; left: 0; right: 0; bottom: 0;
-background: var(–cream); border-top: 1px solid var(–line);
-padding-bottom: env(safe-area-inset-bottom, 0); z-index: 50;
+  position: fixed; left: 0; right: 0; bottom: 0;
+  background: var(--cream); border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom, 0); z-index: 50;
 }
 .bottom-nav-inner { max-width: 480px; margin: 0 auto; display: flex; }
 .tab {
-flex: 1; padding: 10px 0 8px;
-display: flex; flex-direction: column; align-items: center; gap: 2px;
-color: var(–ink-s);
+  flex: 1; padding: 10px 0 8px;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  color: var(--ink-s);
 }
 .tab-active { color: #C9542A; }
 .tab-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 500; }
 </style>
-
 </head>
 <body>
 <div id="root"></div>
@@ -749,500 +747,500 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 // =============================================================================
 
 const {
-useState,
-useEffect,
-useRef
+  useState,
+  useEffect,
+  useRef
 } = React;
 
 // =============================================================================
 // Storage
 // =============================================================================
-const STORAGE_PREFIX = “exercise-tracker:”;
+const STORAGE_PREFIX = "exercise-tracker:";
 const storage = {
-async get(key, fallback = null) {
-try {
-const raw = localStorage.getItem(STORAGE_PREFIX + key);
-if (raw === null) return fallback;
-return JSON.parse(raw);
-} catch (err) {
-console.error(“storage.get”, key, err);
-return fallback;
-}
-},
-async set(key, value) {
-try {
-localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(value));
-return true;
-} catch (err) {
-console.error(“storage.set”, key, err);
-return false;
-}
-},
-async remove(key) {
-try {
-localStorage.removeItem(STORAGE_PREFIX + key);
-return true;
-} catch {
-return false;
-}
-}
+  async get(key, fallback = null) {
+    try {
+      const raw = localStorage.getItem(STORAGE_PREFIX + key);
+      if (raw === null) return fallback;
+      return JSON.parse(raw);
+    } catch (err) {
+      console.error("storage.get", key, err);
+      return fallback;
+    }
+  },
+  async set(key, value) {
+    try {
+      localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(value));
+      return true;
+    } catch (err) {
+      console.error("storage.set", key, err);
+      return false;
+    }
+  },
+  async remove(key) {
+    try {
+      localStorage.removeItem(STORAGE_PREFIX + key);
+      return true;
+    } catch {
+      return false;
+    }
+  }
 };
 
 // =============================================================================
 // Time helpers
 // =============================================================================
-const TZ = “Australia/Melbourne”;
+const TZ = "Australia/Melbourne";
 function todayKey() {
-return new Date().toLocaleDateString(“en-CA”, {
-timeZone: TZ
-});
+  return new Date().toLocaleDateString("en-CA", {
+    timeZone: TZ
+  });
 }
 function nowISO() {
-return new Date().toISOString();
+  return new Date().toISOString();
 }
 function genId() {
-return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 }
 function formatTime(iso) {
-if (!iso) return “”;
-return new Date(iso).toLocaleTimeString(“en-US”, {
-timeZone: TZ,
-hour: “numeric”,
-minute: “2-digit”,
-hour12: true
-}).toUpperCase();
+  if (!iso) return "";
+  return new Date(iso).toLocaleTimeString("en-US", {
+    timeZone: TZ,
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true
+  }).toUpperCase();
 }
 function formatDateLong(dk) {
-return new Date(dk + “T12:00:00”).toLocaleDateString(“en-AU”, {
-timeZone: TZ,
-weekday: “short”,
-day: “numeric”,
-month: “short”
-});
+  return new Date(dk + "T12:00:00").toLocaleDateString("en-AU", {
+    timeZone: TZ,
+    weekday: "short",
+    day: "numeric",
+    month: "short"
+  });
 }
 function dateKeyOffset(dk, n) {
-const d = new Date(dk + “T12:00:00”);
-d.setDate(d.getDate() + n);
-return d.toLocaleDateString(“en-CA”, {
-timeZone: TZ
-});
+  const d = new Date(dk + "T12:00:00");
+  d.setDate(d.getDate() + n);
+  return d.toLocaleDateString("en-CA", {
+    timeZone: TZ
+  });
 }
 function isToday(dk) {
-return dk === todayKey();
+  return dk === todayKey();
 }
 function daysAgo(iso) {
-if (!iso) return null;
-return Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+  if (!iso) return null;
+  return Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
 }
 function formatMs(ms) {
-const s = Math.floor(ms / 1000);
-return String(Math.floor(s / 60)).padStart(2, “0”) + “:” + String(s % 60).padStart(2, “0”);
+  const s = Math.floor(ms / 1000);
+  return String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
 }
 
 // =============================================================================
 // Exercise constants
 // =============================================================================
 const IN = {
-STD: “standard”,
-REPS: “repsOnly”,
-CIRCUIT: “coreCircuit”
+  STD: "standard",
+  REPS: "repsOnly",
+  CIRCUIT: "coreCircuit"
 };
 const CAT_COLORS = {
-push: “#C9542A”,
-pull: “#3B6FA0”,
-legs: “#3A7D52”,
-core: “#B07D20”,
-isolation: “#7A5C8A”
+  push: "#C9542A",
+  pull: "#3B6FA0",
+  legs: "#3A7D52",
+  core: "#B07D20",
+  isolation: "#7A5C8A"
 };
 const CAT_LABELS = {
-push: “PUSH”,
-pull: “PULL”,
-legs: “LEGS”,
-core: “CORE”,
-isolation: “ISO”
+  push: "PUSH",
+  pull: "PULL",
+  legs: "LEGS",
+  core: "CORE",
+  isolation: "ISO"
 };
 const CATEGORIES = [{
-id: “push”,
-label: “Push”
+  id: "push",
+  label: "Push"
 }, {
-id: “pull”,
-label: “Pull”
+  id: "pull",
+  label: "Pull"
 }, {
-id: “legs”,
-label: “Legs”
+  id: "legs",
+  label: "Legs"
 }, {
-id: “core”,
-label: “Core”
+  id: "core",
+  label: "Core"
 }, {
-id: “isolation”,
-label: “Isolation”
+  id: "isolation",
+  label: "Isolation"
 }];
 const EXERCISES = [{
-name: “Bench press”,
-cat: “push”,
-input: IN.STD
+  name: "Bench press",
+  cat: "push",
+  input: IN.STD
 }, {
-name: “Incline press”,
-cat: “push”,
-input: IN.STD
+  name: "Incline press",
+  cat: "push",
+  input: IN.STD
 }, {
-name: “Barbell overhead press”,
-cat: “push”,
-input: IN.STD
+  name: "Barbell overhead press",
+  cat: "push",
+  input: IN.STD
 }, {
-name: “Shoulder press”,
-cat: “push”,
-input: IN.STD
+  name: "Shoulder press",
+  cat: "push",
+  input: IN.STD
 }, {
-name: “Dips”,
-cat: “push”,
-input: IN.STD
+  name: "Dips",
+  cat: "push",
+  input: IN.STD
 }, {
-name: “Pull-ups”,
-cat: “pull”,
-input: IN.REPS
+  name: "Pull-ups",
+  cat: "pull",
+  input: IN.REPS
 }, {
-name: “Chin-ups”,
-cat: “pull”,
-input: IN.REPS
+  name: "Chin-ups",
+  cat: "pull",
+  input: IN.REPS
 }, {
-name: “Barbell row”,
-cat: “pull”,
-input: IN.STD
+  name: "Barbell row",
+  cat: "pull",
+  input: IN.STD
 }, {
-name: “Cable row”,
-cat: “pull”,
-input: IN.STD
+  name: "Cable row",
+  cat: "pull",
+  input: IN.STD
 }, {
-name: “Lat pulldown”,
-cat: “pull”,
-input: IN.STD
+  name: "Lat pulldown",
+  cat: "pull",
+  input: IN.STD
 }, {
-name: “Machine row”,
-cat: “pull”,
-input: IN.STD
+  name: "Machine row",
+  cat: "pull",
+  input: IN.STD
 }, {
-name: “Squat”,
-cat: “legs”,
-input: IN.STD
+  name: "Squat",
+  cat: "legs",
+  input: IN.STD
 }, {
-name: “Deadlift”,
-cat: “legs”,
-input: IN.STD
+  name: "Deadlift",
+  cat: "legs",
+  input: IN.STD
 }, {
-name: “Leg extension”,
-cat: “legs”,
-input: IN.STD
+  name: "Leg extension",
+  cat: "legs",
+  input: IN.STD
 }, {
-name: “RDL”,
-cat: “legs”,
-input: IN.STD
+  name: "RDL",
+  cat: "legs",
+  input: IN.STD
 }, {
-name: “Bulgarian split squat”,
-cat: “legs”,
-input: IN.STD
+  name: "Bulgarian split squat",
+  cat: "legs",
+  input: IN.STD
 }, {
-name: “Leg press”,
-cat: “legs”,
-input: IN.STD
+  name: "Leg press",
+  cat: "legs",
+  input: IN.STD
 }, {
-name: “Machine crunch”,
-cat: “core”,
-input: IN.STD
+  name: "Machine crunch",
+  cat: "core",
+  input: IN.STD
 }, {
-name: “Hanging leg raises”,
-cat: “core”,
-input: IN.REPS
+  name: "Hanging leg raises",
+  cat: "core",
+  input: IN.REPS
 }, {
-name: “Ab-roller”,
-cat: “core”,
-input: IN.REPS
+  name: "Ab-roller",
+  cat: "core",
+  input: IN.REPS
 }, {
-name: “Core circuit”,
-cat: “core”,
-input: IN.CIRCUIT
+  name: "Core circuit",
+  cat: "core",
+  input: IN.CIRCUIT
 }, {
-name: “Lat raises”,
-cat: “isolation”,
-input: IN.STD
+  name: "Lat raises",
+  cat: "isolation",
+  input: IN.STD
 }, {
-name: “Bicep curls”,
-cat: “isolation”,
-input: IN.STD
+  name: "Bicep curls",
+  cat: "isolation",
+  input: IN.STD
 }, {
-name: “Tricep extension”,
-cat: “isolation”,
-input: IN.STD
+  name: "Tricep extension",
+  cat: "isolation",
+  input: IN.STD
 }];
 function getExercise(name) {
-return EXERCISES.find(e => e.name === name) || {
-name,
-cat: “push”,
-input: IN.STD
-};
+  return EXERCISES.find(e => e.name === name) || {
+    name,
+    cat: "push",
+    input: IN.STD
+  };
 }
 
 // =============================================================================
 // Cardio constants
 // =============================================================================
 const CARDIO_TYPES = [{
-id: “jog”,
-label: “Jog”
+  id: "jog",
+  label: "Jog"
 }, {
-id: “run”,
-label: “Run”
+  id: "run",
+  label: "Run"
 }, {
-id: “bike”,
-label: “Bike”
+  id: "bike",
+  label: "Bike"
 }, {
-id: “stairs”,
-label: “Stairs”
+  id: "stairs",
+  label: "Stairs"
 }, {
-id: “other”,
-label: “Other”
+  id: "other",
+  label: "Other"
 }];
 const KCAL_PER_MIN = {
-jog: 13,
-run: 16,
-bike: 13,
-stairs: 12
+  jog: 13,
+  run: 16,
+  bike: 13,
+  stairs: 12
 };
 const PACE_MIN_PER_KM = {
-jog: 5.5,
-run: 4.75
+  jog: 5.5,
+  run: 4.75
 };
 
 // =============================================================================
 // Helpers
 // =============================================================================
 function groupByExercise(sets) {
-const map = {};
-for (const s of sets) {
-if (!map[s.exercise_name]) map[s.exercise_name] = [];
-map[s.exercise_name].push(s);
-}
-return map;
+  const map = {};
+  for (const s of sets) {
+    if (!map[s.exercise_name]) map[s.exercise_name] = [];
+    map[s.exercise_name].push(s);
+  }
+  return map;
 }
 function totalVolume(sets) {
-return sets.reduce((a, s) => {
-if (s.input_type === IN.REPS || s.input_type === IN.CIRCUIT) return a;
-return a + (s.weight_kg || 0) * (s.reps || 0);
-}, 0);
+  return sets.reduce((a, s) => {
+    if (s.input_type === IN.REPS || s.input_type === IN.CIRCUIT) return a;
+    return a + (s.weight_kg || 0) * (s.reps || 0);
+  }, 0);
 }
 
 // =============================================================================
 // SVG icons
 // =============================================================================
 function sp(size, sw) {
-return {
-width: size,
-height: size,
-viewBox: “0 0 24 24”,
-fill: “none”,
-stroke: “currentColor”,
-strokeWidth: sw,
-strokeLinecap: “round”,
-strokeLinejoin: “round”
-};
+  return {
+    width: size,
+    height: size,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: sw,
+    strokeLinecap: "round",
+    strokeLinejoin: "round"
+  };
 }
 function IconDumbbell({
-size = 22,
-sw = 1.75
+  size = 22,
+  sw = 1.75
 }) {
-return /*#**PURE***/React.createElement(“svg”, sp(size, sw), /*#**PURE***/React.createElement(“path”, {
-d: “M6.5 6.5l11 11”
-}), /*#**PURE***/React.createElement(“path”, {
-d: “M21 21l-1-1”
-}), /*#**PURE***/React.createElement(“path”, {
-d: “M3 3l1 1”
-}), /*#**PURE***/React.createElement(“path”, {
-d: “M18 22l4-4”
-}), /*#**PURE***/React.createElement(“path”, {
-d: “M2 6l4-4”
-}), /*#**PURE***/React.createElement(“path”, {
-d: “M3 10l7-7”
-}), /*#**PURE***/React.createElement(“path”, {
-d: “M14 21l7-7”
-}));
+  return /*#__PURE__*/React.createElement("svg", sp(size, sw), /*#__PURE__*/React.createElement("path", {
+    d: "M6.5 6.5l11 11"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M21 21l-1-1"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M3 3l1 1"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M18 22l4-4"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M2 6l4-4"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M3 10l7-7"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M14 21l7-7"
+  }));
 }
 function IconActivity({
-size = 22,
-sw = 1.75
+  size = 22,
+  sw = 1.75
 }) {
-return /*#**PURE***/React.createElement(“svg”, sp(size, sw), /*#**PURE***/React.createElement(“polyline”, {
-points: “22 12 18 12 15 21 9 3 6 12 2 12”
-}));
+  return /*#__PURE__*/React.createElement("svg", sp(size, sw), /*#__PURE__*/React.createElement("polyline", {
+    points: "22 12 18 12 15 21 9 3 6 12 2 12"
+  }));
 }
 function IconPlus({
-size = 16,
-sw = 2
+  size = 16,
+  sw = 2
 }) {
-return /*#**PURE***/React.createElement(“svg”, sp(size, sw), /*#**PURE***/React.createElement(“line”, {
-x1: “12”,
-y1: “5”,
-x2: “12”,
-y2: “19”
-}), /*#**PURE***/React.createElement(“line”, {
-x1: “5”,
-y1: “12”,
-x2: “19”,
-y2: “12”
-}));
+  return /*#__PURE__*/React.createElement("svg", sp(size, sw), /*#__PURE__*/React.createElement("line", {
+    x1: "12",
+    y1: "5",
+    x2: "12",
+    y2: "19"
+  }), /*#__PURE__*/React.createElement("line", {
+    x1: "5",
+    y1: "12",
+    x2: "19",
+    y2: "12"
+  }));
 }
 function IconTrash({
-size = 14,
-sw = 1.75
+  size = 14,
+  sw = 1.75
 }) {
-return /*#**PURE***/React.createElement(“svg”, sp(size, sw), /*#**PURE***/React.createElement(“polyline”, {
-points: “3 6 5 6 21 6”
-}), /*#**PURE***/React.createElement(“path”, {
-d: “M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6”
-}), /*#**PURE***/React.createElement(“path”, {
-d: “M10 11v6”
-}), /*#**PURE***/React.createElement(“path”, {
-d: “M14 11v6”
-}), /*#**PURE***/React.createElement(“path”, {
-d: “M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2”
-}));
+  return /*#__PURE__*/React.createElement("svg", sp(size, sw), /*#__PURE__*/React.createElement("polyline", {
+    points: "3 6 5 6 21 6"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M10 11v6"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M14 11v6"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"
+  }));
 }
 function IconChevL({
-size = 16,
-sw = 1.75
+  size = 16,
+  sw = 1.75
 }) {
-return /*#**PURE***/React.createElement(“svg”, sp(size, sw), /*#**PURE***/React.createElement(“polyline”, {
-points: “15 18 9 12 15 6”
-}));
+  return /*#__PURE__*/React.createElement("svg", sp(size, sw), /*#__PURE__*/React.createElement("polyline", {
+    points: "15 18 9 12 15 6"
+  }));
 }
 function IconChevR({
-size = 16,
-sw = 1.75
+  size = 16,
+  sw = 1.75
 }) {
-return /*#**PURE***/React.createElement(“svg”, sp(size, sw), /*#**PURE***/React.createElement(“polyline”, {
-points: “9 18 15 12 9 6”
-}));
+  return /*#__PURE__*/React.createElement("svg", sp(size, sw), /*#__PURE__*/React.createElement("polyline", {
+    points: "9 18 15 12 9 6"
+  }));
 }
 function IconArrowL({
-size = 14,
-sw = 1.75
+  size = 14,
+  sw = 1.75
 }) {
-return /*#**PURE***/React.createElement(“svg”, sp(size, sw), /*#**PURE***/React.createElement(“line”, {
-x1: “19”,
-y1: “12”,
-x2: “5”,
-y2: “12”
-}), /*#**PURE***/React.createElement(“polyline”, {
-points: “12 19 5 12 12 5”
-}));
+  return /*#__PURE__*/React.createElement("svg", sp(size, sw), /*#__PURE__*/React.createElement("line", {
+    x1: "19",
+    y1: "12",
+    x2: "5",
+    y2: "12"
+  }), /*#__PURE__*/React.createElement("polyline", {
+    points: "12 19 5 12 12 5"
+  }));
 }
 function IconCalendar({
-size = 22,
-sw = 1.75
+  size = 22,
+  sw = 1.75
 }) {
-return /*#**PURE***/React.createElement(“svg”, sp(size, sw), /*#**PURE***/React.createElement(“rect”, {
-x: “3”,
-y: “4”,
-width: “18”,
-height: “18”,
-rx: “1”
-}), /*#**PURE***/React.createElement(“line”, {
-x1: “16”,
-y1: “2”,
-x2: “16”,
-y2: “6”
-}), /*#**PURE***/React.createElement(“line”, {
-x1: “8”,
-y1: “2”,
-x2: “8”,
-y2: “6”
-}), /*#**PURE***/React.createElement(“line”, {
-x1: “3”,
-y1: “10”,
-x2: “21”,
-y2: “10”
-}));
+  return /*#__PURE__*/React.createElement("svg", sp(size, sw), /*#__PURE__*/React.createElement("rect", {
+    x: "3",
+    y: "4",
+    width: "18",
+    height: "18",
+    rx: "1"
+  }), /*#__PURE__*/React.createElement("line", {
+    x1: "16",
+    y1: "2",
+    x2: "16",
+    y2: "6"
+  }), /*#__PURE__*/React.createElement("line", {
+    x1: "8",
+    y1: "2",
+    x2: "8",
+    y2: "6"
+  }), /*#__PURE__*/React.createElement("line", {
+    x1: "3",
+    y1: "10",
+    x2: "21",
+    y2: "10"
+  }));
 }
 function IconZap({
-size = 22,
-sw = 1.75
+  size = 22,
+  sw = 1.75
 }) {
-return /*#**PURE***/React.createElement(“svg”, sp(size, sw), /*#**PURE***/React.createElement(“polygon”, {
-points: “13 2 3 14 12 14 11 22 21 10 12 10 13 2”
-}));
+  return /*#__PURE__*/React.createElement("svg", sp(size, sw), /*#__PURE__*/React.createElement("polygon", {
+    points: "13 2 3 14 12 14 11 22 21 10 12 10 13 2"
+  }));
 }
 function IconTimer({
-size = 14,
-sw = 1.75
+  size = 14,
+  sw = 1.75
 }) {
-return /*#**PURE***/React.createElement(“svg”, sp(size, sw), /*#**PURE***/React.createElement(“circle”, {
-cx: “12”,
-cy: “12”,
-r: “9”
-}), /*#**PURE***/React.createElement(“polyline”, {
-points: “12 6 12 12 16 14”
-}));
+  return /*#__PURE__*/React.createElement("svg", sp(size, sw), /*#__PURE__*/React.createElement("circle", {
+    cx: "12",
+    cy: "12",
+    r: "9"
+  }), /*#__PURE__*/React.createElement("polyline", {
+    points: "12 6 12 12 16 14"
+  }));
 }
 
 // =============================================================================
 // Building blocks
 // =============================================================================
 function Panel({
-title,
-children,
-action,
-titleBg
+  title,
+  children,
+  action,
+  titleBg
 }) {
-return /*#**PURE***/React.createElement(“div”, {
-className: “panel”
-}, /*#**PURE***/React.createElement(“div”, {
-className: “panel-head”,
-style: titleBg ? {
-background: titleBg
-} : undefined
-}, /*#**PURE***/React.createElement(“span”, {
-className: “panel-title”
-}, title), action), /*#**PURE***/React.createElement(“div”, {
-className: “panel-body”
-}, children));
+  return /*#__PURE__*/React.createElement("div", {
+    className: "panel"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "panel-head",
+    style: titleBg ? {
+      background: titleBg
+    } : undefined
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "panel-title"
+  }, title), action), /*#__PURE__*/React.createElement("div", {
+    className: "panel-body"
+  }, children));
 }
 function Btn({
-onClick,
-disabled,
-children,
-variant = “primary”,
-sz = “md”
+  onClick,
+  disabled,
+  children,
+  variant = "primary",
+  sz = "md"
 }) {
-return /*#**PURE***/React.createElement(“button”, {
-className: `btn btn-${variant} btn-${sz}${disabled ? " btn-disabled" : ""}`,
-onClick: onClick,
-disabled: disabled
-}, children);
+  return /*#__PURE__*/React.createElement("button", {
+    className: `btn btn-${variant} btn-${sz}${disabled ? " btn-disabled" : ""}`,
+    onClick: onClick,
+    disabled: disabled
+  }, children);
 }
 
 // =============================================================================
 // Date bar
 // =============================================================================
 function DateBar({
-dateKey,
-onChange
+  dateKey,
+  onChange
 }) {
-const atToday = dateKey === todayKey();
-return /*#**PURE***/React.createElement(“div”, {
-className: “datebar”
-}, /*#**PURE***/React.createElement(“button”, {
-className: “datebar-step”,
-onClick: () => onChange(dateKeyOffset(dateKey, -1))
-}, /*#**PURE***/React.createElement(IconChevL, null)), /*#**PURE***/React.createElement(“div”, {
-className: “datebar-label”
-}, /*#**PURE***/React.createElement(“span”, {
-className: “datebar-day mono”
-}, atToday ? “Today” : formatDateLong(dateKey)), !atToday && /*#**PURE***/React.createElement(“button”, {
-className: “datebar-jump mono”,
-onClick: () => onChange(todayKey())
-}, “jump to today”)), /*#**PURE***/React.createElement(“button”, {
-className: “datebar-step”,
-onClick: () => onChange(dateKeyOffset(dateKey, 1)),
-disabled: dateKey >= todayKey()
-}, /*#**PURE***/React.createElement(IconChevR, null)));
+  const atToday = dateKey === todayKey();
+  return /*#__PURE__*/React.createElement("div", {
+    className: "datebar"
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "datebar-step",
+    onClick: () => onChange(dateKeyOffset(dateKey, -1))
+  }, /*#__PURE__*/React.createElement(IconChevL, null)), /*#__PURE__*/React.createElement("div", {
+    className: "datebar-label"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "datebar-day mono"
+  }, atToday ? "Today" : formatDateLong(dateKey)), !atToday && /*#__PURE__*/React.createElement("button", {
+    className: "datebar-jump mono",
+    onClick: () => onChange(todayKey())
+  }, "jump to today")), /*#__PURE__*/React.createElement("button", {
+    className: "datebar-step",
+    onClick: () => onChange(dateKeyOffset(dateKey, 1)),
+    disabled: dateKey >= todayKey()
+  }, /*#__PURE__*/React.createElement(IconChevR, null)));
 }
 
 // =============================================================================
@@ -1251,97 +1249,97 @@ disabled: dateKey >= todayKey()
 // Phases: idle → set → rest → set → rest …
 // =============================================================================
 function Stopwatch() {
-const [phase, setPhase] = useState(“idle”);
-const [totalStartAt, setTotalStartAt] = useState(null);
-const [setStartAt, setSetStartAt] = useState(null);
-const [setDoneMs, setSetDoneMs] = useState(0);
-const [restStartAt, setRestStartAt] = useState(null);
-const [, setTick] = useState(0);
-const itvRef = useRef(null);
-useEffect(() => {
-if (phase !== “idle”) {
-itvRef.current = setInterval(() => setTick(n => n + 1), 100);
-} else {
-clearInterval(itvRef.current);
-}
-return () => clearInterval(itvRef.current);
-}, [phase]);
-const now = Date.now();
-const totalMs = totalStartAt ? now - totalStartAt : 0;
-const setMs = phase === “set” && setStartAt ? now - setStartAt : setDoneMs;
-const restMs = phase === “rest” && restStartAt ? now - restStartAt : 0;
-function startSet() {
-const t = Date.now();
-setTotalStartAt(prev => prev !== null && prev !== void 0 ? prev : t);
-setSetStartAt(t);
-setSetDoneMs(0);
-setRestStartAt(null);
-setPhase(“set”);
-}
-function stopSet() {
-if (phase !== “set”) return;
-const t = Date.now();
-setSetDoneMs(setStartAt ? t - setStartAt : 0);
-setSetStartAt(null);
-setRestStartAt(t);
-setPhase(“rest”);
-}
-function resetAll() {
-clearInterval(itvRef.current);
-setPhase(“idle”);
-setTotalStartAt(null);
-setSetStartAt(null);
-setSetDoneMs(0);
-setRestStartAt(null);
-setTick(0);
-}
-const inSet = phase === “set”;
-const inRest = phase === “rest”;
-return /*#**PURE***/React.createElement(“div”, {
-className: “stopwatch”
-}, /*#**PURE***/React.createElement(“div”, {
-className: “sw-timers”
-}, /*#**PURE***/React.createElement(“div”, {
-className: “sw-cell”
-}, /*#**PURE***/React.createElement(“span”, {
-className: “sw-lbl mono”
-}, “TOTAL”), /*#**PURE***/React.createElement(“span”, {
-className: “sw-val mono”
-}, formatMs(totalMs))), /*#**PURE***/React.createElement(“div”, {
-className: “sw-div”
-}), /*#**PURE***/React.createElement(“div”, {
-className: “sw-cell”
-}, /*#**PURE***/React.createElement(“span”, {
-className: “sw-lbl mono”
-}, inSet ? “SET” : “LAST SET”), /*#**PURE***/React.createElement(“span”, {
-className: `sw-val mono${inSet ? " sw-active" : ""}`
-}, formatMs(setMs))), /*#**PURE***/React.createElement(“div”, {
-className: “sw-div”
-}), /*#**PURE***/React.createElement(“div”, {
-className: “sw-cell”
-}, /*#**PURE***/React.createElement(“span”, {
-className: “sw-lbl mono”
-}, “REST”), /*#**PURE***/React.createElement(“span”, {
-className: `sw-val mono${inRest ? " sw-resting" : ""}`
-}, formatMs(restMs)))), /*#**PURE***/React.createElement(“div”, {
-className: “sw-btns”
-}, !inSet ? /*#**PURE***/React.createElement(“button”, {
-className: “sw-btn sw-start”,
-onClick: startSet
-}, /*#**PURE***/React.createElement(IconTimer, {
-size: 13,
-sw: 2
-}), “Start set”) : /*#**PURE***/React.createElement(“button”, {
-className: “sw-btn sw-stop”,
-onClick: stopSet
-}, /*#**PURE***/React.createElement(IconTimer, {
-size: 13,
-sw: 2
-}), “Rest”), /*#**PURE***/React.createElement(“button”, {
-className: “sw-btn sw-reset sw-end”,
-onClick: resetAll,
-disabled: phase === “idle” && !totalStartAt
-}, “End session”)));
+  const [phase, setPhase] = useState("idle");
+  const [totalStartAt, setTotalStartAt] = useState(null);
+  const [setStartAt, setSetStartAt] = useState(null);
+  const [setDoneMs, setSetDoneMs] = useState(0);
+  const [restStartAt, setRestStartAt] = useState(null);
+  const [, setTick] = useState(0);
+  const itvRef = useRef(null);
+  useEffect(() => {
+    if (phase !== "idle") {
+      itvRef.current = setInterval(() => setTick(n => n + 1), 100);
+    } else {
+      clearInterval(itvRef.current);
+    }
+    return () => clearInterval(itvRef.current);
+  }, [phase]);
+  const now = Date.now();
+  const totalMs = totalStartAt ? now - totalStartAt : 0;
+  const setMs = phase === "set" && setStartAt ? now - setStartAt : setDoneMs;
+  const restMs = phase === "rest" && restStartAt ? now - restStartAt : 0;
+  function startSet() {
+    const t = Date.now();
+    setTotalStartAt(prev => prev !== null && prev !== void 0 ? prev : t);
+    setSetStartAt(t);
+    setSetDoneMs(0);
+    setRestStartAt(null);
+    setPhase("set");
+  }
+  function stopSet() {
+    if (phase !== "set") return;
+    const t = Date.now();
+    setSetDoneMs(setStartAt ? t - setStartAt : 0);
+    setSetStartAt(null);
+    setRestStartAt(t);
+    setPhase("rest");
+  }
+  function resetAll() {
+    clearInterval(itvRef.current);
+    setPhase("idle");
+    setTotalStartAt(null);
+    setSetStartAt(null);
+    setSetDoneMs(0);
+    setRestStartAt(null);
+    setTick(0);
+  }
+  const inSet = phase === "set";
+  const inRest = phase === "rest";
+  return /*#__PURE__*/React.createElement("div", {
+    className: "stopwatch"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "sw-timers"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "sw-cell"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "sw-lbl mono"
+  }, "TOTAL"), /*#__PURE__*/React.createElement("span", {
+    className: "sw-val mono"
+  }, formatMs(totalMs))), /*#__PURE__*/React.createElement("div", {
+    className: "sw-div"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "sw-cell"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "sw-lbl mono"
+  }, inSet ? "SET" : "LAST SET"), /*#__PURE__*/React.createElement("span", {
+    className: `sw-val mono${inSet ? " sw-active" : ""}`
+  }, formatMs(setMs))), /*#__PURE__*/React.createElement("div", {
+    className: "sw-div"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "sw-cell"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "sw-lbl mono"
+  }, "REST"), /*#__PURE__*/React.createElement("span", {
+    className: `sw-val mono${inRest ? " sw-resting" : ""}`
+  }, formatMs(restMs)))), /*#__PURE__*/React.createElement("div", {
+    className: "sw-btns"
+  }, !inSet ? /*#__PURE__*/React.createElement("button", {
+    className: "sw-btn sw-start",
+    onClick: startSet
+  }, /*#__PURE__*/React.createElement(IconTimer, {
+    size: 13,
+    sw: 2
+  }), "Start set") : /*#__PURE__*/React.createElement("button", {
+    className: "sw-btn sw-stop",
+    onClick: stopSet
+  }, /*#__PURE__*/React.createElement(IconTimer, {
+    size: 13,
+    sw: 2
+  }), "Rest"), /*#__PURE__*/React.createElement("button", {
+    className: "sw-btn sw-reset sw-end",
+    onClick: resetAll,
+    disabled: phase === "idle" && !totalStartAt
+  }, "End session")));
 }
 
 // =============================================================================
@@ -1358,1104 +1356,1103 @@ disabled: phase === “idle” && !totalStartAt
 const SUGGESTED_SETS = 3;
 
 // Exercises eligible for the Full body suggested session.
-const FULL_BODY_POOL = new Set([“Bench press”, “Barbell overhead press”, “Pull-ups”, “Barbell row”, “Cable row”, “Lat pulldown”, “Squat”, “Deadlift”, “Leg extension”, “Hanging leg raises”, “Machine crunch”]);
+const FULL_BODY_POOL = new Set(["Bench press", "Barbell overhead press", "Pull-ups", "Barbell row", "Cable row", "Lat pulldown", "Squat", "Deadlift", "Leg extension", "Hanging leg raises", "Machine crunch"]);
 function pickFromCat(catId, n, exerciseDict) {
-const pool = EXERCISES.filter(e => e.cat === catId);
-return […pool].sort((a, b) => {
-var _exerciseDict$a$name, _exerciseDict$b$name;
-const aIso = (_exerciseDict$a$name = exerciseDict[a.name]) === null || _exerciseDict$a$name === void 0 ? void 0 : _exerciseDict$a$name.last_used_at;
-const bIso = (_exerciseDict$b$name = exerciseDict[b.name]) === null || _exerciseDict$b$name === void 0 ? void 0 : _exerciseDict$b$name.last_used_at;
-if (!aIso && !bIso) return 0;
-if (!aIso) return -1;
-if (!bIso) return 1;
-return new Date(aIso) - new Date(bIso);
-}).slice(0, n);
+  const pool = EXERCISES.filter(e => e.cat === catId);
+  return [...pool].sort((a, b) => {
+    var _exerciseDict$a$name, _exerciseDict$b$name;
+    const aIso = (_exerciseDict$a$name = exerciseDict[a.name]) === null || _exerciseDict$a$name === void 0 ? void 0 : _exerciseDict$a$name.last_used_at;
+    const bIso = (_exerciseDict$b$name = exerciseDict[b.name]) === null || _exerciseDict$b$name === void 0 ? void 0 : _exerciseDict$b$name.last_used_at;
+    if (!aIso && !bIso) return 0;
+    if (!aIso) return -1;
+    if (!bIso) return 1;
+    return new Date(aIso) - new Date(bIso);
+  }).slice(0, n);
 }
 function SuggestedSessions({
-exerciseDict,
-refreshKey,
-onSelectExercise,
-onStartSession
+  exerciseDict,
+  refreshKey,
+  onSelectExercise,
+  onStartSession
 }) {
-const [usage, setUsage] = useState(null);
-const [openFull, setOpenFull] = useState(false);
-const [openTargeted, setOpenTargeted] = useState(false);
+  const [usage, setUsage] = useState(null);
+  const [openFull, setOpenFull] = useState(false);
+  const [openTargeted, setOpenTargeted] = useState(false);
 
-// Tally sets per category over the last 7 days (today + 6 prior).
-useEffect(() => {
-async function load() {
-const counts = {
-push: 0,
-pull: 0,
-legs: 0,
-core: 0,
-isolation: 0
-};
-const today = todayKey();
-for (let i = 0; i < 7; i++) {
-const dk = dateKeyOffset(today, -i);
-const sets = await storage.get(`strength:${dk}`, []);
-for (const s of sets) {
-const ex = getExercise(s.exercise_name);
-if (counts[ex.cat] !== undefined) counts[ex.cat]++;
-}
-}
-setUsage(counts);
-}
-load();
-}, [refreshKey]);
-function buildFullBody() {
-if (!usage) return [];
-const cats = [“push”, “pull”, “legs”];
-const sorted = […cats].sort((a, b) => usage[a] - usage[b]);
-const dbl = sorted[0];
-const counts = {
-push: 1,
-pull: 1,
-legs: 1,
-[dbl]: 2
-};
-const result = [];
-for (const c of cats) {
-// Only pick from the curated full-body pool for this category.
-const poolForCat = EXERCISES.filter(e => e.cat === c && FULL_BODY_POOL.has(e.name));
-const picked = […poolForCat].sort((a, b) => {
-var _exerciseDict$a$name2, _exerciseDict$b$name2;
-const aIso = (_exerciseDict$a$name2 = exerciseDict[a.name]) === null || _exerciseDict$a$name2 === void 0 ? void 0 : _exerciseDict$a$name2.last_used_at;
-const bIso = (_exerciseDict$b$name2 = exerciseDict[b.name]) === null || _exerciseDict$b$name2 === void 0 ? void 0 : _exerciseDict$b$name2.last_used_at;
-if (!aIso && !bIso) return 0;
-if (!aIso) return -1;
-if (!bIso) return 1;
-return new Date(aIso) - new Date(bIso);
-}).slice(0, counts[c]).map(e => ({
-…e,
-sets: SUGGESTED_SETS
-}));
-result.push(…picked);
-}
-return result;
-}
-function buildTargeted() {
-if (!usage) return [];
-const cats = [“push”, “pull”, “legs”];
-const sorted = […cats].sort((a, b) => usage[a] - usage[b]);
-const primary = sorted[0];
-const secondary = primary === “legs” ? “core” : “isolation”;
-return […pickFromCat(primary, 3, exerciseDict), …pickFromCat(secondary, 1, exerciseDict)].map(e => ({
-…e,
-sets: SUGGESTED_SETS
-}));
-}
-const fullBody = buildFullBody();
-const targeted = buildTargeted();
-return /*#**PURE***/React.createElement(“div”, {
-className: “sessions”
-}, /*#**PURE***/React.createElement(SessionCard, {
-label: “Full body session”,
-open: openFull,
-onToggle: () => setOpenFull(!openFull),
-exercises: fullBody,
-onSelectExercise: onSelectExercise,
-onStartSession: () => onStartSession === null || onStartSession === void 0 ? void 0 : onStartSession({
-title: “Full body session”,
-exercises: fullBody
-})
-}), /*#**PURE***/React.createElement(SessionCard, {
-label: “Targeted session”,
-open: openTargeted,
-onToggle: () => setOpenTargeted(!openTargeted),
-exercises: targeted,
-onSelectExercise: onSelectExercise,
-onStartSession: () => onStartSession === null || onStartSession === void 0 ? void 0 : onStartSession({
-title: “Targeted session”,
-exercises: targeted
-})
-}));
+  // Tally sets per category over the last 7 days (today + 6 prior).
+  useEffect(() => {
+    async function load() {
+      const counts = {
+        push: 0,
+        pull: 0,
+        legs: 0,
+        core: 0,
+        isolation: 0
+      };
+      const today = todayKey();
+      for (let i = 0; i < 7; i++) {
+        const dk = dateKeyOffset(today, -i);
+        const sets = await storage.get(`strength:${dk}`, []);
+        for (const s of sets) {
+          const ex = getExercise(s.exercise_name);
+          if (counts[ex.cat] !== undefined) counts[ex.cat]++;
+        }
+      }
+      setUsage(counts);
+    }
+    load();
+  }, [refreshKey]);
+  function buildFullBody() {
+    if (!usage) return [];
+    const cats = ["push", "pull", "legs"];
+    const sorted = [...cats].sort((a, b) => usage[a] - usage[b]);
+    const dbl = sorted[0];
+    const counts = {
+      push: 1,
+      pull: 1,
+      legs: 1,
+      [dbl]: 2
+    };
+    const result = [];
+    for (const c of cats) {
+      // Only pick from the curated full-body pool for this category.
+      const poolForCat = EXERCISES.filter(e => e.cat === c && FULL_BODY_POOL.has(e.name));
+      const picked = [...poolForCat].sort((a, b) => {
+        var _exerciseDict$a$name2, _exerciseDict$b$name2;
+        const aIso = (_exerciseDict$a$name2 = exerciseDict[a.name]) === null || _exerciseDict$a$name2 === void 0 ? void 0 : _exerciseDict$a$name2.last_used_at;
+        const bIso = (_exerciseDict$b$name2 = exerciseDict[b.name]) === null || _exerciseDict$b$name2 === void 0 ? void 0 : _exerciseDict$b$name2.last_used_at;
+        if (!aIso && !bIso) return 0;
+        if (!aIso) return -1;
+        if (!bIso) return 1;
+        return new Date(aIso) - new Date(bIso);
+      }).slice(0, counts[c]).map(e => ({
+        ...e,
+        sets: SUGGESTED_SETS
+      }));
+      result.push(...picked);
+    }
+    return result;
+  }
+  function buildTargeted() {
+    if (!usage) return [];
+    const cats = ["push", "pull", "legs"];
+    const sorted = [...cats].sort((a, b) => usage[a] - usage[b]);
+    const primary = sorted[0];
+    const secondary = primary === "legs" ? "core" : "isolation";
+    return [...pickFromCat(primary, 3, exerciseDict), ...pickFromCat(secondary, 1, exerciseDict)].map(e => ({
+      ...e,
+      sets: SUGGESTED_SETS
+    }));
+  }
+  const fullBody = buildFullBody();
+  const targeted = buildTargeted();
+  return /*#__PURE__*/React.createElement("div", {
+    className: "sessions"
+  }, /*#__PURE__*/React.createElement(SessionCard, {
+    label: "Full body session",
+    open: openFull,
+    onToggle: () => setOpenFull(!openFull),
+    exercises: fullBody,
+    onSelectExercise: onSelectExercise,
+    onStartSession: () => onStartSession === null || onStartSession === void 0 ? void 0 : onStartSession({
+      title: "Full body session",
+      exercises: fullBody
+    })
+  }), /*#__PURE__*/React.createElement(SessionCard, {
+    label: "Targeted session",
+    open: openTargeted,
+    onToggle: () => setOpenTargeted(!openTargeted),
+    exercises: targeted,
+    onSelectExercise: onSelectExercise,
+    onStartSession: () => onStartSession === null || onStartSession === void 0 ? void 0 : onStartSession({
+      title: "Targeted session",
+      exercises: targeted
+    })
+  }));
 }
 function SessionCard({
-label,
-open,
-onToggle,
-exercises,
-onSelectExercise,
-onStartSession
+  label,
+  open,
+  onToggle,
+  exercises,
+  onSelectExercise,
+  onStartSession
 }) {
-return /*#**PURE***/React.createElement(“div”, {
-className: “session-card”
-}, /*#**PURE***/React.createElement(“button”, {
-className: `session-btn${open ? " session-open" : ""}`,
-onClick: onToggle
-}, /*#**PURE***/React.createElement(“span”, {
-className: “session-label”
-}, label), /*#**PURE***/React.createElement(“span”, {
-className: “session-chev mono”
-}, open ? “−” : “+”)), open && /*#**PURE***/React.createElement(“div”, {
-className: “session-body”
-}, exercises.length === 0 ? /*#**PURE***/React.createElement(“div”, {
-className: “session-empty mono”
-}, “Loading\u2026”) : /*#**PURE***/React.createElement(React.Fragment, null, exercises.map((ex, i) => {
-const color = CAT_COLORS[ex.cat];
-return /*#**PURE***/React.createElement(“button”, {
-key: ex.name + i,
-className: “session-row”,
-style: {
-borderLeftColor: color
-},
-onClick: () => onSelectExercise(ex.name)
-}, /*#**PURE***/React.createElement(“span”, {
-className: “session-cat mono”,
-style: {
-color,
-borderColor: color
-}
-}, CAT_LABELS[ex.cat]), /*#**PURE***/React.createElement(“span”, {
-className: “session-name”
-}, ex.name), /*#**PURE***/React.createElement(“span”, {
-className: “session-sets mono”
-}, ex.sets, “\xD7”));
-}), /*#**PURE***/React.createElement(“button”, {
-className: “start-session-btn”,
-onClick: onStartSession
-}, “Start session”))));
+  return /*#__PURE__*/React.createElement("div", {
+    className: "session-card"
+  }, /*#__PURE__*/React.createElement("button", {
+    className: `session-btn${open ? " session-open" : ""}`,
+    onClick: onToggle
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "session-label"
+  }, label), /*#__PURE__*/React.createElement("span", {
+    className: "session-chev mono"
+  }, open ? "−" : "+")), open && /*#__PURE__*/React.createElement("div", {
+    className: "session-body"
+  }, exercises.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "session-empty mono"
+  }, "Loading\u2026") : /*#__PURE__*/React.createElement(React.Fragment, null, exercises.map((ex, i) => {
+    const color = CAT_COLORS[ex.cat];
+    return /*#__PURE__*/React.createElement("button", {
+      key: ex.name + i,
+      className: "session-row",
+      style: {
+        borderLeftColor: color
+      },
+      onClick: () => onSelectExercise(ex.name)
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "session-cat mono",
+      style: {
+        color,
+        borderColor: color
+      }
+    }, CAT_LABELS[ex.cat]), /*#__PURE__*/React.createElement("span", {
+      className: "session-name"
+    }, ex.name), /*#__PURE__*/React.createElement("span", {
+      className: "session-sets mono"
+    }, ex.sets, "\xD7"));
+  }), /*#__PURE__*/React.createElement("button", {
+    className: "start-session-btn",
+    onClick: onStartSession
+  }, "Start session"))));
 }
 
 // =============================================================================
 // Strength group — read view on Today tab
 // =============================================================================
 function StrengthGroup({
-name,
-sets,
-onDeleteSet
+  name,
+  sets,
+  onDeleteSet
 }) {
-var _sorted$;
-const ex = getExercise(name);
-const color = CAT_COLORS[ex.cat];
-const sorted = […sets].sort((a, b) => a.set_index - b.set_index);
-if (((_sorted$ = sorted[0]) === null || _sorted$ === void 0 ? void 0 : _sorted$.input_type) === IN.CIRCUIT) {
-const e = sorted[0];
-return /*#**PURE***/React.createElement(“div”, {
-className: “sg”,
-style: {
-borderLeftColor: color
-}
-}, /*#**PURE***/React.createElement(“div”, {
-className: “sg-head”
-}, /*#**PURE***/React.createElement(“span”, {
-className: “sg-name”
-}, name), /*#**PURE***/React.createElement(“button”, {
-className: “sg-del”,
-onClick: () => onDeleteSet(e.id)
-}, /*#**PURE***/React.createElement(IconTrash, {
-size: 13
-}))), /*#**PURE***/React.createElement(“div”, {
-className: “sg-circuit mono”
-}, e.num_sets, “ sets \xB7 “, e.duration_min, “ min/set”));
-}
-const showWeight = ex.input !== IN.REPS;
-const vol = totalVolume(sorted);
-return /*#**PURE***/React.createElement(“div”, {
-className: “sg”,
-style: {
-borderLeftColor: color
-}
-}, /*#**PURE***/React.createElement(“div”, {
-className: “sg-head”
-}, /*#**PURE***/React.createElement(“span”, {
-className: “sg-name”
-}, name), /*#**PURE***/React.createElement(“span”, {
-className: “sg-summary mono”
-}, sorted.length, “ “, sorted.length === 1 ? “set” : “sets”, vol > 0 ? ` · ${vol} kg vol` : “”)), /*#**PURE***/React.createElement(“div”, {
-className: “sg-rows”
-}, sorted.map((s, i) => /*#**PURE***/React.createElement(“div”, {
-key: s.id,
-className: “sg-set”
-}, /*#**PURE***/React.createElement(“span”, {
-className: “sg-idx mono”
-}, “#”, i + 1), showWeight && /*#**PURE***/React.createElement(“span”, {
-className: “sg-w mono”
-}, s.weight_kg > 0 ? `${s.weight_kg} kg` : “BW”), showWeight && /*#**PURE***/React.createElement(“span”, {
-className: “sg-x mono”
-}, “\xD7”), /*#**PURE***/React.createElement(“span”, {
-className: “sg-r mono”
-}, s.reps, “ reps”), /*#**PURE***/React.createElement(“button”, {
-className: “sg-del”,
-onClick: () => onDeleteSet(s.id)
-}, /*#**PURE***/React.createElement(IconTrash, {
-size: 13
-}))))));
+  var _sorted$;
+  const ex = getExercise(name);
+  const color = CAT_COLORS[ex.cat];
+  const sorted = [...sets].sort((a, b) => a.set_index - b.set_index);
+  if (((_sorted$ = sorted[0]) === null || _sorted$ === void 0 ? void 0 : _sorted$.input_type) === IN.CIRCUIT) {
+    const e = sorted[0];
+    return /*#__PURE__*/React.createElement("div", {
+      className: "sg",
+      style: {
+        borderLeftColor: color
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "sg-head"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "sg-name"
+    }, name), /*#__PURE__*/React.createElement("button", {
+      className: "sg-del",
+      onClick: () => onDeleteSet(e.id)
+    }, /*#__PURE__*/React.createElement(IconTrash, {
+      size: 13
+    }))), /*#__PURE__*/React.createElement("div", {
+      className: "sg-circuit mono"
+    }, e.num_sets, " sets \xB7 ", e.duration_min, " min/set"));
+  }
+  const showWeight = ex.input !== IN.REPS;
+  const vol = totalVolume(sorted);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "sg",
+    style: {
+      borderLeftColor: color
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "sg-head"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "sg-name"
+  }, name), /*#__PURE__*/React.createElement("span", {
+    className: "sg-summary mono"
+  }, sorted.length, " ", sorted.length === 1 ? "set" : "sets", vol > 0 ? ` · ${vol} kg vol` : "")), /*#__PURE__*/React.createElement("div", {
+    className: "sg-rows"
+  }, sorted.map((s, i) => /*#__PURE__*/React.createElement("div", {
+    key: s.id,
+    className: "sg-set"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "sg-idx mono"
+  }, "#", i + 1), showWeight && /*#__PURE__*/React.createElement("span", {
+    className: "sg-w mono"
+  }, s.weight_kg > 0 ? `${s.weight_kg} kg` : "BW"), showWeight && /*#__PURE__*/React.createElement("span", {
+    className: "sg-x mono"
+  }, "\xD7"), /*#__PURE__*/React.createElement("span", {
+    className: "sg-r mono"
+  }, s.reps, " reps"), /*#__PURE__*/React.createElement("button", {
+    className: "sg-del",
+    onClick: () => onDeleteSet(s.id)
+  }, /*#__PURE__*/React.createElement(IconTrash, {
+    size: 13
+  }))))));
 }
 
 // =============================================================================
 // Cardio row — read view on Today tab
 // =============================================================================
 function CardioRow({
-session,
-onDelete
+  session,
+  onDelete
 }) {
-var _CARDIO_TYPES$find;
-const label = ((_CARDIO_TYPES$find = CARDIO_TYPES.find(t => t.id === session.type)) === null || _CARDIO_TYPES$find === void 0 ? void 0 : _CARDIO_TYPES$find.label) || session.type;
-return /*#**PURE***/React.createElement(“div”, {
-className: “cr-row”
-}, /*#**PURE***/React.createElement(“span”, {
-className: “cr-time mono”
-}, formatTime(session.started_at)), /*#**PURE***/React.createElement(“span”, {
-className: “cr-type”
-}, label), session.distance_km ? /*#**PURE***/React.createElement(“span”, {
-className: “cr-dist mono”
-}, session.distance_km.toFixed(1), “ km”) : /*#**PURE***/React.createElement(“span”, {
-className: “cr-dist”
-}), /*#**PURE***/React.createElement(“span”, {
-className: “cr-dur mono”
-}, session.duration_min, “ min”), /*#**PURE***/React.createElement(“span”, {
-className: “cr-kcal mono”
-}, session.kcal_burned, “ kcal”), /*#**PURE***/React.createElement(“button”, {
-className: “cr-del”,
-onClick: () => onDelete(session.id)
-}, /*#**PURE***/React.createElement(IconTrash, {
-size: 13
-})));
+  var _CARDIO_TYPES$find;
+  const label = ((_CARDIO_TYPES$find = CARDIO_TYPES.find(t => t.id === session.type)) === null || _CARDIO_TYPES$find === void 0 ? void 0 : _CARDIO_TYPES$find.label) || session.type;
+  return /*#__PURE__*/React.createElement("div", {
+    className: "cr-row"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "cr-time mono"
+  }, formatTime(session.started_at)), /*#__PURE__*/React.createElement("span", {
+    className: "cr-type"
+  }, label), session.distance_km ? /*#__PURE__*/React.createElement("span", {
+    className: "cr-dist mono"
+  }, session.distance_km.toFixed(1), " km") : /*#__PURE__*/React.createElement("span", {
+    className: "cr-dist"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "cr-dur mono"
+  }, session.duration_min, " min"), /*#__PURE__*/React.createElement("span", {
+    className: "cr-kcal mono"
+  }, session.kcal_burned, " kcal"), /*#__PURE__*/React.createElement("button", {
+    className: "cr-del",
+    onClick: () => onDelete(session.id)
+  }, /*#__PURE__*/React.createElement(IconTrash, {
+    size: 13
+  })));
 }
 
 // =============================================================================
 // Today view (tab)
 // =============================================================================
 function TodayView({
-dateKey,
-setDateKey,
-refreshKey,
-onChange,
-exerciseDict,
-onSelectExercise,
-onStartSession
+  dateKey,
+  setDateKey,
+  refreshKey,
+  onChange,
+  exerciseDict,
+  onSelectExercise,
+  onStartSession
 }) {
-const [sets, setSets] = useState([]);
-const [sessions, setSessions] = useState([]);
-useEffect(() => {
-storage.get(`strength:${dateKey}`, []).then(setSets);
-storage.get(`cardio:${dateKey}`, []).then(setSessions);
-}, [dateKey, refreshKey]);
-async function deleteSet(id) {
-const next = sets.filter(s => s.id !== id);
-await storage.set(`strength:${dateKey}`, next);
-setSets(next);
-onChange === null || onChange === void 0 || onChange();
-}
-async function deleteSession(id) {
-const next = sessions.filter(s => s.id !== id);
-await storage.set(`cardio:${dateKey}`, next);
-setSessions(next);
-onChange === null || onChange === void 0 || onChange();
-}
-const groups = groupByExercise(sets);
-const totalSets = sets.filter(s => s.input_type !== IN.CIRCUIT).length;
-const vol = totalVolume(sets);
-const burn = sessions.reduce((a, s) => a + (s.kcal_burned || 0), 0);
-const empty = sets.length === 0 && sessions.length === 0;
-return /*#**PURE***/React.createElement(React.Fragment, null, /*#**PURE***/React.createElement(DateBar, {
-dateKey: dateKey,
-onChange: setDateKey
-}), /*#**PURE***/React.createElement(SuggestedSessions, {
-exerciseDict: exerciseDict,
-refreshKey: refreshKey,
-onSelectExercise: onSelectExercise,
-onStartSession: onStartSession
-}), !empty && /*#**PURE***/React.createElement(“div”, {
-className: “totals-bar”
-}, totalSets > 0 && /*#**PURE***/React.createElement(“div”, {
-className: “totals-cell”
-}, /*#**PURE***/React.createElement(“span”, {
-className: “totals-num mono”
-}, totalSets), /*#**PURE***/React.createElement(“span”, {
-className: “totals-lbl”
-}, totalSets === 1 ? “set” : “sets”)), vol > 0 && /*#**PURE***/React.createElement(“div”, {
-className: “totals-cell”
-}, /*#**PURE***/React.createElement(“span”, {
-className: “totals-num mono”
-}, vol), /*#**PURE***/React.createElement(“span”, {
-className: “totals-lbl”
-}, “kg vol”)), burn > 0 && /*#**PURE***/React.createElement(“div”, {
-className: “totals-cell”
-}, /*#**PURE***/React.createElement(“span”, {
-className: “totals-num mono”
-}, burn), /*#**PURE***/React.createElement(“span”, {
-className: “totals-lbl”
-}, “kcal”))), Object.keys(groups).length > 0 && /*#**PURE***/React.createElement(Panel, {
-title: “Strength”
-}, Object.entries(groups).map(([name, grp]) => /*#**PURE***/React.createElement(StrengthGroup, {
-key: name,
-name: name,
-sets: grp,
-onDeleteSet: deleteSet
-}))), sessions.length > 0 && /*#**PURE***/React.createElement(Panel, {
-title: “Cardio”
-}, /*#**PURE***/React.createElement(“div”, {
-className: “cr-list”
-}, […sessions].sort((a, b) => a.started_at.localeCompare(b.started_at)).map(s => /*#**PURE***/React.createElement(CardioRow, {
-key: s.id,
-session: s,
-onDelete: deleteSession
-})))), empty && /*#**PURE***/React.createElement(“div”, {
-className: “empty-state”
-}, “No sessions logged for “, isToday(dateKey) ? “today” : formatDateLong(dateKey), “ yet.”));
+  const [sets, setSets] = useState([]);
+  const [sessions, setSessions] = useState([]);
+  useEffect(() => {
+    storage.get(`strength:${dateKey}`, []).then(setSets);
+    storage.get(`cardio:${dateKey}`, []).then(setSessions);
+  }, [dateKey, refreshKey]);
+  async function deleteSet(id) {
+    const next = sets.filter(s => s.id !== id);
+    await storage.set(`strength:${dateKey}`, next);
+    setSets(next);
+    onChange === null || onChange === void 0 || onChange();
+  }
+  async function deleteSession(id) {
+    const next = sessions.filter(s => s.id !== id);
+    await storage.set(`cardio:${dateKey}`, next);
+    setSessions(next);
+    onChange === null || onChange === void 0 || onChange();
+  }
+  const groups = groupByExercise(sets);
+  const totalSets = sets.filter(s => s.input_type !== IN.CIRCUIT).length;
+  const vol = totalVolume(sets);
+  const burn = sessions.reduce((a, s) => a + (s.kcal_burned || 0), 0);
+  const empty = sets.length === 0 && sessions.length === 0;
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(DateBar, {
+    dateKey: dateKey,
+    onChange: setDateKey
+  }), /*#__PURE__*/React.createElement(SuggestedSessions, {
+    exerciseDict: exerciseDict,
+    refreshKey: refreshKey,
+    onSelectExercise: onSelectExercise,
+    onStartSession: onStartSession
+  }), !empty && /*#__PURE__*/React.createElement("div", {
+    className: "totals-bar"
+  }, totalSets > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "totals-cell"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "totals-num mono"
+  }, totalSets), /*#__PURE__*/React.createElement("span", {
+    className: "totals-lbl"
+  }, totalSets === 1 ? "set" : "sets")), vol > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "totals-cell"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "totals-num mono"
+  }, vol), /*#__PURE__*/React.createElement("span", {
+    className: "totals-lbl"
+  }, "kg vol")), burn > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "totals-cell"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "totals-num mono"
+  }, burn), /*#__PURE__*/React.createElement("span", {
+    className: "totals-lbl"
+  }, "kcal"))), Object.keys(groups).length > 0 && /*#__PURE__*/React.createElement(Panel, {
+    title: "Strength"
+  }, Object.entries(groups).map(([name, grp]) => /*#__PURE__*/React.createElement(StrengthGroup, {
+    key: name,
+    name: name,
+    sets: grp,
+    onDeleteSet: deleteSet
+  }))), sessions.length > 0 && /*#__PURE__*/React.createElement(Panel, {
+    title: "Cardio"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "cr-list"
+  }, [...sessions].sort((a, b) => a.started_at.localeCompare(b.started_at)).map(s => /*#__PURE__*/React.createElement(CardioRow, {
+    key: s.id,
+    session: s,
+    onDelete: deleteSession
+  })))), empty && /*#__PURE__*/React.createElement("div", {
+    className: "empty-state"
+  }, "No sessions logged for ", isToday(dateKey) ? "today" : formatDateLong(dateKey), " yet."));
 }
 
 // =============================================================================
 // Strength log (Log tab)
 // =============================================================================
 function StrengthLog({
-dateKey,
-refreshKey,
-onChange,
-pendingExercise,
-clearPending,
-activeSession,
-onEndSession,
-onCompleteExercise
+  dateKey,
+  refreshKey,
+  onChange,
+  pendingExercise,
+  clearPending,
+  activeSession,
+  onEndSession,
+  onCompleteExercise
 }) {
-const [todaySets, setTodaySets] = useState([]);
-const [exerciseDict, setExerciseDict] = useState({});
-const [selected, setSelected] = useState(null);
-const [sets, setSets] = useState([]);
-const [circuitMin, setCircuitMin] = useState(””);
-const [circuitSets, setCircuitSets] = useState(””);
-const [logging, setLogging] = useState(false);
-useEffect(() => {
-storage.get(`strength:${dateKey}`, []).then(setTodaySets);
-storage.get(“exercise_dict”, {}).then(setExerciseDict);
-}, [dateKey, refreshKey]);
+  const [todaySets, setTodaySets] = useState([]);
+  const [exerciseDict, setExerciseDict] = useState({});
+  const [selected, setSelected] = useState(null);
+  const [sets, setSets] = useState([]);
+  const [circuitMin, setCircuitMin] = useState("");
+  const [circuitSets, setCircuitSets] = useState("");
+  const [logging, setLogging] = useState(false);
+  useEffect(() => {
+    storage.get(`strength:${dateKey}`, []).then(setTodaySets);
+    storage.get("exercise_dict", {}).then(setExerciseDict);
+  }, [dateKey, refreshKey]);
 
-// Pending exercise from “Suggested session” tap
-useEffect(() => {
-if (!pendingExercise) return;
-storage.get(“exercise_dict”, {}).then(dict => {
-setExerciseDict(dict);
-doSelect(pendingExercise, dict);
-});
-clearPending === null || clearPending === void 0 || clearPending();
-}, [pendingExercise]);
+  // Pending exercise from "Suggested session" tap
+  useEffect(() => {
+    if (!pendingExercise) return;
+    storage.get("exercise_dict", {}).then(dict => {
+      setExerciseDict(dict);
+      doSelect(pendingExercise, dict);
+    });
+    clearPending === null || clearPending === void 0 || clearPending();
+  }, [pendingExercise]);
 
-// Build N rows: prefill from last_session where available, padding with the last entry,
-// or empty rows if no history. If suggestedSets is null, fall back to existing behaviour
-// (use last_session length, or 1 row).
-function doSelect(name, dict, suggestedSets = null) {
-var _dict$name;
-const ex = getExercise(name);
-const last = (_dict$name = dict[name]) === null || _dict$name === void 0 ? void 0 : _dict$name.last_session;
-if (ex.input === IN.CIRCUIT) {
-setCircuitMin(last !== null && last !== void 0 && last.duration_min ? String(last.duration_min) : “”);
-if (suggestedSets != null) {
-setCircuitSets(String(suggestedSets));
-} else {
-setCircuitSets(last !== null && last !== void 0 && last.num_sets ? String(last.num_sets) : “”);
-}
-} else {
-const lastArr = Array.isArray(last) ? last : [];
-const targetN = suggestedSets != null ? suggestedSets : lastArr.length > 0 ? lastArr.length : 1;
-const rows = [];
-for (let i = 0; i < targetN; i++) {
-if (lastArr.length > 0) {
-var _src$weight_kg, _src$reps;
-const src = lastArr[i] || lastArr[lastArr.length - 1];
-rows.push({
-weight_kg: String((_src$weight_kg = src.weight_kg) !== null && _src$weight_kg !== void 0 ? _src$weight_kg : “”),
-reps: String((_src$reps = src.reps) !== null && _src$reps !== void 0 ? *src$reps : “”)
-});
-} else {
-rows.push({
-weight_kg: “”,
-reps: “”
-});
-}
-}
-setSets(rows);
-}
-setSelected(name);
-}
-function selectExercise(name, suggestedSets = null) {
-doSelect(name, exerciseDict, suggestedSets);
-}
-function backToList() {
-setSelected(null);
-setSets([]);
-setCircuitMin(””);
-setCircuitSets(””);
-}
-function updateSet(i, field, val) {
-setSets(prev => prev.map((s, idx) => idx === i ? {
-…s,
-[field]: val
-} : s));
-}
-function addSet() {
-setSets(prev => {
-const last = prev[prev.length - 1];
-return […prev, last ? {
-weight_kg: last.weight_kg,
-reps: last.reps
-} : {
-weight_kg: “”,
-reps: “”
-}];
-});
-}
-function removeSet(i) {
-setSets(prev => prev.filter((*, idx) => idx !== i));
-}
-async function logExercise() {
-if (logging || !selected) return;
-const ex = getExercise(selected);
-const completedName = selected;
-if (ex.input === IN.CIRCUIT) {
-const dm = Number(circuitMin);
-const ns = Number(circuitSets);
-if (!dm || dm <= 0 || !ns || ns <= 0) return;
-setLogging(true);
-const now = nowISO();
-const entry = {
-id: genId(),
-performed_at: now,
-exercise_name: selected,
-input_type: IN.CIRCUIT,
-duration_min: dm,
-num_sets: ns,
-set_index: 1
-};
-const nextSets = […todaySets, entry];
-await storage.set(`strength:${dateKey}`, nextSets);
-setTodaySets(nextSets);
-const nextDict = {
-…exerciseDict,
-[selected]: {
-last_session: {
-duration_min: dm,
-num_sets: ns
-},
-last_used_at: now
-}
-};
-await storage.set(“exercise_dict”, nextDict);
-setExerciseDict(nextDict);
-setSelected(null);
-setCircuitMin(””);
-setCircuitSets(””);
-setLogging(false);
-onCompleteExercise === null || onCompleteExercise === void 0 || onCompleteExercise(completedName);
-onChange === null || onChange === void 0 || onChange();
-return;
-}
-const showWeight = ex.input !== IN.REPS;
-const valid = sets.map(s => ({
-weight_kg: showWeight ? Math.max(0, Number(s.weight_kg) || 0) : 0,
-reps: Math.max(0, Number(s.reps) || 0)
-})).filter(s => s.reps > 0);
-if (valid.length === 0) return;
-setLogging(true);
-const now = nowISO();
-const entries = valid.map((s, idx) => ({
-id: genId(),
-performed_at: now,
-exercise_name: selected,
-input_type: ex.input,
-set_index: idx + 1,
-reps: s.reps,
-weight_kg: s.weight_kg
-}));
-const nextSets = […todaySets, …entries];
-await storage.set(`strength:${dateKey}`, nextSets);
-setTodaySets(nextSets);
-const nextDict = {
-…exerciseDict,
-[selected]: {
-last_session: valid,
-last_used_at: now
-}
-};
-await storage.set(“exercise_dict”, nextDict);
-setExerciseDict(nextDict);
-setSelected(null);
-setSets([]);
-setLogging(false);
-onCompleteExercise === null || onCompleteExercise === void 0 || onCompleteExercise(completedName);
-onChange === null || onChange === void 0 || onChange();
-}
+  // Build N rows: prefill from last_session where available, padding with the last entry,
+  // or empty rows if no history. If suggestedSets is null, fall back to existing behaviour
+  // (use last_session length, or 1 row).
+  function doSelect(name, dict, suggestedSets = null) {
+    var _dict$name;
+    const ex = getExercise(name);
+    const last = (_dict$name = dict[name]) === null || _dict$name === void 0 ? void 0 : _dict$name.last_session;
+    if (ex.input === IN.CIRCUIT) {
+      setCircuitMin(last !== null && last !== void 0 && last.duration_min ? String(last.duration_min) : "");
+      if (suggestedSets != null) {
+        setCircuitSets(String(suggestedSets));
+      } else {
+        setCircuitSets(last !== null && last !== void 0 && last.num_sets ? String(last.num_sets) : "");
+      }
+    } else {
+      const lastArr = Array.isArray(last) ? last : [];
+      const targetN = suggestedSets != null ? suggestedSets : lastArr.length > 0 ? lastArr.length : 1;
+      const rows = [];
+      for (let i = 0; i < targetN; i++) {
+        if (lastArr.length > 0) {
+          var _src$weight_kg, _src$reps;
+          const src = lastArr[i] || lastArr[lastArr.length - 1];
+          rows.push({
+            weight_kg: String((_src$weight_kg = src.weight_kg) !== null && _src$weight_kg !== void 0 ? _src$weight_kg : ""),
+            reps: String((_src$reps = src.reps) !== null && _src$reps !== void 0 ? _src$reps : "")
+          });
+        } else {
+          rows.push({
+            weight_kg: "",
+            reps: ""
+          });
+        }
+      }
+      setSets(rows);
+    }
+    setSelected(name);
+  }
+  function selectExercise(name, suggestedSets = null) {
+    doSelect(name, exerciseDict, suggestedSets);
+  }
+  function backToList() {
+    setSelected(null);
+    setSets([]);
+    setCircuitMin("");
+    setCircuitSets("");
+  }
+  function updateSet(i, field, val) {
+    setSets(prev => prev.map((s, idx) => idx === i ? {
+      ...s,
+      [field]: val
+    } : s));
+  }
+  function addSet() {
+    setSets(prev => {
+      const last = prev[prev.length - 1];
+      return [...prev, last ? {
+        weight_kg: last.weight_kg,
+        reps: last.reps
+      } : {
+        weight_kg: "",
+        reps: ""
+      }];
+    });
+  }
+  function removeSet(i) {
+    setSets(prev => prev.filter((_, idx) => idx !== i));
+  }
+  async function logExercise() {
+    if (logging || !selected) return;
+    const ex = getExercise(selected);
+    const completedName = selected;
+    if (ex.input === IN.CIRCUIT) {
+      const dm = Number(circuitMin);
+      const ns = Number(circuitSets);
+      if (!dm || dm <= 0 || !ns || ns <= 0) return;
+      setLogging(true);
+      const now = nowISO();
+      const entry = {
+        id: genId(),
+        performed_at: now,
+        exercise_name: selected,
+        input_type: IN.CIRCUIT,
+        duration_min: dm,
+        num_sets: ns,
+        set_index: 1
+      };
+      const nextSets = [...todaySets, entry];
+      await storage.set(`strength:${dateKey}`, nextSets);
+      setTodaySets(nextSets);
+      const nextDict = {
+        ...exerciseDict,
+        [selected]: {
+          last_session: {
+            duration_min: dm,
+            num_sets: ns
+          },
+          last_used_at: now
+        }
+      };
+      await storage.set("exercise_dict", nextDict);
+      setExerciseDict(nextDict);
+      setSelected(null);
+      setCircuitMin("");
+      setCircuitSets("");
+      setLogging(false);
+      onCompleteExercise === null || onCompleteExercise === void 0 || onCompleteExercise(completedName);
+      onChange === null || onChange === void 0 || onChange();
+      return;
+    }
+    const showWeight = ex.input !== IN.REPS;
+    const valid = sets.map(s => ({
+      weight_kg: showWeight ? Math.max(0, Number(s.weight_kg) || 0) : 0,
+      reps: Math.max(0, Number(s.reps) || 0)
+    })).filter(s => s.reps > 0);
+    if (valid.length === 0) return;
+    setLogging(true);
+    const now = nowISO();
+    const entries = valid.map((s, idx) => ({
+      id: genId(),
+      performed_at: now,
+      exercise_name: selected,
+      input_type: ex.input,
+      set_index: idx + 1,
+      reps: s.reps,
+      weight_kg: s.weight_kg
+    }));
+    const nextSets = [...todaySets, ...entries];
+    await storage.set(`strength:${dateKey}`, nextSets);
+    setTodaySets(nextSets);
+    const nextDict = {
+      ...exerciseDict,
+      [selected]: {
+        last_session: valid,
+        last_used_at: now
+      }
+    };
+    await storage.set("exercise_dict", nextDict);
+    setExerciseDict(nextDict);
+    setSelected(null);
+    setSets([]);
+    setLogging(false);
+    onCompleteExercise === null || onCompleteExercise === void 0 || onCompleteExercise(completedName);
+    onChange === null || onChange === void 0 || onChange();
+  }
 
-// ── Set-entry view ──
-if (selected) {
-const ex = getExercise(selected);
-const color = CAT_COLORS[ex.cat];
-const showWeight = ex.input !== IN.REPS;
-const backAction = /*#**PURE***/React.createElement(“button”, {
-className: “panel-back mono”,
-onClick: backToList
-}, /*#**PURE***/React.createElement(IconArrowL, null), “ “, /*#**PURE***/React.createElement(“span”, null, “back”));
-if (ex.input === IN.CIRCUIT) {
-const canLog = Number(circuitMin) > 0 && Number(circuitSets) > 0 && !logging;
-return /*#**PURE***/React.createElement(Panel, {
-title: selected,
-action: backAction,
-titleBg: color
-}, /*#**PURE***/React.createElement(“div”, {
-className: “circuit-form”
-}, /*#**PURE***/React.createElement(“div”, {
-className: “circuit-field”
-}, /*#**PURE***/React.createElement(“label”, null, “Minutes / set”), /*#**PURE***/React.createElement(“div”, {
-className: “cardio-field”
-}, /*#**PURE***/React.createElement(“input”, {
-type: “number”,
-inputMode: “decimal”,
-min: “0”,
-step: “any”,
-value: circuitMin,
-onChange: e => setCircuitMin(e.target.value),
-placeholder: “0”
-}), /*#**PURE***/React.createElement(“span”, {
-className: “unit”
-}, “min”))), /*#**PURE***/React.createElement(“div”, {
-className: “circuit-field”
-}, /*#**PURE***/React.createElement(“label”, null, “Number of sets”), /*#**PURE***/React.createElement(“div”, {
-className: “cardio-field”
-}, /*#**PURE***/React.createElement(“input”, {
-type: “number”,
-inputMode: “numeric”,
-min: “1”,
-step: “1”,
-value: circuitSets,
-onChange: e => setCircuitSets(e.target.value),
-placeholder: “0”
-}), /*#**PURE***/React.createElement(“span”, {
-className: “unit”
-}, “sets”)))), /*#**PURE***/React.createElement(“div”, {
-className: “form-actions”
-}, /*#**PURE***/React.createElement(Btn, {
-onClick: logExercise,
-disabled: !canLog
-}, logging ? “Logging…” : “Log”)));
-}
-const canLog = sets.some(s => Number(s.reps) > 0) && !logging;
-return /*#**PURE***/React.createElement(Panel, {
-title: selected,
-action: backAction,
-titleBg: color
-}, /*#**PURE***/React.createElement(“div”, {
-className: “set-table”
-}, /*#**PURE***/React.createElement(“div”, {
-className: `set-row set-head${showWeight ? "" : " reps-only"}`
-}, /*#**PURE***/React.createElement(“span”, {
-className: “set-idx mono”
-}, “#”), showWeight && /*#**PURE***/React.createElement(“span”, {
-className: “set-kg mono”
-}, “kg”), /*#**PURE***/React.createElement(“span”, {
-className: “set-reps mono”
-}, “reps”), /*#**PURE***/React.createElement(“span”, {
-className: “set-del-h”
-})), sets.map((s, i) => /*#**PURE***/React.createElement(“div”, {
-key: i,
-className: `set-row${showWeight ? "" : " reps-only"}`
-}, /*#**PURE***/React.createElement(“span”, {
-className: “set-idx mono”
-}, i + 1), showWeight && /*#**PURE***/React.createElement(“input”, {
-className: “set-input mono”,
-type: “number”,
-inputMode: “decimal”,
-min: “0”,
-step: “any”,
-value: s.weight_kg,
-onChange: e => updateSet(i, “weight_kg”, e.target.value),
-placeholder: “0”
-}), /*#**PURE***/React.createElement(“input”, {
-className: “set-input mono”,
-type: “number”,
-inputMode: “numeric”,
-min: “0”,
-step: “1”,
-value: s.reps,
-onChange: e => updateSet(i, “reps”, e.target.value),
-placeholder: “0”
-}), /*#**PURE***/React.createElement(“button”, {
-className: “set-del”,
-onClick: () => removeSet(i),
-disabled: sets.length === 1
-}, /*#**PURE***/React.createElement(IconTrash, {
-size: 13
-}))))), /*#**PURE***/React.createElement(“button”, {
-className: “add-set”,
-onClick: addSet
-}, /*#**PURE***/React.createElement(IconPlus, {
-size: 14
-}), “ “, /*#**PURE***/React.createElement(“span”, null, “Add set”)), /*#**PURE***/React.createElement(“div”, {
-className: “form-actions”
-}, /*#**PURE***/React.createElement(Btn, {
-onClick: logExercise,
-disabled: !canLog
-}, logging ? “Logging…” : “Log”)));
-}
+  // ── Set-entry view ──
+  if (selected) {
+    const ex = getExercise(selected);
+    const color = CAT_COLORS[ex.cat];
+    const showWeight = ex.input !== IN.REPS;
+    const backAction = /*#__PURE__*/React.createElement("button", {
+      className: "panel-back mono",
+      onClick: backToList
+    }, /*#__PURE__*/React.createElement(IconArrowL, null), " ", /*#__PURE__*/React.createElement("span", null, "back"));
+    if (ex.input === IN.CIRCUIT) {
+      const canLog = Number(circuitMin) > 0 && Number(circuitSets) > 0 && !logging;
+      return /*#__PURE__*/React.createElement(Panel, {
+        title: selected,
+        action: backAction,
+        titleBg: color
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "circuit-form"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "circuit-field"
+      }, /*#__PURE__*/React.createElement("label", null, "Minutes / set"), /*#__PURE__*/React.createElement("div", {
+        className: "cardio-field"
+      }, /*#__PURE__*/React.createElement("input", {
+        type: "number",
+        inputMode: "decimal",
+        min: "0",
+        step: "any",
+        value: circuitMin,
+        onChange: e => setCircuitMin(e.target.value),
+        placeholder: "0"
+      }), /*#__PURE__*/React.createElement("span", {
+        className: "unit"
+      }, "min"))), /*#__PURE__*/React.createElement("div", {
+        className: "circuit-field"
+      }, /*#__PURE__*/React.createElement("label", null, "Number of sets"), /*#__PURE__*/React.createElement("div", {
+        className: "cardio-field"
+      }, /*#__PURE__*/React.createElement("input", {
+        type: "number",
+        inputMode: "numeric",
+        min: "1",
+        step: "1",
+        value: circuitSets,
+        onChange: e => setCircuitSets(e.target.value),
+        placeholder: "0"
+      }), /*#__PURE__*/React.createElement("span", {
+        className: "unit"
+      }, "sets")))), /*#__PURE__*/React.createElement("div", {
+        className: "form-actions"
+      }, /*#__PURE__*/React.createElement(Btn, {
+        onClick: logExercise,
+        disabled: !canLog
+      }, logging ? "Logging…" : "Log")));
+    }
+    const canLog = sets.some(s => Number(s.reps) > 0) && !logging;
+    return /*#__PURE__*/React.createElement(Panel, {
+      title: selected,
+      action: backAction,
+      titleBg: color
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "set-table"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: `set-row set-head${showWeight ? "" : " reps-only"}`
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "set-idx mono"
+    }, "#"), showWeight && /*#__PURE__*/React.createElement("span", {
+      className: "set-kg mono"
+    }, "kg"), /*#__PURE__*/React.createElement("span", {
+      className: "set-reps mono"
+    }, "reps"), /*#__PURE__*/React.createElement("span", {
+      className: "set-del-h"
+    })), sets.map((s, i) => /*#__PURE__*/React.createElement("div", {
+      key: i,
+      className: `set-row${showWeight ? "" : " reps-only"}`
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "set-idx mono"
+    }, i + 1), showWeight && /*#__PURE__*/React.createElement("input", {
+      className: "set-input mono",
+      type: "number",
+      inputMode: "decimal",
+      min: "0",
+      step: "any",
+      value: s.weight_kg,
+      onChange: e => updateSet(i, "weight_kg", e.target.value),
+      placeholder: "0"
+    }), /*#__PURE__*/React.createElement("input", {
+      className: "set-input mono",
+      type: "number",
+      inputMode: "numeric",
+      min: "0",
+      step: "1",
+      value: s.reps,
+      onChange: e => updateSet(i, "reps", e.target.value),
+      placeholder: "0"
+    }), /*#__PURE__*/React.createElement("button", {
+      className: "set-del",
+      onClick: () => removeSet(i),
+      disabled: sets.length === 1
+    }, /*#__PURE__*/React.createElement(IconTrash, {
+      size: 13
+    }))))), /*#__PURE__*/React.createElement("button", {
+      className: "add-set",
+      onClick: addSet
+    }, /*#__PURE__*/React.createElement(IconPlus, {
+      size: 14
+    }), " ", /*#__PURE__*/React.createElement("span", null, "Add set")), /*#__PURE__*/React.createElement("div", {
+      className: "form-actions"
+    }, /*#__PURE__*/React.createElement(Btn, {
+      onClick: logExercise,
+      disabled: !canLog
+    }, logging ? "Logging…" : "Log")));
+  }
 
-// ── Exercise list view ──
-const todayCounts = {};
-for (const s of todaySets) {
-todayCounts[s.exercise_name] = (todayCounts[s.exercise_name] || 0) + 1;
-}
-const fiveDaysAgoMs = Date.now() - 5 * 86400000;
-const recentlyDone = name => {
-var _exerciseDict$name;
-const iso = (_exerciseDict$name = exerciseDict[name]) === null || _exerciseDict$name === void 0 ? void 0 : _exerciseDict$name.last_used_at;
-return iso && new Date(iso).getTime() > fiveDaysAgoMs;
-};
-return /*#**PURE***/React.createElement(React.Fragment, null, activeSession && /*#**PURE***/React.createElement(SessionQueue, {
-session: activeSession,
-onSelectExercise: (name, sets) => selectExercise(name, sets),
-onEndSession: onEndSession
-}), CATEGORIES.map(cat => {
-const catExs = EXERCISES.filter(e => e.cat === cat.id);
-const color = CAT_COLORS[cat.id];
-return /*#**PURE***/React.createElement(“div”, {
-key: cat.id,
-className: “cat-group”
-}, /*#**PURE***/React.createElement(“div”, {
-className: “cat-header”,
-style: {
-background: color
-}
-}, cat.label.toUpperCase()), catExs.map(ex => {
-const count = todayCounts[ex.name];
-const recent = recentlyDone(ex.name);
-return /*#**PURE***/React.createElement(“button”, {
-key: ex.name,
-className: “exercise-btn”,
-style: {
-borderLeftColor: color
-},
-onClick: () => selectExercise(ex.name)
-}, /*#**PURE***/React.createElement(“span”, {
-className: “ex-name”
-}, ex.name), /*#**PURE***/React.createElement(“span”, {
-className: “ex-badges”
-}, recent && /*#**PURE***/React.createElement(“span”, {
-className: “badge-tick”
-}, “\u2713”), count > 0 && /*#**PURE***/React.createElement(“span”, {
-className: “badge-count mono”
-}, count)));
-}));
-}));
+  // ── Exercise list view ──
+  const todayCounts = {};
+  for (const s of todaySets) {
+    todayCounts[s.exercise_name] = (todayCounts[s.exercise_name] || 0) + 1;
+  }
+  const fiveDaysAgoMs = Date.now() - 5 * 86400000;
+  const recentlyDone = name => {
+    var _exerciseDict$name;
+    const iso = (_exerciseDict$name = exerciseDict[name]) === null || _exerciseDict$name === void 0 ? void 0 : _exerciseDict$name.last_used_at;
+    return iso && new Date(iso).getTime() > fiveDaysAgoMs;
+  };
+  return /*#__PURE__*/React.createElement(React.Fragment, null, activeSession && /*#__PURE__*/React.createElement(SessionQueue, {
+    session: activeSession,
+    onSelectExercise: (name, sets) => selectExercise(name, sets),
+    onEndSession: onEndSession
+  }), CATEGORIES.map(cat => {
+    const catExs = EXERCISES.filter(e => e.cat === cat.id);
+    const color = CAT_COLORS[cat.id];
+    return /*#__PURE__*/React.createElement("div", {
+      key: cat.id,
+      className: "cat-group"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "cat-header",
+      style: {
+        background: color
+      }
+    }, cat.label.toUpperCase()), catExs.map(ex => {
+      const count = todayCounts[ex.name];
+      const recent = recentlyDone(ex.name);
+      return /*#__PURE__*/React.createElement("button", {
+        key: ex.name,
+        className: "exercise-btn",
+        style: {
+          borderLeftColor: color
+        },
+        onClick: () => selectExercise(ex.name)
+      }, /*#__PURE__*/React.createElement("span", {
+        className: "ex-name"
+      }, ex.name), /*#__PURE__*/React.createElement("span", {
+        className: "ex-badges"
+      }, recent && /*#__PURE__*/React.createElement("span", {
+        className: "badge-tick"
+      }, "\u2713"), count > 0 && /*#__PURE__*/React.createElement("span", {
+        className: "badge-count mono"
+      }, count)));
+    }));
+  }));
 }
 
 // =============================================================================
 // SessionQueue — active session panel rendered at top of strength log
 // =============================================================================
 function SessionQueue({
-session,
-onSelectExercise,
-onEndSession
+  session,
+  onSelectExercise,
+  onEndSession
 }) {
-const completed = session.completed || [];
-const total = session.exercises.length;
-const doneCount = completed.length;
-const allDone = doneCount === total && total > 0;
-const headBg = allDone ? “#3A7D52” : undefined;
-return /*#**PURE***/React.createElement(“div”, {
-className: “panel queue-panel”
-}, /*#**PURE***/React.createElement(“div”, {
-className: “panel-head”,
-style: headBg ? {
-background: headBg
-} : undefined
-}, /*#**PURE***/React.createElement(“span”, {
-className: “panel-title”
-}, session.title, “ \xB7 “, doneCount, “/”, total, allDone ? “ ✓” : “”), /*#**PURE***/React.createElement(“button”, {
-className: “panel-back mono”,
-onClick: onEndSession
-}, allDone ? “Done” : “End”)), /*#**PURE***/React.createElement(“div”, {
-className: “panel-body queue-body”
-}, session.exercises.map((ex, i) => {
-const isDone = completed.includes(ex.name);
-const color = CAT_COLORS[ex.cat];
-return /*#**PURE***/React.createElement(“button”, {
-key: ex.name + i,
-className: `session-row queue-row${isDone ? " queue-done" : ""}`,
-style: {
-borderLeftColor: color
-},
-onClick: () => !isDone && onSelectExercise(ex.name, ex.sets),
-disabled: isDone
-}, /*#**PURE***/React.createElement(“span”, {
-className: “queue-mark mono”
-}, isDone ? “✓” : “·”), /*#**PURE***/React.createElement(“span”, {
-className: “session-name”
-}, ex.name), /*#**PURE***/React.createElement(“span”, {
-className: “session-sets mono”
-}, isDone ? “done” : `${ex.sets}×`));
-})));
+  const completed = session.completed || [];
+  const total = session.exercises.length;
+  const doneCount = completed.length;
+  const allDone = doneCount === total && total > 0;
+  const headBg = allDone ? "#3A7D52" : undefined;
+  return /*#__PURE__*/React.createElement("div", {
+    className: "panel queue-panel"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "panel-head",
+    style: headBg ? {
+      background: headBg
+    } : undefined
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "panel-title"
+  }, session.title, " \xB7 ", doneCount, "/", total, allDone ? " ✓" : ""), /*#__PURE__*/React.createElement("button", {
+    className: "panel-back mono",
+    onClick: onEndSession
+  }, allDone ? "Done" : "End")), /*#__PURE__*/React.createElement("div", {
+    className: "panel-body queue-body"
+  }, session.exercises.map((ex, i) => {
+    const isDone = completed.includes(ex.name);
+    const color = CAT_COLORS[ex.cat];
+    return /*#__PURE__*/React.createElement("button", {
+      key: ex.name + i,
+      className: `session-row queue-row${isDone ? " queue-done" : ""}`,
+      style: {
+        borderLeftColor: color
+      },
+      onClick: () => !isDone && onSelectExercise(ex.name, ex.sets),
+      disabled: isDone
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "queue-mark mono"
+    }, isDone ? "✓" : "·"), /*#__PURE__*/React.createElement("span", {
+      className: "session-name"
+    }, ex.name), /*#__PURE__*/React.createElement("span", {
+      className: "session-sets mono"
+    }, isDone ? "done" : `${ex.sets}×`));
+  })));
 }
 
 // =============================================================================
 // Cardio log (Log tab)
 // =============================================================================
 function CardioLog({
-dateKey,
-refreshKey,
-onChange
+  dateKey,
+  refreshKey,
+  onChange
 }) {
-const [type, setType] = useState(“jog”);
-const [duration, setDuration] = useState(””);
-const [distance, setDistance] = useState(””);
-const [kcal, setKcal] = useState(””);
-const [kcalEdited, setKcalEdited] = useState(false);
-const [logging, setLogging] = useState(false);
-const [todaySessions, setTodaySessions] = useState([]);
-const hasDistance = type === “jog” || type === “run”;
-useEffect(() => {
-storage.get(`cardio:${dateKey}`, []).then(setTodaySessions);
-}, [dateKey, refreshKey]);
+  const [type, setType] = useState("jog");
+  const [duration, setDuration] = useState("");
+  const [distance, setDistance] = useState("");
+  const [kcal, setKcal] = useState("");
+  const [kcalEdited, setKcalEdited] = useState(false);
+  const [logging, setLogging] = useState(false);
+  const [todaySessions, setTodaySessions] = useState([]);
+  const hasDistance = type === "jog" || type === "run";
+  useEffect(() => {
+    storage.get(`cardio:${dateKey}`, []).then(setTodaySessions);
+  }, [dateKey, refreshKey]);
 
-// Recalculate kcal when duration changes (unless manually overridden)
-useEffect(() => {
-if (kcalEdited) return;
-if (type === “other”) {
-setKcal(””);
-return;
-}
-const dur = Number(duration);
-if (!dur || dur <= 0) {
-setKcal(””);
-return;
-}
-setKcal(String(Math.round(KCAL_PER_MIN[type] * dur)));
-}, [type, duration, kcalEdited]);
-function selectType(t) {
-setType(t);
-setKcalEdited(false);
-setDuration(””);
-setDistance(””);
-setKcal(””);
-}
+  // Recalculate kcal when duration changes (unless manually overridden)
+  useEffect(() => {
+    if (kcalEdited) return;
+    if (type === "other") {
+      setKcal("");
+      return;
+    }
+    const dur = Number(duration);
+    if (!dur || dur <= 0) {
+      setKcal("");
+      return;
+    }
+    setKcal(String(Math.round(KCAL_PER_MIN[type] * dur)));
+  }, [type, duration, kcalEdited]);
+  function selectType(t) {
+    setType(t);
+    setKcalEdited(false);
+    setDuration("");
+    setDistance("");
+    setKcal("");
+  }
 
-// Duration entered → auto-fill distance
-function changeDuration(v) {
-setDuration(v);
-if (hasDistance) {
-const dur = Number(v);
-setDistance(dur > 0 ? (dur / PACE_MIN_PER_KM[type]).toFixed(1) : “”);
-}
-}
+  // Duration entered → auto-fill distance
+  function changeDuration(v) {
+    setDuration(v);
+    if (hasDistance) {
+      const dur = Number(v);
+      setDistance(dur > 0 ? (dur / PACE_MIN_PER_KM[type]).toFixed(1) : "");
+    }
+  }
 
-// Distance entered → auto-fill duration
-function changeDistance(v) {
-setDistance(v);
-const d = Number(v);
-setDuration(d > 0 ? String(Math.round(d * PACE_MIN_PER_KM[type])) : “”);
-}
-function changeKcal(v) {
-setKcal(v);
-setKcalEdited(true);
-}
-async function logCardio() {
-const dur = Number(duration);
-const burn = Number(kcal);
-if (!dur || dur <= 0 || !burn || burn <= 0 || logging) return;
-setLogging(true);
-const session = {
-id: genId(),
-started_at: nowISO(),
-type,
-duration_min: dur,
-kcal_burned: Math.round(burn),
-source: kcalEdited || type === “other” ? “manual” : “auto”
-};
-if (hasDistance && Number(distance) > 0) {
-session.distance_km = parseFloat(Number(distance).toFixed(1));
-}
-const next = […todaySessions, session];
-await storage.set(`cardio:${dateKey}`, next);
-setTodaySessions(next);
-setDuration(””);
-setDistance(””);
-setKcal(””);
-setKcalEdited(false);
-setLogging(false);
-onChange === null || onChange === void 0 || onChange();
-}
-const canLog = Number(duration) > 0 && Number(kcal) > 0 && !logging;
-return /*#**PURE***/React.createElement(Panel, {
-title: “New cardio”
-}, /*#**PURE***/React.createElement(“div”, {
-className: “cardio-types”
-}, CARDIO_TYPES.map(({
-id,
-label
-}) => /*#**PURE***/React.createElement(“button”, {
-key: id,
-onClick: () => selectType(id),
-className: `cardio-type${type === id ? " active" : ""}`
-}, label))), hasDistance && /*#**PURE***/React.createElement(“div”, {
-className: “distance-row”
-}, /*#**PURE***/React.createElement(“label”, {
-className: “distance-lbl”
-}, “Distance”), /*#**PURE***/React.createElement(“div”, {
-className: “cardio-field dist-field”
-}, /*#**PURE***/React.createElement(“input”, {
-type: “number”,
-inputMode: “decimal”,
-min: “0”,
-step: “0.1”,
-value: distance,
-onChange: e => changeDistance(e.target.value),
-placeholder: “0.0”
-}), /*#**PURE***/React.createElement(“span”, {
-className: “unit”
-}, “km”))), /*#**PURE***/React.createElement(“div”, {
-className: “cardio-grid”
-}, /*#**PURE***/React.createElement(“div”, {
-className: “cardio-input”
-}, /*#**PURE***/React.createElement(“label”, null, “Duration”), /*#**PURE***/React.createElement(“div”, {
-className: “cardio-field”
-}, /*#**PURE***/React.createElement(“input”, {
-type: “number”,
-inputMode: “decimal”,
-min: “0”,
-step: “any”,
-value: duration,
-onChange: e => changeDuration(e.target.value),
-placeholder: “0”
-}), /*#**PURE***/React.createElement(“span”, {
-className: “unit”
-}, “min”))), /*#**PURE***/React.createElement(“div”, {
-className: “cardio-input”
-}, /*#**PURE***/React.createElement(“label”, null, “Calories”, !kcalEdited && type !== “other” && Number(duration) > 0 && /*#**PURE***/React.createElement(“span”, {
-className: “auto-tag mono”
-}, “auto”)), /*#**PURE***/React.createElement(“div”, {
-className: “cardio-field”
-}, /*#**PURE***/React.createElement(“input”, {
-type: “number”,
-inputMode: “decimal”,
-min: “0”,
-step: “any”,
-value: kcal,
-onChange: e => changeKcal(e.target.value),
-placeholder: “0”
-}), /*#**PURE***/React.createElement(“span”, {
-className: “unit”
-}, “kcal”)))), /*#**PURE***/React.createElement(“div”, {
-className: “form-actions”
-}, /*#**PURE***/React.createElement(Btn, {
-onClick: logCardio,
-disabled: !canLog
-}, logging ? “Logging…” : “Log”)));
+  // Distance entered → auto-fill duration
+  function changeDistance(v) {
+    setDistance(v);
+    const d = Number(v);
+    setDuration(d > 0 ? String(Math.round(d * PACE_MIN_PER_KM[type])) : "");
+  }
+  function changeKcal(v) {
+    setKcal(v);
+    setKcalEdited(true);
+  }
+  async function logCardio() {
+    const dur = Number(duration);
+    const burn = Number(kcal);
+    if (!dur || dur <= 0 || !burn || burn <= 0 || logging) return;
+    setLogging(true);
+    const session = {
+      id: genId(),
+      started_at: nowISO(),
+      type,
+      duration_min: dur,
+      kcal_burned: Math.round(burn),
+      source: kcalEdited || type === "other" ? "manual" : "auto"
+    };
+    if (hasDistance && Number(distance) > 0) {
+      session.distance_km = parseFloat(Number(distance).toFixed(1));
+    }
+    const next = [...todaySessions, session];
+    await storage.set(`cardio:${dateKey}`, next);
+    setTodaySessions(next);
+    setDuration("");
+    setDistance("");
+    setKcal("");
+    setKcalEdited(false);
+    setLogging(false);
+    onChange === null || onChange === void 0 || onChange();
+  }
+  const canLog = Number(duration) > 0 && Number(kcal) > 0 && !logging;
+  return /*#__PURE__*/React.createElement(Panel, {
+    title: "New cardio"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "cardio-types"
+  }, CARDIO_TYPES.map(({
+    id,
+    label
+  }) => /*#__PURE__*/React.createElement("button", {
+    key: id,
+    onClick: () => selectType(id),
+    className: `cardio-type${type === id ? " active" : ""}`
+  }, label))), hasDistance && /*#__PURE__*/React.createElement("div", {
+    className: "distance-row"
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "distance-lbl"
+  }, "Distance"), /*#__PURE__*/React.createElement("div", {
+    className: "cardio-field dist-field"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    inputMode: "decimal",
+    min: "0",
+    step: "0.1",
+    value: distance,
+    onChange: e => changeDistance(e.target.value),
+    placeholder: "0.0"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "unit"
+  }, "km"))), /*#__PURE__*/React.createElement("div", {
+    className: "cardio-grid"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "cardio-input"
+  }, /*#__PURE__*/React.createElement("label", null, "Duration"), /*#__PURE__*/React.createElement("div", {
+    className: "cardio-field"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    inputMode: "decimal",
+    min: "0",
+    step: "any",
+    value: duration,
+    onChange: e => changeDuration(e.target.value),
+    placeholder: "0"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "unit"
+  }, "min"))), /*#__PURE__*/React.createElement("div", {
+    className: "cardio-input"
+  }, /*#__PURE__*/React.createElement("label", null, "Calories", !kcalEdited && type !== "other" && Number(duration) > 0 && /*#__PURE__*/React.createElement("span", {
+    className: "auto-tag mono"
+  }, "auto")), /*#__PURE__*/React.createElement("div", {
+    className: "cardio-field"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    inputMode: "decimal",
+    min: "0",
+    step: "any",
+    value: kcal,
+    onChange: e => changeKcal(e.target.value),
+    placeholder: "0"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "unit"
+  }, "kcal")))), /*#__PURE__*/React.createElement("div", {
+    className: "form-actions"
+  }, /*#__PURE__*/React.createElement(Btn, {
+    onClick: logCardio,
+    disabled: !canLog
+  }, logging ? "Logging…" : "Log")));
 }
 
 // =============================================================================
 // Log screen (tab)
 // =============================================================================
 function LogScreen({
-dateKey,
-setDateKey,
-refreshKey,
-onChange,
-pendingExercise,
-clearPending,
-activeSession,
-onEndSession,
-onCompleteExercise
+  dateKey,
+  setDateKey,
+  refreshKey,
+  onChange,
+  pendingExercise,
+  clearPending,
+  activeSession,
+  onEndSession,
+  onCompleteExercise
 }) {
-const [mode, setMode] = useState(“strength”);
-useEffect(() => {
-if (pendingExercise || activeSession) setMode(“strength”);
-}, [pendingExercise, activeSession]);
-return /*#**PURE***/React.createElement(React.Fragment, null, /*#**PURE***/React.createElement(DateBar, {
-dateKey: dateKey,
-onChange: setDateKey
-}), /*#**PURE***/React.createElement(“div”, {
-className: “segment”
-}, /*#**PURE***/React.createElement(“button”, {
-className: `segment-btn${mode === "strength" ? " active" : ""}`,
-onClick: () => setMode(“strength”)
-}, /*#**PURE***/React.createElement(IconDumbbell, {
-size: 15,
-sw: 1.75
-}), “ “, /*#**PURE***/React.createElement(“span”, null, “Strength”)), /*#**PURE***/React.createElement(“button”, {
-className: `segment-btn${mode === "cardio" ? " active" : ""}`,
-onClick: () => setMode(“cardio”)
-}, /*#**PURE***/React.createElement(IconActivity, {
-size: 15,
-sw: 1.75
-}), “ “, /*#**PURE***/React.createElement(“span”, null, “Cardio”))), mode === “strength” && /*#**PURE***/React.createElement(React.Fragment, null, /*#**PURE***/React.createElement(Stopwatch, null), /*#**PURE***/React.createElement(StrengthLog, {
-dateKey: dateKey,
-refreshKey: refreshKey,
-onChange: onChange,
-pendingExercise: pendingExercise,
-clearPending: clearPending,
-activeSession: activeSession,
-onEndSession: onEndSession,
-onCompleteExercise: onCompleteExercise
-})), mode === “cardio” && /*#**PURE***/React.createElement(CardioLog, {
-dateKey: dateKey,
-refreshKey: refreshKey,
-onChange: onChange
-}));
+  const [mode, setMode] = useState("strength");
+  useEffect(() => {
+    if (pendingExercise || activeSession) setMode("strength");
+  }, [pendingExercise, activeSession]);
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(DateBar, {
+    dateKey: dateKey,
+    onChange: setDateKey
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "segment"
+  }, /*#__PURE__*/React.createElement("button", {
+    className: `segment-btn${mode === "strength" ? " active" : ""}`,
+    onClick: () => setMode("strength")
+  }, /*#__PURE__*/React.createElement(IconDumbbell, {
+    size: 15,
+    sw: 1.75
+  }), " ", /*#__PURE__*/React.createElement("span", null, "Strength")), /*#__PURE__*/React.createElement("button", {
+    className: `segment-btn${mode === "cardio" ? " active" : ""}`,
+    onClick: () => setMode("cardio")
+  }, /*#__PURE__*/React.createElement(IconActivity, {
+    size: 15,
+    sw: 1.75
+  }), " ", /*#__PURE__*/React.createElement("span", null, "Cardio"))), mode === "strength" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Stopwatch, null), /*#__PURE__*/React.createElement(StrengthLog, {
+    dateKey: dateKey,
+    refreshKey: refreshKey,
+    onChange: onChange,
+    pendingExercise: pendingExercise,
+    clearPending: clearPending,
+    activeSession: activeSession,
+    onEndSession: onEndSession,
+    onCompleteExercise: onCompleteExercise
+  })), mode === "cardio" && /*#__PURE__*/React.createElement(CardioLog, {
+    dateKey: dateKey,
+    refreshKey: refreshKey,
+    onChange: onChange
+  }));
 }
 
 // =============================================================================
 // Jiggle tab
 // =============================================================================
 function JiggleTab() {
-const [jigglin, setJigglin] = useState(false);
-function press() {
-if (jigglin) return;
-setJigglin(true);
-setTimeout(() => setJigglin(false), 1200);
-}
-return /*#**PURE***/React.createElement(“div”, {
-className: “jiggle-screen”
-}, /*#**PURE***/React.createElement(Btn, {
-onClick: press,
-disabled: jigglin
-}, jigglin ? “Increasing…” : “Increase jiggliness by 30%”));
+  const [jigglin, setJigglin] = useState(false);
+  function press() {
+    if (jigglin) return;
+    setJigglin(true);
+    setTimeout(() => setJigglin(false), 1200);
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "jiggle-screen"
+  }, /*#__PURE__*/React.createElement(Btn, {
+    onClick: press,
+    disabled: jigglin
+  }, jigglin ? "Increasing…" : "Increase jiggliness by 30%"));
 }
 
 // =============================================================================
 // Bottom nav
 // =============================================================================
 const TABS = [{
-id: “today”,
-label: “Today”,
-Icon: IconCalendar
+  id: "today",
+  label: "Today",
+  Icon: IconCalendar
 }, {
-id: “log”,
-label: “Log”,
-Icon: IconPlus
+  id: "log",
+  label: "Log",
+  Icon: IconPlus
 }, {
-id: “jiggle”,
-label: “✦”,
-Icon: IconZap
+  id: "jiggle",
+  label: "✦",
+  Icon: IconZap
 }];
 function BottomNav({
-active,
-onChange
+  active,
+  onChange
 }) {
-return /*#**PURE***/React.createElement(“nav”, {
-className: “bottom-nav”
-}, /*#**PURE***/React.createElement(“div”, {
-className: “bottom-nav-inner”
-}, TABS.map(({
-id,
-label,
-Icon
-}) => {
-const on = active === id;
-return /*#**PURE***/React.createElement(“button”, {
-key: id,
-onClick: () => onChange(id),
-className: `tab${on ? " tab-active" : ""}`,
-“aria-label”: label,
-title: label
-}, /*#**PURE***/React.createElement(Icon, {
-size: 22,
-sw: on ? 2 : 1.75
-}), /*#**PURE***/React.createElement(“span”, {
-className: “tab-label”
-}, label));
-})));
+  return /*#__PURE__*/React.createElement("nav", {
+    className: "bottom-nav"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bottom-nav-inner"
+  }, TABS.map(({
+    id,
+    label,
+    Icon
+  }) => {
+    const on = active === id;
+    return /*#__PURE__*/React.createElement("button", {
+      key: id,
+      onClick: () => onChange(id),
+      className: `tab${on ? " tab-active" : ""}`,
+      "aria-label": label,
+      title: label
+    }, /*#__PURE__*/React.createElement(Icon, {
+      size: 22,
+      sw: on ? 2 : 1.75
+    }), /*#__PURE__*/React.createElement("span", {
+      className: "tab-label"
+    }, label));
+  })));
 }
 
 // =============================================================================
 // App shell
 // =============================================================================
 function App() {
-const [tab, setTab] = useState(“today”);
-const [dateKey, setDateKey] = useState(todayKey());
-const [refreshKey, setRefreshKey] = useState(0);
-const [exerciseDict, setExerciseDict] = useState({});
-const [pendingExercise, setPendingExercise] = useState(null);
+  const [tab, setTab] = useState("today");
+  const [dateKey, setDateKey] = useState(todayKey());
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [exerciseDict, setExerciseDict] = useState({});
+  const [pendingExercise, setPendingExercise] = useState(null);
 
-// activeSession persists across reloads via localStorage.
-// Shape: { title, exercises: [{name, cat, input, sets}], completed: [name, …] }
-const [activeSession, setActiveSession] = useState(() => {
-try {
-const raw = localStorage.getItem(“exercise-tracker:active_session”);
-return raw ? JSON.parse(raw) : null;
-} catch {
-return null;
-}
-});
-const bump = () => setRefreshKey(x => x + 1);
-useEffect(() => {
-storage.get(“exercise_dict”, {}).then(setExerciseDict);
-}, [refreshKey]);
-useEffect(() => {
-bump();
-}, [tab]);
+  // activeSession persists across reloads via localStorage.
+  // Shape: { title, exercises: [{name, cat, input, sets}], completed: [name, ...] }
+  const [activeSession, setActiveSession] = useState(() => {
+    try {
+      const raw = localStorage.getItem("exercise-tracker:active_session");
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  });
+  const bump = () => setRefreshKey(x => x + 1);
+  useEffect(() => {
+    storage.get("exercise_dict", {}).then(setExerciseDict);
+  }, [refreshKey]);
+  useEffect(() => {
+    bump();
+  }, [tab]);
 
-// Persist activeSession on every change.
-useEffect(() => {
-try {
-if (activeSession === null) {
-localStorage.removeItem(“exercise-tracker:active_session”);
-} else {
-localStorage.setItem(“exercise-tracker:active_session”, JSON.stringify(activeSession));
+  // Persist activeSession on every change.
+  useEffect(() => {
+    try {
+      if (activeSession === null) {
+        localStorage.removeItem("exercise-tracker:active_session");
+      } else {
+        localStorage.setItem("exercise-tracker:active_session", JSON.stringify(activeSession));
+      }
+    } catch (err) {
+      console.error("save active_session", err);
+    }
+  }, [activeSession]);
+  function handleSelectExercise(name) {
+    setPendingExercise(name);
+    setTab("log");
+  }
+  function handleStartSession(session) {
+    setActiveSession({
+      ...session,
+      completed: []
+    });
+    setTab("log");
+  }
+  function handleEndSession() {
+    setActiveSession(null);
+  }
+  function handleCompleteExercise(name) {
+    setActiveSession(prev => {
+      if (!prev) return null;
+      if (!prev.exercises.some(e => e.name === name)) return prev;
+      const completed = prev.completed || [];
+      if (completed.includes(name)) return prev;
+      return {
+        ...prev,
+        completed: [...completed, name]
+      };
+    });
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "app"
+  }, /*#__PURE__*/React.createElement("header", {
+    className: "app-head"
+  }, /*#__PURE__*/React.createElement("h1", {
+    className: "app-title"
+  }, "Exercise")), /*#__PURE__*/React.createElement("main", {
+    className: "app-main"
+  }, tab === "today" && /*#__PURE__*/React.createElement(TodayView, {
+    dateKey: dateKey,
+    setDateKey: setDateKey,
+    refreshKey: refreshKey,
+    onChange: bump,
+    exerciseDict: exerciseDict,
+    onSelectExercise: handleSelectExercise,
+    onStartSession: handleStartSession
+  }), tab === "log" && /*#__PURE__*/React.createElement(LogScreen, {
+    dateKey: dateKey,
+    setDateKey: setDateKey,
+    refreshKey: refreshKey,
+    onChange: bump,
+    pendingExercise: pendingExercise,
+    clearPending: () => setPendingExercise(null),
+    activeSession: activeSession,
+    onEndSession: handleEndSession,
+    onCompleteExercise: handleCompleteExercise
+  }), tab === "jiggle" && /*#__PURE__*/React.createElement(JiggleTab, null)), /*#__PURE__*/React.createElement(BottomNav, {
+    active: tab,
+    onChange: setTab
+  }));
 }
-} catch (err) {
-console.error(“save active_session”, err);
-}
-}, [activeSession]);
-function handleSelectExercise(name) {
-setPendingExercise(name);
-setTab(“log”);
-}
-function handleStartSession(session) {
-setActiveSession({
-…session,
-completed: []
-});
-setTab(“log”);
-}
-function handleEndSession() {
-setActiveSession(null);
-}
-function handleCompleteExercise(name) {
-setActiveSession(prev => {
-if (!prev) return null;
-if (!prev.exercises.some(e => e.name === name)) return prev;
-const completed = prev.completed || [];
-if (completed.includes(name)) return prev;
-return {
-…prev,
-completed: […completed, name]
-};
-});
-}
-return /*#**PURE***/React.createElement(“div”, {
-className: “app”
-}, /*#**PURE***/React.createElement(“header”, {
-className: “app-head”
-}, /*#**PURE***/React.createElement(“h1”, {
-className: “app-title”
-}, “Exercise”)), /*#**PURE***/React.createElement(“main”, {
-className: “app-main”
-}, tab === “today” && /*#**PURE***/React.createElement(TodayView, {
-dateKey: dateKey,
-setDateKey: setDateKey,
-refreshKey: refreshKey,
-onChange: bump,
-exerciseDict: exerciseDict,
-onSelectExercise: handleSelectExercise,
-onStartSession: handleStartSession
-}), tab === “log” && /*#**PURE***/React.createElement(LogScreen, {
-dateKey: dateKey,
-setDateKey: setDateKey,
-refreshKey: refreshKey,
-onChange: bump,
-pendingExercise: pendingExercise,
-clearPending: () => setPendingExercise(null),
-activeSession: activeSession,
-onEndSession: handleEndSession,
-onCompleteExercise: handleCompleteExercise
-}), tab === “jiggle” && /*#**PURE***/React.createElement(JiggleTab, null)), /*#**PURE***/React.createElement(BottomNav, {
-active: tab,
-onChange: setTab
-}));
-}
-const root = ReactDOM.createRoot(document.getElementById(“root”));
-root.render(/*#**PURE***/React.createElement(App, null));
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(/*#__PURE__*/React.createElement(App, null));
 </script>
-
 </body>
 </html>
