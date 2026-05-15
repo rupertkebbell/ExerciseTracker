@@ -228,6 +228,46 @@ input[type=number] { -moz-appearance: textfield; }
 .queue-done .session-name { text-decoration: line-through; }
 .queue-done .queue-mark { color: #3A7D52; }
 
+/* Cardio recommendation card (Today tab) */
+.cardio-rec {
+  width: 100%;
+  border: 1px solid var(--line);
+  background: var(--cream);
+  text-align: left;
+  display: flex; flex-direction: column;
+}
+.cardio-rec-go { cursor: pointer; }
+.cardio-rec-go:active { background: var(--cream-2); }
+.cardio-rec-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 10px;
+  background: var(--ink); color: var(--cream);
+  border-bottom: 1px solid var(--line);
+}
+.cardio-rec-rest .cardio-rec-head { background: #5C5849; }
+.cardio-rec-title {
+  font-size: 12.5px; font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase;
+}
+.cardio-rec-pill {
+  font-size: 11px; font-weight: 600;
+  background: var(--cream); color: var(--ink);
+  padding: 2px 8px;
+  border: 1px solid var(--cream);
+}
+.cardio-rec-rest .cardio-rec-pill { background: #C9542A; color: var(--cream); border-color: #C9542A; }
+.cardio-rec-body {
+  padding: 10px 12px;
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 12.5px;
+}
+.cardio-rec-type { font-weight: 500; }
+.cardio-rec-meta { color: var(--ink-s); font-size: 11px; }
+.cardio-rec-rest .cardio-rec-body {
+  color: var(--ink-s); font-size: 11.5px; font-style: normal;
+  justify-content: flex-start;
+}
+
 /* Category groups (exercise list) */
 .cat-group { border: 1px solid var(--line); }
 .cat-header {
@@ -1010,6 +1050,25 @@ const PACE_MIN_PER_KM = {
   run: 4.75
 };
 
+// Cardio recommendation thresholds
+const CARDIO_REST_3D = 1200; // 3-day kcal above this → REST
+const CARDIO_TARGET_7D = 1500; // 7-day kcal target
+const CARDIO_REC_TYPES = ["jog", "bike", "stairs"]; // recommendation pool
+
+// =============================================================================
+// Bodyweight equivalents (72 kg, 178 cm male)
+// Used to compute training volume for reps-only exercises.
+// =============================================================================
+const BW_EQUIV_KG = {
+  "Pull-ups": 68,
+  // ~95% bodyweight
+  "Chin-ups": 68,
+  // ~95% bodyweight
+  "Hanging leg raises": 24,
+  // legs only, ~33% bodyweight
+  "Ab-roller": 40 // torso + arms, ~55% bodyweight
+};
+
 // =============================================================================
 // Helpers
 // =============================================================================
@@ -1021,11 +1080,15 @@ function groupByExercise(sets) {
   }
   return map;
 }
+function setVolume(s) {
+  if (s.input_type === IN.CIRCUIT) return 0;
+  if (s.input_type === IN.REPS) {
+    return (BW_EQUIV_KG[s.exercise_name] || 0) * (s.reps || 0);
+  }
+  return (s.weight_kg || 0) * (s.reps || 0);
+}
 function totalVolume(sets) {
-  return sets.reduce((a, s) => {
-    if (s.input_type === IN.REPS || s.input_type === IN.CIRCUIT) return a;
-    return a + (s.weight_kg || 0) * (s.reps || 0);
-  }, 0);
+  return sets.reduce((a, s) => a + setVolume(s), 0);
 }
 
 // =============================================================================
@@ -1518,6 +1581,107 @@ function SessionCard({
 }
 
 // =============================================================================
+// Recommended cardio (Today tab)
+// Type = oldest-used of {jog, bike, stairs} based on last 30 days.
+// Duration logic:
+//   - 3-day kcal > CARDIO_REST_3D  → REST (overtrained)
+//   - 7-day kcal ≥ CARDIO_TARGET_7D → REST (target met)
+//   - Otherwise: ceil((target − 7-day kcal) / kcal-per-min for type)
+// =============================================================================
+function RecommendedCardio({
+  refreshKey,
+  onStart
+}) {
+  var _CARDIO_TYPES$find;
+  const [rec, setRec] = useState(null);
+  useEffect(() => {
+    async function compute() {
+      const today = todayKey();
+      // Sum kcal for last 7 days, plus track last-used per cardio type over 30.
+      let kcal3 = 0,
+        kcal7 = 0;
+      const lastUsed = {
+        jog: null,
+        bike: null,
+        stairs: null
+      };
+      for (let i = 0; i < 30; i++) {
+        const dk = dateKeyOffset(today, -i);
+        const sessions = await storage.get(`cardio:${dk}`, []);
+        for (const s of sessions) {
+          if (i < 3) kcal3 += s.kcal_burned || 0;
+          if (i < 7) kcal7 += s.kcal_burned || 0;
+          if (lastUsed[s.type] !== undefined && lastUsed[s.type] === null) {
+            lastUsed[s.type] = s.started_at;
+          }
+        }
+      }
+      // Pick oldest type (null/never = highest priority).
+      const sorted = [...CARDIO_REC_TYPES].sort((a, b) => {
+        if (!lastUsed[a] && !lastUsed[b]) return 0;
+        if (!lastUsed[a]) return -1;
+        if (!lastUsed[b]) return 1;
+        return new Date(lastUsed[a]) - new Date(lastUsed[b]);
+      });
+      const type = sorted[0];
+      let rest = false,
+        reason = "",
+        minutes = 0;
+      if (kcal3 > CARDIO_REST_3D) {
+        rest = true;
+        reason = `${Math.round(kcal3)} kcal in past 3 days`;
+      } else if (kcal7 >= CARDIO_TARGET_7D) {
+        rest = true;
+        reason = `7-day target met (${Math.round(kcal7)}/${CARDIO_TARGET_7D} kcal)`;
+      } else {
+        const needed = CARDIO_TARGET_7D - kcal7;
+        minutes = Math.ceil(needed / KCAL_PER_MIN[type]);
+      }
+      setRec({
+        type,
+        rest,
+        reason,
+        minutes,
+        kcal3,
+        kcal7
+      });
+    }
+    compute();
+  }, [refreshKey]);
+  if (!rec) return null;
+  const label = ((_CARDIO_TYPES$find = CARDIO_TYPES.find(t => t.id === rec.type)) === null || _CARDIO_TYPES$find === void 0 ? void 0 : _CARDIO_TYPES$find.label) || rec.type;
+  if (rec.rest) {
+    return /*#__PURE__*/React.createElement("div", {
+      className: "cardio-rec cardio-rec-rest"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "cardio-rec-head"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "cardio-rec-title"
+    }, "Recommended cardio"), /*#__PURE__*/React.createElement("span", {
+      className: "cardio-rec-pill mono"
+    }, "REST")), /*#__PURE__*/React.createElement("div", {
+      className: "cardio-rec-body mono"
+    }, rec.reason));
+  }
+  return /*#__PURE__*/React.createElement("button", {
+    className: "cardio-rec cardio-rec-go",
+    onClick: () => onStart(rec.type, rec.minutes)
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "cardio-rec-head"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "cardio-rec-title"
+  }, "Recommended cardio"), /*#__PURE__*/React.createElement("span", {
+    className: "cardio-rec-pill mono"
+  }, rec.minutes, " min")), /*#__PURE__*/React.createElement("div", {
+    className: "cardio-rec-body"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "cardio-rec-type"
+  }, label), /*#__PURE__*/React.createElement("span", {
+    className: "cardio-rec-meta mono"
+  }, Math.round(rec.kcal7), "/", CARDIO_TARGET_7D, " kcal \xB7 7d")));
+}
+
+// =============================================================================
 // Strength group — read view on Today tab
 // =============================================================================
 function StrengthGroup({
@@ -1590,8 +1754,8 @@ function CardioRow({
   session,
   onDelete
 }) {
-  var _CARDIO_TYPES$find;
-  const label = ((_CARDIO_TYPES$find = CARDIO_TYPES.find(t => t.id === session.type)) === null || _CARDIO_TYPES$find === void 0 ? void 0 : _CARDIO_TYPES$find.label) || session.type;
+  var _CARDIO_TYPES$find2;
+  const label = ((_CARDIO_TYPES$find2 = CARDIO_TYPES.find(t => t.id === session.type)) === null || _CARDIO_TYPES$find2 === void 0 ? void 0 : _CARDIO_TYPES$find2.label) || session.type;
   return /*#__PURE__*/React.createElement("div", {
     className: "cr-row"
   }, /*#__PURE__*/React.createElement("span", {
@@ -1624,7 +1788,8 @@ function TodayView({
   onChange,
   exerciseDict,
   onSelectExercise,
-  onStartSession
+  onStartSession,
+  onStartCardio
 }) {
   const [sets, setSets] = useState([]);
   const [sessions, setSessions] = useState([]);
@@ -1657,6 +1822,9 @@ function TodayView({
     refreshKey: refreshKey,
     onSelectExercise: onSelectExercise,
     onStartSession: onStartSession
+  }), /*#__PURE__*/React.createElement(RecommendedCardio, {
+    refreshKey: refreshKey,
+    onStart: onStartCardio
   }), !empty && /*#__PURE__*/React.createElement("div", {
     className: "totals-bar"
   }, totalSets > 0 && /*#__PURE__*/React.createElement("div", {
@@ -2091,7 +2259,9 @@ function SessionQueue({
 function CardioLog({
   dateKey,
   refreshKey,
-  onChange
+  onChange,
+  pendingCardio,
+  clearPendingCardio
 }) {
   const [type, setType] = useState("jog");
   const [duration, setDuration] = useState("");
@@ -2104,6 +2274,24 @@ function CardioLog({
   useEffect(() => {
     storage.get(`cardio:${dateKey}`, []).then(setTodaySessions);
   }, [dateKey, refreshKey]);
+
+  // Apply pending cardio (from Today tab recommendation)
+  useEffect(() => {
+    if (!pendingCardio) return;
+    const t = pendingCardio.type;
+    const d = pendingCardio.duration_min;
+    setType(t);
+    setKcalEdited(false);
+    setDuration(d > 0 ? String(d) : "");
+    // For jog/run, also compute distance
+    if ((t === "jog" || t === "run") && d > 0) {
+      setDistance((d / PACE_MIN_PER_KM[t]).toFixed(1));
+    } else {
+      setDistance("");
+    }
+    // kcal will be auto-computed by the effect below
+    clearPendingCardio === null || clearPendingCardio === void 0 || clearPendingCardio();
+  }, [pendingCardio]);
 
   // Recalculate kcal when duration changes (unless manually overridden)
   useEffect(() => {
@@ -2252,12 +2440,17 @@ function LogScreen({
   clearPending,
   activeSession,
   onEndSession,
-  onCompleteExercise
+  onCompleteExercise,
+  pendingCardio,
+  clearPendingCardio
 }) {
   const [mode, setMode] = useState("strength");
   useEffect(() => {
     if (pendingExercise || activeSession) setMode("strength");
   }, [pendingExercise, activeSession]);
+  useEffect(() => {
+    if (pendingCardio) setMode("cardio");
+  }, [pendingCardio]);
   return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(DateBar, {
     dateKey: dateKey,
     onChange: setDateKey
@@ -2287,7 +2480,9 @@ function LogScreen({
   })), mode === "cardio" && /*#__PURE__*/React.createElement(CardioLog, {
     dateKey: dateKey,
     refreshKey: refreshKey,
-    onChange: onChange
+    onChange: onChange,
+    pendingCardio: pendingCardio,
+    clearPendingCardio: clearPendingCardio
   }));
 }
 
@@ -2363,6 +2558,7 @@ function App() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [exerciseDict, setExerciseDict] = useState({});
   const [pendingExercise, setPendingExercise] = useState(null);
+  const [pendingCardio, setPendingCardio] = useState(null);
 
   // activeSession persists across reloads via localStorage.
   // Shape: { title, exercises: [{name, cat, input, sets}], completed: [name, ...] }
@@ -2396,6 +2592,13 @@ function App() {
   }, [activeSession]);
   function handleSelectExercise(name) {
     setPendingExercise(name);
+    setTab("log");
+  }
+  function handleStartCardio(type, durationMin) {
+    setPendingCardio({
+      type,
+      duration_min: durationMin
+    });
     setTab("log");
   }
   function handleStartSession(session) {
@@ -2435,7 +2638,8 @@ function App() {
     onChange: bump,
     exerciseDict: exerciseDict,
     onSelectExercise: handleSelectExercise,
-    onStartSession: handleStartSession
+    onStartSession: handleStartSession,
+    onStartCardio: handleStartCardio
   }), tab === "log" && /*#__PURE__*/React.createElement(LogScreen, {
     dateKey: dateKey,
     setDateKey: setDateKey,
@@ -2445,7 +2649,9 @@ function App() {
     clearPending: () => setPendingExercise(null),
     activeSession: activeSession,
     onEndSession: handleEndSession,
-    onCompleteExercise: handleCompleteExercise
+    onCompleteExercise: handleCompleteExercise,
+    pendingCardio: pendingCardio,
+    clearPendingCardio: () => setPendingCardio(null)
   }), tab === "jiggle" && /*#__PURE__*/React.createElement(JiggleTab, null)), /*#__PURE__*/React.createElement(BottomNav, {
     active: tab,
     onChange: setTab
