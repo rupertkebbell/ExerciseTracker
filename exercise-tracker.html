@@ -14,18 +14,15 @@
   --cream-2: #EFE7CD;
   --ink:     #1B1A17;
   --ink-s:   #5C5849;
-  --muted:   #8A8576;
   --line:    #1B1A17;
   --bg-in:   #FBF6E6;
 }
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 body {
-  background: var(--cream);
-  color: var(--ink);
+  background: var(--cream); color: var(--ink);
   font-family: 'Atkinson Hyperlegible', ui-sans-serif, system-ui, sans-serif;
-  font-size: 15px;
-  line-height: 1.4;
+  font-size: 15px; line-height: 1.4;
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
 }
@@ -33,20 +30,15 @@ body {
   font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
   font-feature-settings: "tnum" 1;
 }
-button {
-  font-family: inherit; font-size: inherit; color: inherit;
-  background: none; border: 0; padding: 0; cursor: pointer;
-}
+button { font-family: inherit; font-size: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
 input { font-family: inherit; color: inherit; }
 input[type=number]::-webkit-outer-spin-button,
 input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 input[type=number] { -moz-appearance: textfield; }
 
-/* App shell */
 .app {
   max-width: 480px; margin: 0 auto;
-  min-height: 100dvh;
-  padding-bottom: 88px;
+  min-height: 100dvh; padding-bottom: 88px;
   display: flex; flex-direction: column;
 }
 .app-head {
@@ -62,8 +54,7 @@ input[type=number] { -moz-appearance: textfield; }
 /* Panel */
 .panel { border: 1px solid var(--line); background: var(--cream); }
 .panel-head {
-  background: #C9542A;
-  color: var(--cream);
+  background: #C9542A; color: var(--cream);
   padding: 6px 10px;
   display: flex; align-items: center; justify-content: space-between;
   border-bottom: 1px solid var(--line);
@@ -85,10 +76,7 @@ input[type=number] { -moz-appearance: textfield; }
 .form-actions { display: flex; justify-content: flex-end; margin-top: 10px; }
 
 /* Date bar */
-.datebar {
-  display: flex; align-items: stretch;
-  border: 1px solid var(--line); background: var(--cream);
-}
+.datebar { display: flex; align-items: stretch; border: 1px solid var(--line); background: var(--cream); }
 .datebar-step {
   padding: 8px 14px;
   display: flex; align-items: center; justify-content: center;
@@ -115,7 +103,7 @@ input[type=number] { -moz-appearance: textfield; }
 .totals-num { font-size: 22px; font-weight: 500; line-height: 1.1; }
 .totals-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-s); margin-top: 2px; }
 
-/* Segment control */
+/* Segment */
 .segment { display: flex; border: 1px solid var(--line); }
 .segment-btn {
   flex: 1; padding: 10px 0;
@@ -128,10 +116,7 @@ input[type=number] { -moz-appearance: textfield; }
 
 /* Stopwatch */
 .stopwatch { border: 1px solid var(--line); background: var(--cream-2); }
-.sw-timers {
-  display: flex; align-items: stretch;
-  border-bottom: 1px solid var(--line);
-}
+.sw-timers { display: flex; align-items: stretch; border-bottom: 1px solid var(--line); }
 .sw-cell {
   flex: 1; padding: 8px 6px;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -157,7 +142,7 @@ input[type=number] { -moz-appearance: textfield; }
 .sw-reset:active { background: var(--cream-2); }
 .sw-end { flex: 0 0 auto; padding: 9px 14px; font-size: 10.5px; color: var(--ink-s); }
 
-/* Suggested sessions (Full body / Targeted) */
+/* Suggested sessions */
 .sessions { display: flex; flex-direction: column; gap: 6px; }
 .session-card { border: 1px solid var(--line); }
 .session-btn {
@@ -175,7 +160,7 @@ input[type=number] { -moz-appearance: textfield; }
 .session-row {
   width: 100%;
   display: grid;
-  grid-template-columns: 36px 1fr auto;
+  grid-template-columns: 50px 1fr auto;
   align-items: center; gap: 10px;
   padding: 10px 12px 10px 14px;
   border-bottom: 1px solid var(--cream-2);
@@ -186,13 +171,11 @@ input[type=number] { -moz-appearance: textfield; }
 .session-row:last-child { border-bottom: 0; }
 .session-row:active { background: var(--cream-2); }
 .session-cat {
-  font-size: 9.5px; font-weight: 600; letter-spacing: 0.06em;
+  font-size: 9.5px; font-weight: 600; letter-spacing: 0.04em;
   border: 1px solid; padding: 2px 3px; text-align: center;
 }
 .session-name { font-size: 13.5px; font-weight: 500; }
 .session-sets { font-size: 12px; color: var(--ink-s); font-weight: 500; }
-
-/* Start session button at bottom of expanded suggested session card */
 .start-session-btn {
   width: 100%;
   border: 0; border-top: 1px solid var(--line);
@@ -203,8 +186,7 @@ input[type=number] { -moz-appearance: textfield; }
 }
 .start-session-btn:active { background: #C9542A; }
 
-/* Active session queue (Log tab) */
-.queue-panel { }
+/* Active session queue */
 .queue-body { padding: 4px 0; }
 .queue-row {
   width: 100%;
@@ -214,25 +196,20 @@ input[type=number] { -moz-appearance: textfield; }
   padding: 10px 12px 10px 14px;
   border-bottom: 1px solid var(--cream-2);
   border-left: 4px solid transparent;
-  text-align: left;
-  background: var(--cream);
+  text-align: left; background: var(--cream);
 }
 .queue-row:last-child { border-bottom: 0; }
 .queue-row:active:not(:disabled) { background: var(--cream-2); }
 .queue-row:disabled { cursor: default; }
-.queue-mark {
-  font-size: 14px; font-weight: 700; text-align: center;
-  color: #3A7D52;
-}
+.queue-mark { font-size: 14px; font-weight: 700; text-align: center; color: #3A7D52; }
 .queue-done { opacity: 0.5; }
 .queue-done .session-name { text-decoration: line-through; }
 .queue-done .queue-mark { color: #3A7D52; }
 
-/* Cardio recommendation card (Today tab) */
+/* Cardio recommendation card */
 .cardio-rec {
   width: 100%;
-  border: 1px solid var(--line);
-  background: var(--cream);
+  border: 1px solid var(--line); background: var(--cream);
   text-align: left;
   display: flex; flex-direction: column;
 }
@@ -264,11 +241,11 @@ input[type=number] { -moz-appearance: textfield; }
 .cardio-rec-type { font-weight: 500; }
 .cardio-rec-meta { color: var(--ink-s); font-size: 11px; }
 .cardio-rec-rest .cardio-rec-body {
-  color: var(--ink-s); font-size: 11.5px; font-style: normal;
+  color: var(--ink-s); font-size: 11.5px;
   justify-content: flex-start;
 }
 
-/* Category groups (exercise list) */
+/* Category groups (exercise picker) */
 .cat-group { border: 1px solid var(--line); }
 .cat-header {
   padding: 5px 10px;
@@ -288,15 +265,16 @@ input[type=number] { -moz-appearance: textfield; }
 .exercise-btn:active { background: var(--cream-2); }
 .ex-name { font-size: 14px; font-weight: 500; }
 .ex-badges { display: flex; align-items: center; gap: 6px; }
-.badge-tick {
-  color: #3A7D52; font-weight: 700; font-size: 14px; line-height: 1;
-}
+.badge-tick { color: #3A7D52; font-weight: 700; font-size: 14px; line-height: 1; }
 .badge-count {
   display: inline-flex; align-items: center; justify-content: center;
   min-width: 22px; height: 22px; padding: 0 5px;
   font-size: 11px; font-weight: 500;
   background: #C9542A; color: var(--cream);
 }
+/* "Other" picker button — muted/dashed */
+.exercise-other { background: transparent; }
+.exercise-other .ex-name { color: var(--ink-s); font-style: italic; }
 
 /* Set table */
 .set-table { border: 1px solid var(--line); margin-bottom: 8px; }
@@ -321,7 +299,6 @@ input[type=number] { -moz-appearance: textfield; }
 }
 .set-head .set-kg,
 .set-head .set-reps { display: flex; align-items: center; }
-.set-del-h { }
 .set-input {
   border: 0; border-right: 1px solid var(--line);
   background: var(--bg-in); padding: 10px 8px;
@@ -341,6 +318,13 @@ input[type=number] { -moz-appearance: textfield; }
 }
 .add-set:active { background: var(--cream-2); }
 
+/* Other-name field above set table */
+.other-name-field { margin-bottom: 10px; }
+.other-name-field label {
+  display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--ink-s); margin-bottom: 4px;
+}
+
 /* Core circuit form */
 .circuit-form { display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px; }
 .circuit-field label {
@@ -349,9 +333,7 @@ input[type=number] { -moz-appearance: textfield; }
 }
 
 /* Cardio form */
-.cardio-types {
-  display: flex; border: 1px solid var(--line); margin-bottom: 10px;
-}
+.cardio-types { display: flex; border: 1px solid var(--line); margin-bottom: 10px; }
 .cardio-type {
   flex: 1; padding: 9px 4px; font-size: 12.5px; font-weight: 500;
   border-right: 1px solid var(--line); background: var(--cream); letter-spacing: 0.01em;
@@ -396,30 +378,21 @@ input[type=number] { -moz-appearance: textfield; }
   display: flex; align-items: center;
 }
 
-/* Today: strength groups */
+/* Today: strength groups (compact one-line) */
 .sg {
   border-bottom: 1px solid var(--cream-2);
   border-left: 4px solid transparent;
-  padding: 8px 0 8px 8px;
 }
-.sg:first-child { padding-top: 4px; }
-.sg:last-child  { border-bottom: 0; padding-bottom: 4px; }
-.sg-head {
-  display: flex; align-items: baseline; justify-content: space-between;
-  margin-bottom: 3px;
-}
-.sg-name    { font-weight: 700; font-size: 14px; }
-.sg-summary { font-size: 11px; color: var(--ink-s); }
-.sg-circuit { font-size: 12px; color: var(--ink-s); margin-top: 2px; }
-.sg-rows { display: flex; flex-direction: column; }
-.sg-set {
+.sg:last-child { border-bottom: 0; }
+.sg-compact {
   display: grid;
-  grid-template-columns: 32px 60px 14px 1fr 28px;
-  align-items: center; padding: 2px 0; font-size: 13px; gap: 3px;
+  grid-template-columns: 1fr auto 28px;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 4px 10px 10px;
 }
-.sg-idx { color: var(--ink-s); font-size: 11px; }
-.sg-x   { color: var(--ink-s); text-align: center; }
-.sg-r   { font-weight: 500; }
+.sg-name    { font-weight: 700; font-size: 13.5px; }
+.sg-summary { font-size: 11.5px; color: var(--ink-s); }
 .sg-del {
   display: flex; align-items: center; justify-content: center;
   color: var(--ink-s); padding: 4px;
@@ -450,11 +423,12 @@ input[type=number] { -moz-appearance: textfield; }
   text-align: center; color: var(--ink-s); font-size: 13px;
 }
 
-/* Jiggle tab */
-.jiggle-screen {
-  flex: 1; display: flex; align-items: center; justify-content: center;
-  padding: 40px 24px;
+/* Summary tab */
+.summary-totals {
+  font-size: 11px; color: var(--ink-s);
+  padding: 0 2px 6px;
 }
+.bar-chart { width: 100%; height: auto; display: block; }
 
 /* Bottom nav */
 .bottom-nav {
@@ -889,13 +863,14 @@ const CAT_COLORS = {
   push: "#C9542A",
   pull: "#3B6FA0",
   legs: "#3A7D52",
-  core: "#B07D20",
-  isolation: "#7A5C8A"
+  coreiso: "#7A5C8A"
 };
 const CAT_LABELS = {
   push: "PUSH",
   pull: "PULL",
   legs: "LEGS",
+  coreiso: "CORE/ISO",
+  // Backwards-compat for entries logged under old categories:
   core: "CORE",
   isolation: "ISO"
 };
@@ -909,18 +884,17 @@ const CATEGORIES = [{
   id: "legs",
   label: "Legs"
 }, {
-  id: "core",
-  label: "Core"
-}, {
-  id: "isolation",
-  label: "Isolation"
+  id: "coreiso",
+  label: "Core/Iso"
 }];
-const EXERCISES = [{
+
+// Active exercise list (picker shows these). Deprecated exercises remain
+// listed below with hidden:true so old entries still resolve to a category
+// for colour/volume lookup.
+const EXERCISES = [
+// Push
+{
   name: "Bench press",
-  cat: "push",
-  input: IN.STD
-}, {
-  name: "Incline press",
   cat: "push",
   input: IN.STD
 }, {
@@ -928,27 +902,21 @@ const EXERCISES = [{
   cat: "push",
   input: IN.STD
 }, {
+  name: "Incline press",
+  cat: "push",
+  input: IN.STD
+}, {
   name: "Shoulder press",
   cat: "push",
   input: IN.STD
-}, {
-  name: "Dips",
-  cat: "push",
-  input: IN.STD
-}, {
+},
+// Pull
+{
   name: "Pull-ups",
   cat: "pull",
   input: IN.REPS
 }, {
-  name: "Chin-ups",
-  cat: "pull",
-  input: IN.REPS
-}, {
-  name: "Barbell row",
-  cat: "pull",
-  input: IN.STD
-}, {
-  name: "Cable row",
+  name: "Barbell/bent over row",
   cat: "pull",
   input: IN.STD
 }, {
@@ -956,10 +924,12 @@ const EXERCISES = [{
   cat: "pull",
   input: IN.STD
 }, {
-  name: "Machine row",
+  name: "Cable/machine row",
   cat: "pull",
   input: IN.STD
-}, {
+},
+// Legs
+{
   name: "Squat",
   cat: "legs",
   input: IN.STD
@@ -971,46 +941,88 @@ const EXERCISES = [{
   name: "Leg extension",
   cat: "legs",
   input: IN.STD
-}, {
-  name: "RDL",
-  cat: "legs",
-  input: IN.STD
-}, {
-  name: "Bulgarian split squat",
-  cat: "legs",
-  input: IN.STD
-}, {
-  name: "Leg press",
-  cat: "legs",
-  input: IN.STD
-}, {
+},
+// Core/Iso
+{
   name: "Machine crunch",
-  cat: "core",
+  cat: "coreiso",
   input: IN.STD
 }, {
   name: "Hanging leg raises",
-  cat: "core",
+  cat: "coreiso",
   input: IN.REPS
-}, {
-  name: "Ab-roller",
-  cat: "core",
-  input: IN.REPS
-}, {
-  name: "Core circuit",
-  cat: "core",
-  input: IN.CIRCUIT
-}, {
-  name: "Lat raises",
-  cat: "isolation",
-  input: IN.STD
 }, {
   name: "Bicep curls",
-  cat: "isolation",
+  cat: "coreiso",
   input: IN.STD
 }, {
   name: "Tricep extension",
-  cat: "isolation",
+  cat: "coreiso",
   input: IN.STD
+}, {
+  name: "Lat raises",
+  cat: "coreiso",
+  input: IN.STD
+},
+// Special "Other" bucket — shared by all 4 Other picker buttons.
+{
+  name: "Other",
+  cat: "coreiso",
+  input: IN.STD,
+  isOther: true,
+  hidden: true
+},
+// Deprecated (kept for back-compat with previously logged data)
+{
+  name: "Dips",
+  cat: "push",
+  input: IN.STD,
+  hidden: true
+}, {
+  name: "Chin-ups",
+  cat: "pull",
+  input: IN.REPS,
+  hidden: true
+}, {
+  name: "Barbell row",
+  cat: "pull",
+  input: IN.STD,
+  hidden: true
+}, {
+  name: "Cable row",
+  cat: "pull",
+  input: IN.STD,
+  hidden: true
+}, {
+  name: "Machine row",
+  cat: "pull",
+  input: IN.STD,
+  hidden: true
+}, {
+  name: "RDL",
+  cat: "legs",
+  input: IN.STD,
+  hidden: true
+}, {
+  name: "Bulgarian split squat",
+  cat: "legs",
+  input: IN.STD,
+  hidden: true
+}, {
+  name: "Leg press",
+  cat: "legs",
+  input: IN.STD,
+  hidden: true
+}, {
+  name: "Ab-roller",
+  cat: "coreiso",
+  input: IN.REPS,
+  hidden: true
+}, {
+  name: "Core circuit",
+  cat: "coreiso",
+  input: IN.CIRCUIT,
+  hidden: true
 }];
 function getExercise(name) {
   return EXERCISES.find(e => e.name === name) || {
@@ -1053,7 +1065,8 @@ const PACE_MIN_PER_KM = {
 // Cardio recommendation thresholds
 const CARDIO_REST_3D = 1200; // 3-day kcal above this → REST
 const CARDIO_TARGET_7D = 1500; // 7-day kcal target
-const CARDIO_REC_TYPES = ["jog", "bike", "stairs"]; // recommendation pool
+const CARDIO_MAX_SESSION = 500; // cap kcal per session
+const CARDIO_REC_TYPES = ["jog", "bike", "stairs"];
 
 // =============================================================================
 // Bodyweight equivalents (72 kg, 178 cm male)
@@ -1418,10 +1431,10 @@ function Stopwatch() {
 // =============================================================================
 const SUGGESTED_SETS = 3;
 
-// Exercises eligible for the Full body suggested session.
-const FULL_BODY_POOL = new Set(["Bench press", "Barbell overhead press", "Pull-ups", "Barbell row", "Cable row", "Lat pulldown", "Squat", "Deadlift", "Leg extension", "Hanging leg raises", "Machine crunch"]);
+// Pick up to n exercises from a category, excluding Other and hidden,
+// sorted by oldest last_used_at first.
 function pickFromCat(catId, n, exerciseDict) {
-  const pool = EXERCISES.filter(e => e.cat === catId);
+  const pool = EXERCISES.filter(e => e.cat === catId && !e.hidden && !e.isOther);
   return [...pool].sort((a, b) => {
     var _exerciseDict$a$name, _exerciseDict$b$name;
     const aIso = (_exerciseDict$a$name = exerciseDict[a.name]) === null || _exerciseDict$a$name === void 0 ? void 0 : _exerciseDict$a$name.last_used_at;
@@ -1442,15 +1455,15 @@ function SuggestedSessions({
   const [openFull, setOpenFull] = useState(false);
   const [openTargeted, setOpenTargeted] = useState(false);
 
-  // Tally sets per category over the last 7 days (today + 6 prior).
+  // Tally sets per category over the last 7 days. We also count "core" and
+  // "isolation" (legacy categories) into "coreiso" so older data still informs.
   useEffect(() => {
     async function load() {
       const counts = {
         push: 0,
         pull: 0,
         legs: 0,
-        core: 0,
-        isolation: 0
+        coreiso: 0
       };
       const today = todayKey();
       for (let i = 0; i < 7; i++) {
@@ -1458,51 +1471,44 @@ function SuggestedSessions({
         const sets = await storage.get(`strength:${dk}`, []);
         for (const s of sets) {
           const ex = getExercise(s.exercise_name);
-          if (counts[ex.cat] !== undefined) counts[ex.cat]++;
+          if (ex.cat === "core" || ex.cat === "isolation") counts.coreiso++;else if (counts[ex.cat] !== undefined) counts[ex.cat]++;
         }
       }
       setUsage(counts);
     }
     load();
   }, [refreshKey]);
+
+  // Full body: 3 from push+pull (split based on least-used) + 1 from legs/coreiso.
   function buildFullBody() {
     if (!usage) return [];
-    const cats = ["push", "pull", "legs"];
-    const sorted = [...cats].sort((a, b) => usage[a] - usage[b]);
-    const dbl = sorted[0];
-    const counts = {
-      push: 1,
-      pull: 1,
-      legs: 1,
-      [dbl]: 2
+    const upper = ["push", "pull"];
+    const upperLeast = usage.push <= usage.pull ? "push" : "pull";
+    const upperOther = upperLeast === "push" ? "pull" : "push";
+    // 2 from least-used upper, 1 from the other upper
+    const upperCounts = {
+      [upperLeast]: 2,
+      [upperOther]: 1
     };
+    const lower = ["legs", "coreiso"];
+    const lowerLeast = usage.legs <= usage.coreiso ? "legs" : "coreiso";
     const result = [];
-    for (const c of cats) {
-      // Only pick from the curated full-body pool for this category.
-      const poolForCat = EXERCISES.filter(e => e.cat === c && FULL_BODY_POOL.has(e.name));
-      const picked = [...poolForCat].sort((a, b) => {
-        var _exerciseDict$a$name2, _exerciseDict$b$name2;
-        const aIso = (_exerciseDict$a$name2 = exerciseDict[a.name]) === null || _exerciseDict$a$name2 === void 0 ? void 0 : _exerciseDict$a$name2.last_used_at;
-        const bIso = (_exerciseDict$b$name2 = exerciseDict[b.name]) === null || _exerciseDict$b$name2 === void 0 ? void 0 : _exerciseDict$b$name2.last_used_at;
-        if (!aIso && !bIso) return 0;
-        if (!aIso) return -1;
-        if (!bIso) return 1;
-        return new Date(aIso) - new Date(bIso);
-      }).slice(0, counts[c]).map(e => ({
-        ...e,
-        sets: SUGGESTED_SETS
-      }));
-      result.push(...picked);
+    for (const c of upper) {
+      result.push(...pickFromCat(c, upperCounts[c], exerciseDict));
     }
-    return result;
+    result.push(...pickFromCat(lowerLeast, 1, exerciseDict));
+    return result.map(e => ({
+      ...e,
+      sets: SUGGESTED_SETS
+    }));
   }
+
+  // Targeted: 3 from one of push/pull (the least-used) + 1 from legs/coreiso.
   function buildTargeted() {
     if (!usage) return [];
-    const cats = ["push", "pull", "legs"];
-    const sorted = [...cats].sort((a, b) => usage[a] - usage[b]);
-    const primary = sorted[0];
-    const secondary = primary === "legs" ? "core" : "isolation";
-    return [...pickFromCat(primary, 3, exerciseDict), ...pickFromCat(secondary, 1, exerciseDict)].map(e => ({
+    const primary = usage.push <= usage.pull ? "push" : "pull";
+    const lowerLeast = usage.legs <= usage.coreiso ? "legs" : "coreiso";
+    return [...pickFromCat(primary, 3, exerciseDict), ...pickFromCat(lowerLeast, 1, exerciseDict)].map(e => ({
       ...e,
       sets: SUGGESTED_SETS
     }));
@@ -1635,7 +1641,8 @@ function RecommendedCardio({
         reason = `7-day target met (${Math.round(kcal7)}/${CARDIO_TARGET_7D} kcal)`;
       } else {
         const needed = CARDIO_TARGET_7D - kcal7;
-        minutes = Math.ceil(needed / KCAL_PER_MIN[type]);
+        const sessionKcal = Math.min(needed, CARDIO_MAX_SESSION);
+        minutes = Math.ceil(sessionKcal / KCAL_PER_MIN[type]);
       }
       setRec({
         type,
@@ -1693,58 +1700,49 @@ function StrengthGroup({
   const ex = getExercise(name);
   const color = CAT_COLORS[ex.cat];
   const sorted = [...sets].sort((a, b) => a.set_index - b.set_index);
+
+  // Circuit: keep its own summary line.
   if (((_sorted$ = sorted[0]) === null || _sorted$ === void 0 ? void 0 : _sorted$.input_type) === IN.CIRCUIT) {
     const e = sorted[0];
     return /*#__PURE__*/React.createElement("div", {
-      className: "sg",
+      className: "sg sg-compact",
       style: {
         borderLeftColor: color
       }
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "sg-head"
     }, /*#__PURE__*/React.createElement("span", {
       className: "sg-name"
-    }, name), /*#__PURE__*/React.createElement("button", {
+    }, name), /*#__PURE__*/React.createElement("span", {
+      className: "sg-summary mono"
+    }, e.num_sets, " sets \xB7 ", e.duration_min, " min/set"), /*#__PURE__*/React.createElement("button", {
       className: "sg-del",
-      onClick: () => onDeleteSet(e.id)
+      onClick: () => onDeleteSet(e.id),
+      title: "Delete"
     }, /*#__PURE__*/React.createElement(IconTrash, {
       size: 13
-    }))), /*#__PURE__*/React.createElement("div", {
-      className: "sg-circuit mono"
-    }, e.num_sets, " sets \xB7 ", e.duration_min, " min/set"));
+    })));
   }
-  const showWeight = ex.input !== IN.REPS;
   const vol = totalVolume(sorted);
+
+  // Delete the whole group at once via the bin icon.
+  function deleteGroup() {
+    for (const s of sorted) onDeleteSet(s.id);
+  }
   return /*#__PURE__*/React.createElement("div", {
-    className: "sg",
+    className: "sg sg-compact",
     style: {
       borderLeftColor: color
     }
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "sg-head"
   }, /*#__PURE__*/React.createElement("span", {
     className: "sg-name"
   }, name), /*#__PURE__*/React.createElement("span", {
     className: "sg-summary mono"
-  }, sorted.length, " ", sorted.length === 1 ? "set" : "sets", vol > 0 ? ` · ${vol} kg vol` : "")), /*#__PURE__*/React.createElement("div", {
-    className: "sg-rows"
-  }, sorted.map((s, i) => /*#__PURE__*/React.createElement("div", {
-    key: s.id,
-    className: "sg-set"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "sg-idx mono"
-  }, "#", i + 1), showWeight && /*#__PURE__*/React.createElement("span", {
-    className: "sg-w mono"
-  }, s.weight_kg > 0 ? `${s.weight_kg} kg` : "BW"), showWeight && /*#__PURE__*/React.createElement("span", {
-    className: "sg-x mono"
-  }, "\xD7"), /*#__PURE__*/React.createElement("span", {
-    className: "sg-r mono"
-  }, s.reps, " reps"), /*#__PURE__*/React.createElement("button", {
+  }, sorted.length, " ", sorted.length === 1 ? "set" : "sets", vol > 0 ? ` · ${vol} kg vol` : ""), /*#__PURE__*/React.createElement("button", {
     className: "sg-del",
-    onClick: () => onDeleteSet(s.id)
+    onClick: deleteGroup,
+    title: "Delete"
   }, /*#__PURE__*/React.createElement(IconTrash, {
     size: 13
-  }))))));
+  })));
 }
 
 // =============================================================================
@@ -1884,6 +1882,7 @@ function StrengthLog({
   const [sets, setSets] = useState([]);
   const [circuitMin, setCircuitMin] = useState("");
   const [circuitSets, setCircuitSets] = useState("");
+  const [otherName, setOtherName] = useState(""); // typed name when selected="Other"
   const [logging, setLogging] = useState(false);
   useEffect(() => {
     storage.get(`strength:${dateKey}`, []).then(setTodaySets);
@@ -1907,6 +1906,12 @@ function StrengthLog({
     var _dict$name;
     const ex = getExercise(name);
     const last = (_dict$name = dict[name]) === null || _dict$name === void 0 ? void 0 : _dict$name.last_session;
+    if (name === "Other") {
+      var _dict$Other;
+      setOtherName(((_dict$Other = dict["Other"]) === null || _dict$Other === void 0 ? void 0 : _dict$Other.last_label) || "");
+    } else {
+      setOtherName("");
+    }
     if (ex.input === IN.CIRCUIT) {
       setCircuitMin(last !== null && last !== void 0 && last.duration_min ? String(last.duration_min) : "");
       if (suggestedSets != null) {
@@ -1945,6 +1950,7 @@ function StrengthLog({
     setSets([]);
     setCircuitMin("");
     setCircuitSets("");
+    setOtherName("");
   }
   function updateSet(i, field, val) {
     setSets(prev => prev.map((s, idx) => idx === i ? {
@@ -2017,21 +2023,35 @@ function StrengthLog({
     if (valid.length === 0) return;
     setLogging(true);
     const now = nowISO();
+    const isOther = selected === "Other";
+    // For Other entries, use the typed label as the entry's exercise_name so
+    // groupByExercise shows it under that name. Fall back to "Other".
+    const entryName = isOther ? otherName.trim() || "Other" : selected;
     const entries = valid.map((s, idx) => ({
       id: genId(),
       performed_at: now,
-      exercise_name: selected,
+      exercise_name: entryName,
       input_type: ex.input,
       set_index: idx + 1,
       reps: s.reps,
-      weight_kg: s.weight_kg
+      weight_kg: s.weight_kg,
+      ...(isOther ? {
+        is_other: true,
+        custom_cat: ex.cat
+      } : {})
     }));
     const nextSets = [...todaySets, ...entries];
     await storage.set(`strength:${dateKey}`, nextSets);
     setTodaySets(nextSets);
+    // For Other, the shared prefill bucket is exercise_dict["Other"] with last_label.
+    const dictKey = isOther ? "Other" : selected;
     const nextDict = {
       ...exerciseDict,
-      [selected]: {
+      [dictKey]: isOther ? {
+        last_session: valid,
+        last_used_at: now,
+        last_label: otherName.trim()
+      } : {
         last_session: valid,
         last_used_at: now
       }
@@ -2040,6 +2060,7 @@ function StrengthLog({
     setExerciseDict(nextDict);
     setSelected(null);
     setSets([]);
+    setOtherName("");
     setLogging(false);
     onCompleteExercise === null || onCompleteExercise === void 0 || onCompleteExercise(completedName);
     onChange === null || onChange === void 0 || onChange();
@@ -2097,12 +2118,22 @@ function StrengthLog({
         disabled: !canLog
       }, logging ? "Logging…" : "Log")));
     }
+    const isOther = selected === "Other";
     const canLog = sets.some(s => Number(s.reps) > 0) && !logging;
     return /*#__PURE__*/React.createElement(Panel, {
       title: selected,
       action: backAction,
       titleBg: color
-    }, /*#__PURE__*/React.createElement("div", {
+    }, isOther && /*#__PURE__*/React.createElement("div", {
+      className: "other-name-field"
+    }, /*#__PURE__*/React.createElement("label", null, "Exercise name"), /*#__PURE__*/React.createElement("div", {
+      className: "cardio-field"
+    }, /*#__PURE__*/React.createElement("input", {
+      type: "text",
+      value: otherName,
+      onChange: e => setOtherName(e.target.value),
+      placeholder: "e.g. Lateral lunge"
+    }))), /*#__PURE__*/React.createElement("div", {
       className: "set-table"
     }, /*#__PURE__*/React.createElement("div", {
       className: `set-row set-head${showWeight ? "" : " reps-only"}`
@@ -2172,7 +2203,7 @@ function StrengthLog({
     onSelectExercise: (name, sets) => selectExercise(name, sets),
     onEndSession: onEndSession
   }), CATEGORIES.map(cat => {
-    const catExs = EXERCISES.filter(e => e.cat === cat.id);
+    const catExs = EXERCISES.filter(e => e.cat === cat.id && !e.hidden && !e.isOther);
     const color = CAT_COLORS[cat.id];
     return /*#__PURE__*/React.createElement("div", {
       key: cat.id,
@@ -2201,7 +2232,15 @@ function StrengthLog({
       }, "\u2713"), count > 0 && /*#__PURE__*/React.createElement("span", {
         className: "badge-count mono"
       }, count)));
-    }));
+    }), /*#__PURE__*/React.createElement("button", {
+      className: "exercise-btn exercise-other",
+      style: {
+        borderLeftColor: color
+      },
+      onClick: () => selectExercise("Other")
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "ex-name mono"
+    }, "Other")));
   }));
 }
 
@@ -2489,19 +2528,145 @@ function LogScreen({
 // =============================================================================
 // Jiggle tab
 // =============================================================================
-function JiggleTab() {
-  const [jigglin, setJigglin] = useState(false);
-  function press() {
-    if (jigglin) return;
-    setJigglin(true);
-    setTimeout(() => setJigglin(false), 1200);
-  }
-  return /*#__PURE__*/React.createElement("div", {
-    className: "jiggle-screen"
-  }, /*#__PURE__*/React.createElement(Btn, {
-    onClick: press,
-    disabled: jigglin
-  }, jigglin ? "Increasing…" : "Increase jiggliness by 30%"));
+// =============================================================================
+// Bar chart (SVG, scales via viewBox)
+// =============================================================================
+function BarChart({
+  data,
+  color = "#C9542A",
+  height = 110
+}) {
+  // data: [{ label, value }]
+  const W = 320,
+    H = height;
+  const pad = {
+    top: 8,
+    bottom: 22,
+    left: 4,
+    right: 4
+  };
+  const chartW = W - pad.left - pad.right;
+  const chartH = H - pad.top - pad.bottom;
+  const n = data.length || 1;
+  const barW = Math.max(2, chartW / n - 3);
+  const max = Math.max(1, ...data.map(d => d.value));
+  return /*#__PURE__*/React.createElement("svg", {
+    className: "bar-chart",
+    viewBox: `0 0 ${W} ${H}`,
+    preserveAspectRatio: "none",
+    role: "img",
+    "aria-label": "bar chart"
+  }, /*#__PURE__*/React.createElement("line", {
+    x1: pad.left,
+    x2: W - pad.right,
+    y1: H - pad.bottom + 0.5,
+    y2: H - pad.bottom + 0.5,
+    stroke: "#1B1A17",
+    strokeWidth: "1"
+  }), data.map((d, i) => {
+    const h = d.value > 0 ? d.value / max * chartH : 0;
+    const x = pad.left + i * (chartW / n) + (chartW / n - barW) / 2;
+    const y = H - pad.bottom - h;
+    return /*#__PURE__*/React.createElement("g", {
+      key: i
+    }, h > 0 && /*#__PURE__*/React.createElement("rect", {
+      x: x,
+      y: y,
+      width: barW,
+      height: h,
+      fill: color
+    }), /*#__PURE__*/React.createElement("text", {
+      x: x + barW / 2,
+      y: H - pad.bottom + 12,
+      textAnchor: "middle",
+      fontSize: "8",
+      fontFamily: "JetBrains Mono, monospace",
+      fill: "#5C5849"
+    }, d.label));
+  }), /*#__PURE__*/React.createElement("text", {
+    x: pad.left,
+    y: pad.top + 2,
+    fontSize: "9",
+    fontFamily: "JetBrains Mono, monospace",
+    fill: "#5C5849"
+  }, "max ", max));
+}
+
+// =============================================================================
+// Summary tab
+// Shows last 14 days strength volume + cardio kcal as bar charts.
+// =============================================================================
+function SummaryTab({
+  refreshKey
+}) {
+  const [data, setData] = useState(null);
+  useEffect(() => {
+    async function load() {
+      const days = 14;
+      const today = todayKey();
+      const arr = [];
+      let strength7 = 0,
+        cardio7 = 0;
+      for (let i = days - 1; i >= 0; i--) {
+        const dk = dateKeyOffset(today, -i);
+        const sets = await storage.get(`strength:${dk}`, []);
+        const ses = await storage.get(`cardio:${dk}`, []);
+        const vol = totalVolume(sets);
+        const kcal = ses.reduce((a, s) => a + (s.kcal_burned || 0), 0);
+        // label: day-of-week, single letter
+        const d = new Date(dk + "T12:00:00");
+        const dow = ["S", "M", "T", "W", "T", "F", "S"][d.getDay()];
+        arr.push({
+          dateKey: dk,
+          label: dow,
+          vol,
+          kcal
+        });
+        if (i < 7) {
+          strength7 += vol;
+          cardio7 += kcal;
+        }
+      }
+      setData({
+        arr,
+        strength7,
+        cardio7
+      });
+    }
+    load();
+  }, [refreshKey]);
+  if (!data) return null;
+  const {
+    arr,
+    strength7,
+    cardio7
+  } = data;
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Panel, {
+    title: "Strength \xB7 14 days"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "summary-totals"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "summary-7d mono"
+  }, strength7.toLocaleString(), " kg \xB7 last 7d")), /*#__PURE__*/React.createElement(BarChart, {
+    data: arr.map(d => ({
+      label: d.label,
+      value: d.vol
+    })),
+    color: "#C9542A"
+  })), /*#__PURE__*/React.createElement(Panel, {
+    title: "Cardio \xB7 14 days",
+    titleBg: "#3B6FA0"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "summary-totals"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "summary-7d mono"
+  }, cardio7.toLocaleString(), " kcal \xB7 last 7d")), /*#__PURE__*/React.createElement(BarChart, {
+    data: arr.map(d => ({
+      label: d.label,
+      value: d.kcal
+    })),
+    color: "#3B6FA0"
+  })));
 }
 
 // =============================================================================
@@ -2516,9 +2681,9 @@ const TABS = [{
   label: "Log",
   Icon: IconPlus
 }, {
-  id: "jiggle",
-  label: "✦",
-  Icon: IconZap
+  id: "summary",
+  label: "Summary",
+  Icon: IconActivity
 }];
 function BottomNav({
   active,
@@ -2652,7 +2817,9 @@ function App() {
     onCompleteExercise: handleCompleteExercise,
     pendingCardio: pendingCardio,
     clearPendingCardio: () => setPendingCardio(null)
-  }), tab === "jiggle" && /*#__PURE__*/React.createElement(JiggleTab, null)), /*#__PURE__*/React.createElement(BottomNav, {
+  }), tab === "summary" && /*#__PURE__*/React.createElement(SummaryTab, {
+    refreshKey: refreshKey
+  })), /*#__PURE__*/React.createElement(BottomNav, {
     active: tab,
     onChange: setTab
   }));
