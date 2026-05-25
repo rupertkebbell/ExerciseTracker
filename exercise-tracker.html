@@ -1635,13 +1635,14 @@ function RecommendedCardio({
         minutes = 0;
       if (kcal3 > CARDIO_REST_3D) {
         rest = true;
-        reason = `${Math.round(kcal3)} kcal in past 3 days`;
+        reason = "Heavy load in past 3 days";
       } else if (kcal7 >= CARDIO_TARGET_7D) {
         rest = true;
-        reason = `7-day target met (${Math.round(kcal7)}/${CARDIO_TARGET_7D} kcal)`;
+        reason = "Weekly target met";
       } else {
+        // Spread the remaining 7-day gap across today + next 2 days = 3 sessions.
         const needed = CARDIO_TARGET_7D - kcal7;
-        const sessionKcal = Math.min(needed, CARDIO_MAX_SESSION);
+        const sessionKcal = Math.min(needed / 3, CARDIO_MAX_SESSION);
         minutes = Math.ceil(sessionKcal / KCAL_PER_MIN[type]);
       }
       setRec({
@@ -1683,9 +1684,7 @@ function RecommendedCardio({
     className: "cardio-rec-body"
   }, /*#__PURE__*/React.createElement("span", {
     className: "cardio-rec-type"
-  }, label), /*#__PURE__*/React.createElement("span", {
-    className: "cardio-rec-meta mono"
-  }, Math.round(rec.kcal7), "/", CARDIO_TARGET_7D, " kcal \xB7 7d")));
+  }, label)));
 }
 
 // =============================================================================
@@ -2550,6 +2549,12 @@ function BarChart({
   const n = data.length || 1;
   const barW = Math.max(2, chartW / n - 3);
   const max = Math.max(1, ...data.map(d => d.value));
+  // Average across all days in the window (includes zero days).
+  const sum = data.reduce((a, d) => a + (d.value || 0), 0);
+  const avg = data.length > 0 ? sum / data.length : 0;
+  const avgY = H - pad.bottom - avg / max * chartH;
+  // Show one tick label every few days to keep things readable.
+  const labelEvery = data.length > 16 ? 5 : 1;
   return /*#__PURE__*/React.createElement("svg", {
     className: "bar-chart",
     viewBox: `0 0 ${W} ${H}`,
@@ -2567,6 +2572,7 @@ function BarChart({
     const h = d.value > 0 ? d.value / max * chartH : 0;
     const x = pad.left + i * (chartW / n) + (chartW / n - barW) / 2;
     const y = H - pad.bottom - h;
+    const showLabel = (data.length - 1 - i) % labelEvery === 0;
     return /*#__PURE__*/React.createElement("g", {
       key: i
     }, h > 0 && /*#__PURE__*/React.createElement("rect", {
@@ -2575,7 +2581,7 @@ function BarChart({
       width: barW,
       height: h,
       fill: color
-    }), /*#__PURE__*/React.createElement("text", {
+    }), showLabel && /*#__PURE__*/React.createElement("text", {
       x: x + barW / 2,
       y: H - pad.bottom + 12,
       textAnchor: "middle",
@@ -2583,37 +2589,43 @@ function BarChart({
       fontFamily: "JetBrains Mono, monospace",
       fill: "#5C5849"
     }, d.label));
+  }), avg > 0 && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("line", {
+    x1: pad.left,
+    x2: W - pad.right,
+    y1: avgY,
+    y2: avgY,
+    stroke: "#1B1A17",
+    strokeWidth: "1",
+    strokeDasharray: "2 3",
+    opacity: "0.55"
   }), /*#__PURE__*/React.createElement("text", {
-    x: pad.left,
-    y: pad.top + 2,
-    fontSize: "9",
+    x: W - pad.right - 2,
+    y: Math.max(pad.top + 7, avgY - 3),
+    textAnchor: "end",
+    fontSize: "8",
     fontFamily: "JetBrains Mono, monospace",
     fill: "#5C5849"
-  }, "max ", max));
+  }, "avg ", Math.round(avg).toLocaleString())));
 }
 
 // =============================================================================
-// Summary tab
-// Shows last 14 days strength volume + cardio kcal as bar charts.
+// Summary tab — 14- or 30-day rolling view of strength volume + cardio kcal.
 // =============================================================================
 function SummaryTab({
   refreshKey
 }) {
+  const [range, setRange] = useState(14); // 14 or 30
   const [data, setData] = useState(null);
   useEffect(() => {
     async function load() {
-      const days = 14;
       const today = todayKey();
       const arr = [];
-      let strength7 = 0,
-        cardio7 = 0;
-      for (let i = days - 1; i >= 0; i--) {
+      for (let i = range - 1; i >= 0; i--) {
         const dk = dateKeyOffset(today, -i);
         const sets = await storage.get(`strength:${dk}`, []);
         const ses = await storage.get(`cardio:${dk}`, []);
         const vol = totalVolume(sets);
         const kcal = ses.reduce((a, s) => a + (s.kcal_burned || 0), 0);
-        // label: day-of-week, single letter
         const d = new Date(dk + "T12:00:00");
         const dow = ["S", "M", "T", "W", "T", "F", "S"][d.getDay()];
         arr.push({
@@ -2622,51 +2634,37 @@ function SummaryTab({
           vol,
           kcal
         });
-        if (i < 7) {
-          strength7 += vol;
-          cardio7 += kcal;
-        }
       }
-      setData({
-        arr,
-        strength7,
-        cardio7
-      });
+      setData(arr);
     }
     load();
-  }, [refreshKey]);
-  if (!data) return null;
-  const {
-    arr,
-    strength7,
-    cardio7
-  } = data;
-  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Panel, {
-    title: "Strength \xB7 14 days"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "summary-totals"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "summary-7d mono"
-  }, strength7.toLocaleString(), " kg \xB7 last 7d")), /*#__PURE__*/React.createElement(BarChart, {
-    data: arr.map(d => ({
+  }, [refreshKey, range]);
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "segment"
+  }, /*#__PURE__*/React.createElement("button", {
+    className: `segment-btn${range === 14 ? " active" : ""}`,
+    onClick: () => setRange(14)
+  }, /*#__PURE__*/React.createElement("span", null, "14 days")), /*#__PURE__*/React.createElement("button", {
+    className: `segment-btn${range === 30 ? " active" : ""}`,
+    onClick: () => setRange(30)
+  }, /*#__PURE__*/React.createElement("span", null, "30 days"))), data && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Panel, {
+    title: `Strength · ${range} days`
+  }, /*#__PURE__*/React.createElement(BarChart, {
+    data: data.map(d => ({
       label: d.label,
       value: d.vol
     })),
     color: "#C9542A"
   })), /*#__PURE__*/React.createElement(Panel, {
-    title: "Cardio \xB7 14 days",
+    title: `Cardio · ${range} days`,
     titleBg: "#3B6FA0"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "summary-totals"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "summary-7d mono"
-  }, cardio7.toLocaleString(), " kcal \xB7 last 7d")), /*#__PURE__*/React.createElement(BarChart, {
-    data: arr.map(d => ({
+  }, /*#__PURE__*/React.createElement(BarChart, {
+    data: data.map(d => ({
       label: d.label,
       value: d.kcal
     })),
     color: "#3B6FA0"
-  })));
+  }))));
 }
 
 // =============================================================================
