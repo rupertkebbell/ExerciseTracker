@@ -1452,11 +1452,14 @@ function SuggestedSessions({
   onStartSession
 }) {
   const [usage, setUsage] = useState(null);
+  const [recentSets, setRecentSets] = useState(null); // total sets today + yesterday
   const [openFull, setOpenFull] = useState(false);
   const [openTargeted, setOpenTargeted] = useState(false);
 
   // Tally sets per category over the last 7 days. We also count "core" and
   // "isolation" (legacy categories) into "coreiso" so older data still informs.
+  // Separately track total sets over the last 2 days (today + yesterday) so
+  // we can recommend a rest day when the load has been high.
   useEffect(() => {
     async function load() {
       const counts = {
@@ -1466,15 +1469,18 @@ function SuggestedSessions({
         coreiso: 0
       };
       const today = todayKey();
+      let twoDayTotal = 0;
       for (let i = 0; i < 7; i++) {
         const dk = dateKeyOffset(today, -i);
         const sets = await storage.get(`strength:${dk}`, []);
         for (const s of sets) {
+          if (i < 2 && s.input_type !== IN.CIRCUIT) twoDayTotal++;
           const ex = getExercise(s.exercise_name);
           if (ex.cat === "core" || ex.cat === "isolation") counts.coreiso++;else if (counts[ex.cat] !== undefined) counts[ex.cat]++;
         }
       }
       setUsage(counts);
+      setRecentSets(twoDayTotal);
     }
     load();
   }, [refreshKey]);
@@ -1485,12 +1491,10 @@ function SuggestedSessions({
     const upper = ["push", "pull"];
     const upperLeast = usage.push <= usage.pull ? "push" : "pull";
     const upperOther = upperLeast === "push" ? "pull" : "push";
-    // 2 from least-used upper, 1 from the other upper
     const upperCounts = {
       [upperLeast]: 2,
       [upperOther]: 1
     };
-    const lower = ["legs", "coreiso"];
     const lowerLeast = usage.legs <= usage.coreiso ? "legs" : "coreiso";
     const result = [];
     for (const c of upper) {
@@ -1512,6 +1516,21 @@ function SuggestedSessions({
       ...e,
       sets: SUGGESTED_SETS
     }));
+  }
+
+  // High recent load → suggest rest, hide both session cards.
+  if (recentSets !== null && recentSets > 24) {
+    return /*#__PURE__*/React.createElement("div", {
+      className: "sessions"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "cardio-rec cardio-rec-rest"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "cardio-rec-head"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "cardio-rec-title"
+    }, "Recommended session"), /*#__PURE__*/React.createElement("span", {
+      className: "cardio-rec-pill mono"
+    }, "REST"))));
   }
   const fullBody = buildFullBody();
   const targeted = buildTargeted();
