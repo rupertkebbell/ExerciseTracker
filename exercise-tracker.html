@@ -1066,7 +1066,30 @@ const PACE_MIN_PER_KM = {
 const CARDIO_REST_3D = 1200; // 3-day kcal above this → REST
 const CARDIO_TARGET_7D = 1500; // 7-day kcal target
 const CARDIO_MAX_SESSION = 500; // cap kcal per session
+const CARDIO_MIN_SESSION = 100; // below this → REST (already done plenty)
 const CARDIO_REC_TYPES = ["jog", "bike", "stairs"];
+
+// Weekly cardio schedule, by day-of-week (0 = Sun … 6 = Sat).
+// Pattern: 3 on (Mon–Wed), 1 off (Thu), 2 on (Fri–Sat), 1 off (Sun).
+// Total ON days per week = SESSIONS_PER_WEEK (used as the divisor when
+// distributing the rolling-7-day deficit across sessions).
+const CARDIO_SCHEDULE = {
+  0: false,
+  // Sun OFF
+  1: true,
+  // Mon ON
+  2: true,
+  // Tue ON
+  3: true,
+  // Wed ON
+  4: false,
+  // Thu OFF
+  5: true,
+  // Fri ON
+  6: true // Sat ON
+};
+const CARDIO_SESSIONS_PER_WEEK = Object.values(CARDIO_SCHEDULE).filter(Boolean).length;
+const CARDIO_BASELINE_KCAL = CARDIO_TARGET_7D / CARDIO_SESSIONS_PER_WEEK; // 300
 
 // =============================================================================
 // Bodyweight equivalents (72 kg, 178 cm male)
@@ -1608,10 +1631,14 @@ function SessionCard({
 // =============================================================================
 // Recommended cardio (Today tab)
 // Type = oldest-used of {jog, bike, stairs} based on last 30 days.
-// Duration logic:
-//   - 3-day kcal > CARDIO_REST_3D  → REST (overtrained)
-//   - 7-day kcal ≥ CARDIO_TARGET_7D → REST (target met)
-//   - Otherwise: ceil((target − 7-day kcal) / kcal-per-min for type)
+// REST precedence (any one triggers REST with no body text):
+//   1. 3-day kcal > CARDIO_REST_3D       — heavy load, recovery
+//   2. Today is an OFF day in CARDIO_SCHEDULE
+//   3. Calculated session < CARDIO_MIN_SESSION kcal — already done plenty
+// Otherwise:
+//   session_kcal = BASELINE + (TARGET - last_7d_kcal) / SESSIONS_PER_WEEK
+//                = 300 + deficit/5
+//   capped at CARDIO_MAX_SESSION (500). minutes = ceil(session_kcal / kcal_per_min)
 // =============================================================================
 function RecommendedCardio({
   refreshKey,
@@ -1622,7 +1649,6 @@ function RecommendedCardio({
   useEffect(() => {
     async function compute() {
       const today = todayKey();
-      // Sum kcal for last 7 days, plus track last-used per cardio type over 30.
       let kcal3 = 0,
         kcal7 = 0;
       const lastUsed = {
@@ -1649,28 +1675,32 @@ function RecommendedCardio({
         return new Date(lastUsed[a]) - new Date(lastUsed[b]);
       });
       const type = sorted[0];
+
+      // Today's day-of-week against the schedule.
+      // Compute via the Australia/Melbourne date key so the schedule lines up
+      // with the user's local week.
+      const dow = new Date(today + "T12:00:00").getDay();
+      const isOnDay = CARDIO_SCHEDULE[dow] === true;
       let rest = false,
-        reason = "",
         minutes = 0;
       if (kcal3 > CARDIO_REST_3D) {
-        rest = true;
-        reason = "Heavy load in past 3 days";
-      } else if (kcal7 >= CARDIO_TARGET_7D) {
-        rest = true;
-        reason = "Weekly target met";
+        rest = true; // heavy 3-day load
+      } else if (!isOnDay) {
+        rest = true; // scheduled off day
       } else {
-        // Spread the remaining 7-day gap across today + next 2 days = 3 sessions.
-        const needed = CARDIO_TARGET_7D - kcal7;
-        const sessionKcal = Math.min(needed / 3, CARDIO_MAX_SESSION);
-        minutes = Math.ceil(sessionKcal / KCAL_PER_MIN[type]);
+        const deficit = CARDIO_TARGET_7D - kcal7; // can be negative
+        const sessionKcal = CARDIO_BASELINE_KCAL + deficit / CARDIO_SESSIONS_PER_WEEK;
+        const capped = Math.min(sessionKcal, CARDIO_MAX_SESSION);
+        if (capped < CARDIO_MIN_SESSION) {
+          rest = true; // already done plenty
+        } else {
+          minutes = Math.ceil(capped / KCAL_PER_MIN[type]);
+        }
       }
       setRec({
         type,
         rest,
-        reason,
-        minutes,
-        kcal3,
-        kcal7
+        minutes
       });
     }
     compute();
@@ -1686,9 +1716,7 @@ function RecommendedCardio({
       className: "cardio-rec-title"
     }, "Recommended cardio"), /*#__PURE__*/React.createElement("span", {
       className: "cardio-rec-pill mono"
-    }, "REST")), /*#__PURE__*/React.createElement("div", {
-      className: "cardio-rec-body mono"
-    }, rec.reason));
+    }, "REST")));
   }
   return /*#__PURE__*/React.createElement("button", {
     className: "cardio-rec cardio-rec-go",
