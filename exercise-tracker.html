@@ -1475,14 +1475,13 @@ function SuggestedSessions({
   onStartSession
 }) {
   const [usage, setUsage] = useState(null);
-  const [recentSets, setRecentSets] = useState(null); // total sets today + yesterday
+  const [recent, setRecent] = useState(null); // { sets, volume } over today + yesterday
   const [openFull, setOpenFull] = useState(false);
   const [openTargeted, setOpenTargeted] = useState(false);
 
-  // Tally sets per category over the last 7 days. We also count "core" and
-  // "isolation" (legacy categories) into "coreiso" so older data still informs.
-  // Separately track total sets over the last 2 days (today + yesterday) so
-  // we can recommend a rest day when the load has been high.
+  // Tally sets per category over the last 7 days (for session-building
+  // weighting), plus total sets AND total volume over the last 2 days
+  // (today + yesterday) to drive the REST recommendation.
   useEffect(() => {
     async function load() {
       const counts = {
@@ -1492,18 +1491,25 @@ function SuggestedSessions({
         coreiso: 0
       };
       const today = todayKey();
-      let twoDayTotal = 0;
+      let twoDaySets = 0;
+      let twoDayVol = 0;
       for (let i = 0; i < 7; i++) {
         const dk = dateKeyOffset(today, -i);
         const sets = await storage.get(`strength:${dk}`, []);
         for (const s of sets) {
-          if (i < 2 && s.input_type !== IN.CIRCUIT) twoDayTotal++;
+          if (i < 2) {
+            if (s.input_type !== IN.CIRCUIT) twoDaySets++;
+            twoDayVol += setVolume(s);
+          }
           const ex = getExercise(s.exercise_name);
           if (ex.cat === "core" || ex.cat === "isolation") counts.coreiso++;else if (counts[ex.cat] !== undefined) counts[ex.cat]++;
         }
       }
       setUsage(counts);
-      setRecentSets(twoDayTotal);
+      setRecent({
+        sets: twoDaySets,
+        volume: twoDayVol
+      });
     }
     load();
   }, [refreshKey]);
@@ -1542,7 +1548,8 @@ function SuggestedSessions({
   }
 
   // High recent load → suggest rest, hide both session cards.
-  if (recentSets !== null && recentSets > 24) {
+  // Rule: REST if 2-day sets > 20 OR 2-day volume > 10000 kg.
+  if (recent !== null && (recent.sets > 20 || recent.volume > 10000)) {
     return /*#__PURE__*/React.createElement("div", {
       className: "sessions"
     }, /*#__PURE__*/React.createElement("div", {
