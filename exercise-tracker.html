@@ -1480,8 +1480,11 @@ function SuggestedSessions({
   const [openTargeted, setOpenTargeted] = useState(false);
 
   // Tally sets per category over the last 7 days (for session-building
-  // weighting), plus total sets AND total volume over the last 2 days
-  // (today + yesterday) to drive the REST recommendation.
+  // weighting), plus total sets AND total volume over the PRECEDING 2 days
+  // (yesterday + day before yesterday) to drive the REST recommendation.
+  // We deliberately exclude today's own activity — the rec is meant to tell
+  // you whether to train today based on how loaded the last two finished
+  // days were.
   useEffect(() => {
     async function load() {
       const counts = {
@@ -1491,15 +1494,15 @@ function SuggestedSessions({
         coreiso: 0
       };
       const today = todayKey();
-      let twoDaySets = 0;
-      let twoDayVol = 0;
+      let precSets = 0;
+      let precVol = 0;
       for (let i = 0; i < 7; i++) {
         const dk = dateKeyOffset(today, -i);
         const sets = await storage.get(`strength:${dk}`, []);
         for (const s of sets) {
-          if (i < 2) {
-            if (s.input_type !== IN.CIRCUIT) twoDaySets++;
-            twoDayVol += setVolume(s);
+          if (i === 1 || i === 2) {
+            if (s.input_type !== IN.CIRCUIT) precSets++;
+            precVol += setVolume(s);
           }
           const ex = getExercise(s.exercise_name);
           if (ex.cat === "core" || ex.cat === "isolation") counts.coreiso++;else if (counts[ex.cat] !== undefined) counts[ex.cat]++;
@@ -1507,8 +1510,8 @@ function SuggestedSessions({
       }
       setUsage(counts);
       setRecent({
-        sets: twoDaySets,
-        volume: twoDayVol
+        sets: precSets,
+        volume: precVol
       });
     }
     load();
@@ -2587,13 +2590,20 @@ function LogScreen({
 function BarChart({
   data,
   color = "#C9542A",
-  height = 110
+  height = 124
 }) {
   // data: [{ label, value }]
+  // - Avg label sits in the reserved top padding (top-right), so bars can never overlap it.
+  // - Tapping a column toggles a data label above (or inside the top of) that bar.
+  const [sel, setSel] = useState(null);
+  // Reset selection when the data set changes (e.g. 14↔30 day toggle).
+  useEffect(() => {
+    setSel(null);
+  }, [data.length, data]);
   const W = 320,
     H = height;
   const pad = {
-    top: 8,
+    top: 22,
     bottom: 22,
     left: 4,
     right: 4
@@ -2601,13 +2611,12 @@ function BarChart({
   const chartW = W - pad.left - pad.right;
   const chartH = H - pad.top - pad.bottom;
   const n = data.length || 1;
-  const barW = Math.max(2, chartW / n - 3);
+  const colW = chartW / n;
+  const barW = Math.max(2, colW - 3);
   const max = Math.max(1, ...data.map(d => d.value));
-  // Average across all days in the window (includes zero days).
   const sum = data.reduce((a, d) => a + (d.value || 0), 0);
   const avg = data.length > 0 ? sum / data.length : 0;
   const avgY = H - pad.bottom - avg / max * chartH;
-  // Show one tick label every few days to keep things readable.
   const labelEvery = data.length > 16 ? 5 : 1;
   return /*#__PURE__*/React.createElement("svg", {
     className: "bar-chart",
@@ -2624,7 +2633,7 @@ function BarChart({
     strokeWidth: "1"
   }), data.map((d, i) => {
     const h = d.value > 0 ? d.value / max * chartH : 0;
-    const x = pad.left + i * (chartW / n) + (chartW / n - barW) / 2;
+    const x = pad.left + i * colW + (colW - barW) / 2;
     const y = H - pad.bottom - h;
     const showLabel = (data.length - 1 - i) % labelEvery === 0;
     return /*#__PURE__*/React.createElement("g", {
@@ -2643,7 +2652,7 @@ function BarChart({
       fontFamily: "JetBrains Mono, monospace",
       fill: "#5C5849"
     }, d.label));
-  }), avg > 0 && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("line", {
+  }), avg > 0 && /*#__PURE__*/React.createElement("line", {
     x1: pad.left,
     x2: W - pad.right,
     y1: avgY,
@@ -2652,14 +2661,46 @@ function BarChart({
     strokeWidth: "1",
     strokeDasharray: "2 3",
     opacity: "0.55"
-  }), /*#__PURE__*/React.createElement("text", {
-    x: W - pad.right - 2,
-    y: Math.max(pad.top + 7, avgY - 3),
+  }), avg > 0 && /*#__PURE__*/React.createElement("text", {
+    x: W - pad.right,
+    y: 12,
     textAnchor: "end",
-    fontSize: "8",
+    fontSize: "10",
+    fontWeight: "700",
     fontFamily: "JetBrains Mono, monospace",
     fill: "#5C5849"
-  }, "avg ", Math.round(avg).toLocaleString())));
+  }, "avg ", Math.round(avg).toLocaleString()), sel !== null && data[sel] !== undefined && (() => {
+    const d = data[sel];
+    const h = d.value > 0 ? d.value / max * chartH : 0;
+    const cx = pad.left + sel * colW + colW / 2;
+    const barTop = H - pad.bottom - h;
+    const inside = h > 16;
+    const ty = inside ? barTop + 11 : Math.max(pad.top + 9, barTop - 4);
+    const fill = inside ? "#F6EFDC" : "#1B1A17";
+    return /*#__PURE__*/React.createElement("text", {
+      x: cx,
+      y: ty,
+      textAnchor: "middle",
+      fontSize: "10",
+      fontWeight: "700",
+      fontFamily: "JetBrains Mono, monospace",
+      fill: fill
+    }, Math.round(d.value).toLocaleString());
+  })(), data.map((_, i) => {
+    const hx = pad.left + i * colW;
+    return /*#__PURE__*/React.createElement("rect", {
+      key: "hit" + i,
+      x: hx,
+      y: pad.top,
+      width: colW,
+      height: chartH,
+      fill: "transparent",
+      onClick: () => setSel(sel === i ? null : i),
+      style: {
+        cursor: "pointer"
+      }
+    });
+  }));
 }
 
 // =============================================================================
