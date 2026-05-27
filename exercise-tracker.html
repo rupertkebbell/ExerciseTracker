@@ -2674,9 +2674,7 @@ function BarChart({
     const h = d.value > 0 ? d.value / max * chartH : 0;
     const cx = pad.left + sel * colW + colW / 2;
     const barTop = H - pad.bottom - h;
-    const inside = h > 16;
-    const ty = inside ? barTop + 11 : Math.max(pad.top + 9, barTop - 4);
-    const fill = inside ? "#F6EFDC" : "#1B1A17";
+    const ty = Math.max(pad.top + 9, barTop - 4);
     return /*#__PURE__*/React.createElement("text", {
       x: cx,
       y: ty,
@@ -2684,7 +2682,7 @@ function BarChart({
       fontSize: "10",
       fontWeight: "700",
       fontFamily: "JetBrains Mono, monospace",
-      fill: fill
+      fill: "#1B1A17"
     }, Math.round(d.value).toLocaleString());
   })(), data.map((_, i) => {
     const hx = pad.left + i * colW;
