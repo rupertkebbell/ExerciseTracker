@@ -1455,13 +1455,12 @@ function Stopwatch() {
 const SUGGESTED_SETS = 3;
 
 // Pick up to n exercises from a category, excluding Other and hidden,
-// sorted by oldest last_used_at first.
-function pickFromCat(catId, n, exerciseDict) {
+// sorted by oldest last-used first. `lastUsed` maps exercise_name → ISO date string.
+function pickFromCat(catId, n, lastUsed) {
   const pool = EXERCISES.filter(e => e.cat === catId && !e.hidden && !e.isOther);
   return [...pool].sort((a, b) => {
-    var _exerciseDict$a$name, _exerciseDict$b$name;
-    const aIso = (_exerciseDict$a$name = exerciseDict[a.name]) === null || _exerciseDict$a$name === void 0 ? void 0 : _exerciseDict$a$name.last_used_at;
-    const bIso = (_exerciseDict$b$name = exerciseDict[b.name]) === null || _exerciseDict$b$name === void 0 ? void 0 : _exerciseDict$b$name.last_used_at;
+    const aIso = lastUsed[a.name];
+    const bIso = lastUsed[b.name];
     if (!aIso && !bIso) return 0;
     if (!aIso) return -1;
     if (!bIso) return 1;
@@ -1475,16 +1474,16 @@ function SuggestedSessions({
   onStartSession
 }) {
   const [usage, setUsage] = useState(null);
-  const [recent, setRecent] = useState(null); // { sets, volume } over today + yesterday
+  const [recent, setRecent] = useState(null); // { sets, volume } over yesterday + day-before
+  const [pastLastUsed, setPastLastUsed] = useState({}); // exercise_name → most recent ISO from past days
   const [openFull, setOpenFull] = useState(false);
   const [openTargeted, setOpenTargeted] = useState(false);
 
-  // Tally sets per category over the last 7 days (for session-building
-  // weighting), plus total sets AND total volume over the PRECEDING 2 days
-  // (yesterday + day before yesterday) to drive the REST recommendation.
-  // We deliberately exclude today's own activity — the rec is meant to tell
-  // you whether to train today based on how loaded the last two finished
-  // days were.
+  // Walk past days only (i >= 1) — TODAY is intentionally excluded so logging
+  // an exercise today doesn't affect the recommendation that's already shown.
+  //  - usage counts: past 7 days, used for "least-used" category weighting
+  //  - recent (sets+volume): yesterday + day-before, used for REST gate
+  //  - pastLastUsed: past 30 days, used by pickFromCat for ordering
   useEffect(() => {
     async function load() {
       const counts = {
@@ -1496,16 +1495,26 @@ function SuggestedSessions({
       const today = todayKey();
       let precSets = 0;
       let precVol = 0;
-      for (let i = 0; i < 7; i++) {
+      const lastUsed = {};
+      for (let i = 1; i <= 30; i++) {
         const dk = dateKeyOffset(today, -i);
         const sets = await storage.get(`strength:${dk}`, []);
         for (const s of sets) {
+          // REST gate window
           if (i === 1 || i === 2) {
             if (s.input_type !== IN.CIRCUIT) precSets++;
             precVol += setVolume(s);
           }
-          const ex = getExercise(s.exercise_name);
-          if (ex.cat === "core" || ex.cat === "isolation") counts.coreiso++;else if (counts[ex.cat] !== undefined) counts[ex.cat]++;
+          // Category usage window
+          if (i <= 7) {
+            const ex = getExercise(s.exercise_name);
+            if (ex.cat === "core" || ex.cat === "isolation") counts.coreiso++;else if (counts[ex.cat] !== undefined) counts[ex.cat]++;
+          }
+          // First time we see this exercise wins (outer loop walks from i=1
+          // forward in time → earliest i = most recent past use)
+          if (!lastUsed[s.exercise_name]) {
+            lastUsed[s.exercise_name] = s.performed_at;
+          }
         }
       }
       setUsage(counts);
@@ -1513,6 +1522,7 @@ function SuggestedSessions({
         sets: precSets,
         volume: precVol
       });
+      setPastLastUsed(lastUsed);
     }
     load();
   }, [refreshKey]);
@@ -1530,9 +1540,9 @@ function SuggestedSessions({
     const lowerLeast = usage.legs <= usage.coreiso ? "legs" : "coreiso";
     const result = [];
     for (const c of upper) {
-      result.push(...pickFromCat(c, upperCounts[c], exerciseDict));
+      result.push(...pickFromCat(c, upperCounts[c], pastLastUsed));
     }
-    result.push(...pickFromCat(lowerLeast, 1, exerciseDict));
+    result.push(...pickFromCat(lowerLeast, 1, pastLastUsed));
     return result.map(e => ({
       ...e,
       sets: SUGGESTED_SETS
@@ -1544,7 +1554,7 @@ function SuggestedSessions({
     if (!usage) return [];
     const primary = usage.push <= usage.pull ? "push" : "pull";
     const lowerLeast = usage.legs <= usage.coreiso ? "legs" : "coreiso";
-    return [...pickFromCat(primary, 3, exerciseDict), ...pickFromCat(lowerLeast, 1, exerciseDict)].map(e => ({
+    return [...pickFromCat(primary, 3, pastLastUsed), ...pickFromCat(lowerLeast, 1, pastLastUsed)].map(e => ({
       ...e,
       sets: SUGGESTED_SETS
     }));
@@ -1659,6 +1669,9 @@ function RecommendedCardio({
   useEffect(() => {
     async function compute() {
       const today = todayKey();
+      // PAST days only — today's logged cardio is intentionally excluded from
+      // the recommendation logic. Today's activity should never alter today's
+      // recommendation; only what came before does.
       let kcal3 = 0,
         kcal7 = 0;
       const lastUsed = {
@@ -1666,12 +1679,12 @@ function RecommendedCardio({
         bike: null,
         stairs: null
       };
-      for (let i = 0; i < 30; i++) {
+      for (let i = 1; i <= 30; i++) {
         const dk = dateKeyOffset(today, -i);
         const sessions = await storage.get(`cardio:${dk}`, []);
         for (const s of sessions) {
-          if (i < 3) kcal3 += s.kcal_burned || 0;
-          if (i < 7) kcal7 += s.kcal_burned || 0;
+          if (i <= 3) kcal3 += s.kcal_burned || 0;
+          if (i <= 7) kcal7 += s.kcal_burned || 0;
           if (lastUsed[s.type] !== undefined && lastUsed[s.type] === null) {
             lastUsed[s.type] = s.started_at;
           }
