@@ -160,22 +160,31 @@ input[type=number] { -moz-appearance: textfield; }
 .session-row {
   width: 100%;
   display: grid;
-  grid-template-columns: 50px 1fr auto;
+  grid-template-columns: 70px 1fr auto;
   align-items: center; gap: 10px;
-  padding: 10px 12px 10px 14px;
+  padding: 0 8px 0 14px;
   border-bottom: 1px solid var(--cream-2);
   border-left: 4px solid transparent;
   text-align: left;
   background: var(--cream);
 }
 .session-row:last-child { border-bottom: 0; }
-.session-row:active { background: var(--cream-2); }
+.session-pick {
+  background: none; text-align: left;
+  padding: 11px 0;
+}
+.session-pick:active { opacity: 0.55; }
 .session-cat {
   font-size: 9.5px; font-weight: 600; letter-spacing: 0.04em;
   border: 1px solid; padding: 2px 3px; text-align: center;
 }
 .session-name { font-size: 13.5px; font-weight: 500; }
 .session-sets { font-size: 12px; color: var(--ink-s); font-weight: 500; }
+.session-cycle {
+  display: flex; align-items: center; justify-content: center;
+  padding: 10px 6px; color: var(--ink-s);
+}
+.session-cycle:active { color: #C9542A; }
 .start-session-btn {
   width: 100%;
   border: 0; border-top: 1px solid var(--line);
@@ -1278,6 +1287,18 @@ function IconTimer({
     points: "12 6 12 12 16 14"
   }));
 }
+function IconCycle({
+  size = 16,
+  sw = 1.75
+}) {
+  return /*#__PURE__*/React.createElement("svg", sp(size, sw), /*#__PURE__*/React.createElement("polyline", {
+    points: "23 4 23 10 17 10"
+  }), /*#__PURE__*/React.createElement("polyline", {
+    points: "1 20 1 14 7 14"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"
+  }));
+}
 
 // =============================================================================
 // Building blocks
@@ -1577,38 +1598,91 @@ function SuggestedSessions({
   }
   const fullBody = buildFullBody();
   const targeted = buildTargeted();
+
+  // Ordered rotation of a category's exercises, oldest-logged first
+  // (same ordering pickFromCat uses). Excludes hidden + Other.
+  function catRotation(catId) {
+    const pool = EXERCISES.filter(e => e.cat === catId && !e.hidden && !e.isOther);
+    return [...pool].sort((a, b) => {
+      const aIso = pastLastUsed[a.name];
+      const bIso = pastLastUsed[b.name];
+      if (!aIso && !bIso) return 0;
+      if (!aIso) return -1;
+      if (!bIso) return 1;
+      return new Date(aIso) - new Date(bIso);
+    });
+  }
   return /*#__PURE__*/React.createElement("div", {
     className: "sessions"
   }, /*#__PURE__*/React.createElement(SessionCard, {
     label: "Full body session",
     open: openFull,
     onToggle: () => setOpenFull(!openFull),
-    exercises: fullBody,
+    baseExercises: fullBody,
     onSelectExercise: onSelectExercise,
-    onStartSession: () => onStartSession === null || onStartSession === void 0 ? void 0 : onStartSession({
+    onStartSession: exs => onStartSession === null || onStartSession === void 0 ? void 0 : onStartSession({
       title: "Full body session",
-      exercises: fullBody
-    })
+      exercises: exs
+    }),
+    catRotation: catRotation
   }), /*#__PURE__*/React.createElement(SessionCard, {
     label: "Targeted session",
     open: openTargeted,
     onToggle: () => setOpenTargeted(!openTargeted),
-    exercises: targeted,
+    baseExercises: targeted,
     onSelectExercise: onSelectExercise,
-    onStartSession: () => onStartSession === null || onStartSession === void 0 ? void 0 : onStartSession({
+    onStartSession: exs => onStartSession === null || onStartSession === void 0 ? void 0 : onStartSession({
       title: "Targeted session",
-      exercises: targeted
-    })
+      exercises: exs
+    }),
+    catRotation: catRotation
   }));
 }
 function SessionCard({
   label,
   open,
   onToggle,
-  exercises,
+  baseExercises,
   onSelectExercise,
-  onStartSession
+  onStartSession,
+  catRotation
 }) {
+  // overrides: slotIndex → exercise object that replaces the base pick.
+  const [overrides, setOverrides] = useState({});
+
+  // Reset overrides whenever the card collapses or the base recommendation
+  // changes (e.g. after logging shifts the suggestions).
+  useEffect(() => {
+    if (!open) setOverrides({});
+  }, [open]);
+  useEffect(() => {
+    setOverrides({});
+  }, [baseExercises.map(e => e.name).join("|")]);
+
+  // Effective exercise list = base with any slot overrides applied.
+  const exercises = baseExercises.map((ex, i) => overrides[i] || ex);
+  function cycleSlot(i) {
+    const current = exercises[i];
+    const rotation = catRotation(current.cat);
+    if (rotation.length <= 1) return;
+    // Names used by OTHER slots — skip these to avoid duplicates.
+    const usedElsewhere = new Set(exercises.filter((_, idx) => idx !== i).map(e => e.name));
+    const curIdx = rotation.findIndex(e => e.name === current.name);
+    // Walk forward from current, wrapping, until we find one not used elsewhere.
+    for (let step = 1; step <= rotation.length; step++) {
+      const cand = rotation[(curIdx + step) % rotation.length];
+      if (!usedElsewhere.has(cand.name)) {
+        setOverrides(prev => ({
+          ...prev,
+          [i]: {
+            ...cand,
+            sets: SUGGESTED_SETS
+          }
+        }));
+        return;
+      }
+    }
+  }
   return /*#__PURE__*/React.createElement("div", {
     className: "session-card"
   }, /*#__PURE__*/React.createElement("button", {
@@ -1624,27 +1698,34 @@ function SessionCard({
     className: "session-empty mono"
   }, "Loading\u2026") : /*#__PURE__*/React.createElement(React.Fragment, null, exercises.map((ex, i) => {
     const color = CAT_COLORS[ex.cat];
-    return /*#__PURE__*/React.createElement("button", {
-      key: ex.name + i,
+    return /*#__PURE__*/React.createElement("div", {
+      key: i,
       className: "session-row",
       style: {
         borderLeftColor: color
-      },
-      onClick: () => onSelectExercise(ex.name)
-    }, /*#__PURE__*/React.createElement("span", {
-      className: "session-cat mono",
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      className: "session-cat mono session-pick",
       style: {
         color,
         borderColor: color
-      }
-    }, CAT_LABELS[ex.cat]), /*#__PURE__*/React.createElement("span", {
-      className: "session-name"
-    }, ex.name), /*#__PURE__*/React.createElement("span", {
-      className: "session-sets mono"
-    }, ex.sets, "\xD7"));
+      },
+      onClick: () => onSelectExercise(ex.name)
+    }, CAT_LABELS[ex.cat]), /*#__PURE__*/React.createElement("button", {
+      className: "session-name session-pick",
+      onClick: () => onSelectExercise(ex.name)
+    }, ex.name), /*#__PURE__*/React.createElement("button", {
+      className: "session-cycle",
+      onClick: () => cycleSlot(i),
+      "aria-label": "Swap exercise",
+      title: "Swap exercise"
+    }, /*#__PURE__*/React.createElement(IconCycle, {
+      size: 15,
+      sw: 1.75
+    })));
   }), /*#__PURE__*/React.createElement("button", {
     className: "start-session-btn",
-    onClick: onStartSession
+    onClick: () => onStartSession(exercises)
   }, "Start session"))));
 }
 
