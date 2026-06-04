@@ -1368,14 +1368,17 @@ function DateBar({
 // Tracks total session / current-or-last set / current rest.
 // Phases: idle → set → rest → set → rest …
 // =============================================================================
-function Stopwatch() {
-  const [phase, setPhase] = useState("idle");
-  const [totalStartAt, setTotalStartAt] = useState(null);
-  const [setStartAt, setSetStartAt] = useState(null);
-  const [setDoneMs, setSetDoneMs] = useState(0);
-  const [restStartAt, setRestStartAt] = useState(null);
+function Stopwatch({
+  sw,
+  onStart,
+  onRest,
+  onEnd
+}) {
   const [, setTick] = useState(0);
   const itvRef = useRef(null);
+  const phase = sw.phase; // 'idle' | 'set' | 'rest'
+
+  // Tick while running so the live timers update.
   useEffect(() => {
     if (phase !== "idle") {
       itvRef.current = setInterval(() => setTick(n => n + 1), 100);
@@ -1385,34 +1388,9 @@ function Stopwatch() {
     return () => clearInterval(itvRef.current);
   }, [phase]);
   const now = Date.now();
-  const totalMs = totalStartAt ? now - totalStartAt : 0;
-  const setMs = phase === "set" && setStartAt ? now - setStartAt : setDoneMs;
-  const restMs = phase === "rest" && restStartAt ? now - restStartAt : 0;
-  function startSet() {
-    const t = Date.now();
-    setTotalStartAt(prev => prev !== null && prev !== void 0 ? prev : t);
-    setSetStartAt(t);
-    setSetDoneMs(0);
-    setRestStartAt(null);
-    setPhase("set");
-  }
-  function stopSet() {
-    if (phase !== "set") return;
-    const t = Date.now();
-    setSetDoneMs(setStartAt ? t - setStartAt : 0);
-    setSetStartAt(null);
-    setRestStartAt(t);
-    setPhase("rest");
-  }
-  function resetAll() {
-    clearInterval(itvRef.current);
-    setPhase("idle");
-    setTotalStartAt(null);
-    setSetStartAt(null);
-    setSetDoneMs(0);
-    setRestStartAt(null);
-    setTick(0);
-  }
+  const totalMs = sw.totalStartAt ? now - sw.totalStartAt : 0;
+  const setMs = phase === "set" && sw.setStartAt ? now - sw.setStartAt : sw.setDoneMs;
+  const restMs = phase === "rest" && sw.restStartAt ? now - sw.restStartAt : 0;
   const inSet = phase === "set";
   const inRest = phase === "rest";
   return /*#__PURE__*/React.createElement("div", {
@@ -1445,20 +1423,20 @@ function Stopwatch() {
     className: "sw-btns"
   }, !inSet ? /*#__PURE__*/React.createElement("button", {
     className: "sw-btn sw-start",
-    onClick: startSet
+    onClick: onStart
   }, /*#__PURE__*/React.createElement(IconTimer, {
     size: 13,
     sw: 2
-  }), "Start set") : /*#__PURE__*/React.createElement("button", {
+  }), "Start") : /*#__PURE__*/React.createElement("button", {
     className: "sw-btn sw-stop",
-    onClick: stopSet
+    onClick: onRest
   }, /*#__PURE__*/React.createElement(IconTimer, {
     size: 13,
     sw: 2
   }), "Rest"), /*#__PURE__*/React.createElement("button", {
     className: "sw-btn sw-reset sw-end",
-    onClick: resetAll,
-    disabled: phase === "idle" && !totalStartAt
+    onClick: onEnd,
+    disabled: phase === "idle" && !sw.totalStartAt
   }, "End session")));
 }
 
@@ -1548,23 +1526,22 @@ function SuggestedSessions({
     load();
   }, [refreshKey]);
 
-  // Full body: 3 from push+pull (split based on least-used) + 1 from legs/coreiso.
+  // Full body (4 exercises):
+  //   • 2× the LESS-trained of push/pull over the last 7 days
+  //   • 1× the other of push/pull (so both patterns are always hit)
+  //   • 1× the LESS-trained of legs/core-iso
+  // The 2× category is listed first so the session's focus is obvious.
   function buildFullBody() {
     if (!usage) return [];
-    const upper = ["push", "pull"];
     const upperLeast = usage.push <= usage.pull ? "push" : "pull";
     const upperOther = upperLeast === "push" ? "pull" : "push";
-    const upperCounts = {
-      [upperLeast]: 2,
-      [upperOther]: 1
-    };
     const lowerLeast = usage.legs <= usage.coreiso ? "legs" : "coreiso";
-    const result = [];
-    for (const c of upper) {
-      result.push(...pickFromCat(c, upperCounts[c], pastLastUsed));
-    }
-    result.push(...pickFromCat(lowerLeast, 1, pastLastUsed));
-    return result.map(e => ({
+    return [...pickFromCat(upperLeast, 2, pastLastUsed),
+    // 2× less-trained upper
+    ...pickFromCat(upperOther, 1, pastLastUsed),
+    // 1× the other upper
+    ...pickFromCat(lowerLeast, 1, pastLastUsed) // 1× less-trained lower
+    ].map(e => ({
       ...e,
       sets: SUGGESTED_SETS
     }));
@@ -2631,7 +2608,11 @@ function LogScreen({
   onEndSession,
   onCompleteExercise,
   pendingCardio,
-  clearPendingCardio
+  clearPendingCardio,
+  sw,
+  swStart,
+  swRest,
+  swEnd
 }) {
   const [mode, setMode] = useState("strength");
   useEffect(() => {
@@ -2657,7 +2638,12 @@ function LogScreen({
   }, /*#__PURE__*/React.createElement(IconActivity, {
     size: 15,
     sw: 1.75
-  }), " ", /*#__PURE__*/React.createElement("span", null, "Cardio"))), mode === "strength" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Stopwatch, null), /*#__PURE__*/React.createElement(StrengthLog, {
+  }), " ", /*#__PURE__*/React.createElement("span", null, "Cardio"))), mode === "strength" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Stopwatch, {
+    sw: sw,
+    onStart: swStart,
+    onRest: swRest,
+    onEnd: swEnd
+  }), /*#__PURE__*/React.createElement(StrengthLog, {
     dateKey: dateKey,
     refreshKey: refreshKey,
     onChange: onChange,
@@ -2920,6 +2906,23 @@ function App() {
       return null;
     }
   });
+
+  // Stopwatch state lives here (not inside Stopwatch) so it keeps running when
+  // navigating between tabs, and persists across reloads.
+  // Shape: { phase: 'idle'|'set'|'rest', totalStartAt, setStartAt, setDoneMs, restStartAt }
+  const [sw, setSw] = useState(() => {
+    try {
+      const raw = localStorage.getItem("exercise-tracker:stopwatch");
+      if (raw) return JSON.parse(raw);
+    } catch {}
+    return {
+      phase: "idle",
+      totalStartAt: null,
+      setStartAt: null,
+      setDoneMs: 0,
+      restStartAt: null
+    };
+  });
   const bump = () => setRefreshKey(x => x + 1);
   useEffect(() => {
     storage.get("exercise_dict", {}).then(setExerciseDict);
@@ -2940,6 +2943,53 @@ function App() {
       console.error("save active_session", err);
     }
   }, [activeSession]);
+
+  // Persist stopwatch on every change.
+  useEffect(() => {
+    try {
+      localStorage.setItem("exercise-tracker:stopwatch", JSON.stringify(sw));
+    } catch (err) {
+      console.error("save stopwatch", err);
+    }
+  }, [sw]);
+
+  // Stopwatch handlers
+  function swStart() {
+    const t = Date.now();
+    setSw(p => {
+      var _p$totalStartAt;
+      return {
+        ...p,
+        phase: "set",
+        totalStartAt: (_p$totalStartAt = p.totalStartAt) !== null && _p$totalStartAt !== void 0 ? _p$totalStartAt : t,
+        setStartAt: t,
+        setDoneMs: 0,
+        restStartAt: null
+      };
+    });
+  }
+  function swRest() {
+    setSw(p => {
+      if (p.phase !== "set") return p;
+      const t = Date.now();
+      return {
+        ...p,
+        phase: "rest",
+        setDoneMs: p.setStartAt ? t - p.setStartAt : 0,
+        setStartAt: null,
+        restStartAt: t
+      };
+    });
+  }
+  function swEnd() {
+    setSw({
+      phase: "idle",
+      totalStartAt: null,
+      setStartAt: null,
+      setDoneMs: 0,
+      restStartAt: null
+    });
+  }
   function handleSelectExercise(name) {
     setPendingExercise(name);
     setTab("log");
@@ -3001,7 +3051,11 @@ function App() {
     onEndSession: handleEndSession,
     onCompleteExercise: handleCompleteExercise,
     pendingCardio: pendingCardio,
-    clearPendingCardio: () => setPendingCardio(null)
+    clearPendingCardio: () => setPendingCardio(null),
+    sw: sw,
+    swStart: swStart,
+    swRest: swRest,
+    swEnd: swEnd
   }), tab === "summary" && /*#__PURE__*/React.createElement(SummaryTab, {
     refreshKey: refreshKey
   })), /*#__PURE__*/React.createElement(BottomNav, {
