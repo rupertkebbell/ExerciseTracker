@@ -124,6 +124,8 @@ input[type=number] { -moz-appearance: textfield; }
 .sw-div { width: 1px; background: var(--line); }
 .sw-lbl { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-s); margin-bottom: 2px; }
 .sw-val { font-size: 20px; font-weight: 500; letter-spacing: 0.02em; }
+.sw-single { padding: 10px 6px; }
+.sw-single .sw-val { font-size: 28px; line-height: 1.05; }
 .sw-active  { color: #C9542A; }
 .sw-resting { color: #3A7D52; }
 .sw-btns { display: flex; }
@@ -439,6 +441,31 @@ input[type=number] { -moz-appearance: textfield; }
 }
 .bar-chart { width: 100%; height: auto; display: block; }
 
+/* Chart legend (v3: category-split strength chart) */
+.legend {
+  display: flex; flex-wrap: wrap; gap: 4px 12px;
+  padding: 8px 2px 0;
+}
+.legend-item {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 10px; color: var(--ink-s);
+  letter-spacing: 0.04em;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+.legend-swatch {
+  width: 9px; height: 9px; display: inline-block;
+  border: 1px solid var(--line);
+}
+
+/* Data backup panel (v3: export / import) */
+.data-actions { display: flex; gap: 8px; }
+.data-btn {
+  flex: 1;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+}
+.data-note { font-size: 11px; color: var(--ink-s); margin-top: 8px; line-height: 1.45; }
+.hidden-file { display: none; }
+
 /* Bottom nav */
 .bottom-nav {
   position: fixed; left: 0; right: 0; bottom: 0;
@@ -457,6 +484,7 @@ input[type=number] { -moz-appearance: textfield; }
 </head>
 <body>
 <div id="root"></div>
+
 <script>
 /**
  * @license React
@@ -489,7 +517,6 @@ render:a}};c.isValidElement=M;c.lazy=function(a){return{$$typeof:Aa,_payload:{_s
 c.useEffect=function(a,b){return g.current.useEffect(a,b)};c.useId=function(){return g.current.useId()};c.useImperativeHandle=function(a,b,c){return g.current.useImperativeHandle(a,b,c)};c.useInsertionEffect=function(a,b){return g.current.useInsertionEffect(a,b)};c.useLayoutEffect=function(a,b){return g.current.useLayoutEffect(a,b)};c.useMemo=function(a,b){return g.current.useMemo(a,b)};c.useReducer=function(a,b,c){return g.current.useReducer(a,b,c)};c.useRef=function(a){return g.current.useRef(a)};
 c.useState=function(a){return g.current.useState(a)};c.useSyncExternalStore=function(a,b,c){return g.current.useSyncExternalStore(a,b,c)};c.useTransition=function(){return g.current.useTransition()};c.version="18.3.1"});
 })();
-
 </script>
 <script>
 /**
@@ -759,28 +786,37 @@ c,!1,d,e);a[Ja]=b.current;sc(8===a.nodeType?a.parentNode:a);return new Xf(b)};Q.
 var d=null!=c&&c.hydratedSources||null,e=!1,f="",g=aj;null!==c&&void 0!==c&&(!0===c.unstable_strictMode&&(e=!0),void 0!==c.identifierPrefix&&(f=c.identifierPrefix),void 0!==c.onRecoverableError&&(g=c.onRecoverableError));b=Wi(b,null,a,1,null!=c?c:null,e,!1,f,g);a[Ja]=b.current;sc(a);if(d)for(a=0;a<d.length;a++)c=d[a],e=c._getVersion,e=e(c._source),null==b.mutableSourceEagerHydrationData?b.mutableSourceEagerHydrationData=[c,e]:b.mutableSourceEagerHydrationData.push(c,e);return new Ud(b)};Q.render=
 function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmountComponentAtNode=function(a){if(!Vd(a))throw Error(m(40));return a._reactRootContainer?(yb(function(){Wd(null,null,a,!1,function(){a._reactRootContainer=null;a[Ja]=null})}),!0):!1};Q.unstable_batchedUpdates=Tf;Q.unstable_renderSubtreeIntoContainer=function(a,b,c,d){if(!Vd(c))throw Error(m(200));if(null==a||void 0===a._reactInternals)throw Error(m(38));return Wd(a,b,c,!1,d)};Q.version="18.3.1-next-f1338f8080-20240426"});
 })();
-
 </script>
 <script>
 // =============================================================================
-// Standalone Exercise Tracker v2
-// Categories + colour coding, stopwatch, suggested session,
-// distance for jog/run, jiggle tab.
-// React from CDN; JSX pre-compiled via Babel CLI; localStorage persistence.
+// Standalone Exercise Tracker v3
+// Changes from v2:
+//   • FIX: deleting a strength group now removes all its sets in one pass
+//     (previously a stale-closure race meant only one set was deleted).
+//   • FIX: "Other" exercises carry the category of the picker button they
+//     were started from (custom_cat), and custom_cat is now read everywhere —
+//     colour coding on Today and the 7-day usage weighting are correct for
+//     custom exercises, including previously logged ones.
+//   • Storage is synchronous (localStorage is sync; async façade removed).
+//   • The past-30-day history is scanned ONCE per refresh in TodayView and
+//     shared by the suggested-session and recommended-cardio engines.
+//   • Stopwatch ticks at 250 ms instead of 100 ms.
+//   • Removed dead code (daysAgo, unused exerciseDict prop on suggestions).
+//   • NEW: Export / import JSON backup (Summary tab, "Data" panel).
+//   • NEW: Summary strength chart is stacked by category with a legend.
+// React from CDN; no JSX (h = React.createElement); localStorage persistence.
 // =============================================================================
 
-const {
-  useState,
-  useEffect,
-  useRef
-} = React;
+const { useState, useEffect, useMemo, useRef } = React;
+const h = React.createElement;
 
 // =============================================================================
-// Storage
+// Storage — synchronous. localStorage is sync, so the previous async wrappers
+// only added microtask churn around every read/write.
 // =============================================================================
 const STORAGE_PREFIX = "exercise-tracker:";
 const storage = {
-  async get(key, fallback = null) {
+  get(key, fallback = null) {
     try {
       const raw = localStorage.getItem(STORAGE_PREFIX + key);
       if (raw === null) return fallback;
@@ -790,7 +826,7 @@ const storage = {
       return fallback;
     }
   },
-  async set(key, value) {
+  set(key, value) {
     try {
       localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(value));
       return true;
@@ -799,7 +835,7 @@ const storage = {
       return false;
     }
   },
-  async remove(key) {
+  remove(key) {
     try {
       localStorage.removeItem(STORAGE_PREFIX + key);
       return true;
@@ -814,9 +850,7 @@ const storage = {
 // =============================================================================
 const TZ = "Australia/Melbourne";
 function todayKey() {
-  return new Date().toLocaleDateString("en-CA", {
-    timeZone: TZ
-  });
+  return new Date().toLocaleDateString("en-CA", { timeZone: TZ });
 }
 function nowISO() {
   return new Date().toISOString();
@@ -826,12 +860,14 @@ function genId() {
 }
 function formatTime(iso) {
   if (!iso) return "";
-  return new Date(iso).toLocaleTimeString("en-US", {
-    timeZone: TZ,
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true
-  }).toUpperCase();
+  return new Date(iso)
+    .toLocaleTimeString("en-US", {
+      timeZone: TZ,
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true
+    })
+    .toUpperCase();
 }
 function formatDateLong(dk) {
   return new Date(dk + "T12:00:00").toLocaleDateString("en-AU", {
@@ -844,30 +880,24 @@ function formatDateLong(dk) {
 function dateKeyOffset(dk, n) {
   const d = new Date(dk + "T12:00:00");
   d.setDate(d.getDate() + n);
-  return d.toLocaleDateString("en-CA", {
-    timeZone: TZ
-  });
+  return d.toLocaleDateString("en-CA", { timeZone: TZ });
 }
 function isToday(dk) {
   return dk === todayKey();
 }
-function daysAgo(iso) {
-  if (!iso) return null;
-  return Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
-}
 function formatMs(ms) {
   const s = Math.floor(ms / 1000);
-  return String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
+  return (
+    String(Math.floor(s / 60)).padStart(2, "0") +
+    ":" +
+    String(s % 60).padStart(2, "0")
+  );
 }
 
 // =============================================================================
 // Exercise constants
 // =============================================================================
-const IN = {
-  STD: "standard",
-  REPS: "repsOnly",
-  CIRCUIT: "coreCircuit"
-};
+const IN = { STD: "standard", REPS: "repsOnly", CIRCUIT: "coreCircuit" };
 const CAT_COLORS = {
   push: "#C9542A",
   pull: "#3B6FA0",
@@ -883,193 +913,78 @@ const CAT_LABELS = {
   core: "CORE",
   isolation: "ISO"
 };
-const CATEGORIES = [{
-  id: "push",
-  label: "Push"
-}, {
-  id: "pull",
-  label: "Pull"
-}, {
-  id: "legs",
-  label: "Legs"
-}, {
-  id: "coreiso",
-  label: "Core/Iso"
-}];
+const CATEGORIES = [
+  { id: "push", label: "Push" },
+  { id: "pull", label: "Pull" },
+  { id: "legs", label: "Legs" },
+  { id: "coreiso", label: "Core/Iso" }
+];
 
 // Active exercise list (picker shows these). Deprecated exercises remain
 // listed below with hidden:true so old entries still resolve to a category
 // for colour/volume lookup.
 const EXERCISES = [
-// Push
-{
-  name: "Bench press",
-  cat: "push",
-  input: IN.STD
-}, {
-  name: "Barbell overhead press",
-  cat: "push",
-  input: IN.STD
-}, {
-  name: "Incline press",
-  cat: "push",
-  input: IN.STD
-}, {
-  name: "Shoulder press",
-  cat: "push",
-  input: IN.STD
-},
-// Pull
-{
-  name: "Pull-ups",
-  cat: "pull",
-  input: IN.REPS
-}, {
-  name: "Barbell/bent over row",
-  cat: "pull",
-  input: IN.STD
-}, {
-  name: "Lat pulldown",
-  cat: "pull",
-  input: IN.STD
-}, {
-  name: "Cable/machine row",
-  cat: "pull",
-  input: IN.STD
-},
-// Legs
-{
-  name: "Squat",
-  cat: "legs",
-  input: IN.STD
-}, {
-  name: "Deadlift",
-  cat: "legs",
-  input: IN.STD
-}, {
-  name: "Leg extension",
-  cat: "legs",
-  input: IN.STD
-},
-// Core/Iso
-{
-  name: "Machine crunch",
-  cat: "coreiso",
-  input: IN.STD
-}, {
-  name: "Hanging leg raises",
-  cat: "coreiso",
-  input: IN.REPS
-}, {
-  name: "Bicep curls",
-  cat: "coreiso",
-  input: IN.STD
-}, {
-  name: "Tricep extension",
-  cat: "coreiso",
-  input: IN.STD
-}, {
-  name: "Lat raises",
-  cat: "coreiso",
-  input: IN.STD
-},
-// Special "Other" bucket — shared by all 4 Other picker buttons.
-{
-  name: "Other",
-  cat: "coreiso",
-  input: IN.STD,
-  isOther: true,
-  hidden: true
-},
-// Deprecated (kept for back-compat with previously logged data)
-{
-  name: "Dips",
-  cat: "push",
-  input: IN.STD,
-  hidden: true
-}, {
-  name: "Chin-ups",
-  cat: "pull",
-  input: IN.REPS,
-  hidden: true
-}, {
-  name: "Barbell row",
-  cat: "pull",
-  input: IN.STD,
-  hidden: true
-}, {
-  name: "Cable row",
-  cat: "pull",
-  input: IN.STD,
-  hidden: true
-}, {
-  name: "Machine row",
-  cat: "pull",
-  input: IN.STD,
-  hidden: true
-}, {
-  name: "RDL",
-  cat: "legs",
-  input: IN.STD,
-  hidden: true
-}, {
-  name: "Bulgarian split squat",
-  cat: "legs",
-  input: IN.STD,
-  hidden: true
-}, {
-  name: "Leg press",
-  cat: "legs",
-  input: IN.STD,
-  hidden: true
-}, {
-  name: "Ab-roller",
-  cat: "coreiso",
-  input: IN.REPS,
-  hidden: true
-}, {
-  name: "Core circuit",
-  cat: "coreiso",
-  input: IN.CIRCUIT,
-  hidden: true
-}];
+  // Push
+  { name: "Bench press", cat: "push", input: IN.STD },
+  { name: "Barbell overhead press", cat: "push", input: IN.STD },
+  { name: "Incline press", cat: "push", input: IN.STD },
+  { name: "Shoulder press", cat: "push", input: IN.STD },
+  // Pull
+  { name: "Pull-ups", cat: "pull", input: IN.REPS },
+  { name: "Barbell/bent over row", cat: "pull", input: IN.STD },
+  { name: "Lat pulldown", cat: "pull", input: IN.STD },
+  { name: "Cable/machine row", cat: "pull", input: IN.STD },
+  // Legs
+  { name: "Squat", cat: "legs", input: IN.STD },
+  { name: "Deadlift", cat: "legs", input: IN.STD },
+  { name: "Leg extension", cat: "legs", input: IN.STD },
+  // Core/Iso
+  { name: "Machine crunch", cat: "coreiso", input: IN.STD },
+  { name: "Hanging leg raises", cat: "coreiso", input: IN.REPS },
+  { name: "Bicep curls", cat: "coreiso", input: IN.STD },
+  { name: "Tricep extension", cat: "coreiso", input: IN.STD },
+  { name: "Lat raises", cat: "coreiso", input: IN.STD },
+  // Special "Other" bucket — shared by all 4 Other picker buttons.
+  { name: "Other", cat: "coreiso", input: IN.STD, isOther: true, hidden: true },
+  // Deprecated (kept for back-compat with previously logged data)
+  { name: "Dips", cat: "push", input: IN.STD, hidden: true },
+  { name: "Chin-ups", cat: "pull", input: IN.REPS, hidden: true },
+  { name: "Barbell row", cat: "pull", input: IN.STD, hidden: true },
+  { name: "Cable row", cat: "pull", input: IN.STD, hidden: true },
+  { name: "Machine row", cat: "pull", input: IN.STD, hidden: true },
+  { name: "RDL", cat: "legs", input: IN.STD, hidden: true },
+  { name: "Bulgarian split squat", cat: "legs", input: IN.STD, hidden: true },
+  { name: "Leg press", cat: "legs", input: IN.STD, hidden: true },
+  { name: "Ab-roller", cat: "coreiso", input: IN.REPS, hidden: true },
+  { name: "Core circuit", cat: "coreiso", input: IN.CIRCUIT, hidden: true }
+];
 function getExercise(name) {
-  return EXERCISES.find(e => e.name === name) || {
-    name,
-    cat: "push",
-    input: IN.STD
-  };
+  return (
+    EXERCISES.find(e => e.name === name) || { name, cat: "push", input: IN.STD }
+  );
+}
+
+// Resolve the effective category of a LOGGED entry. Custom ("Other") entries
+// store custom_cat; named entries resolve through EXERCISES. Legacy core /
+// isolation categories collapse into coreiso so colours and counts line up.
+function entryCat(s) {
+  let cat = s.custom_cat || getExercise(s.exercise_name).cat;
+  if (cat === "core" || cat === "isolation") cat = "coreiso";
+  return CAT_COLORS[cat] ? cat : "coreiso";
 }
 
 // =============================================================================
 // Cardio constants
 // =============================================================================
-const CARDIO_TYPES = [{
-  id: "jog",
-  label: "Jog"
-}, {
-  id: "run",
-  label: "Run"
-}, {
-  id: "bike",
-  label: "Bike"
-}, {
-  id: "stairs",
-  label: "Stairs"
-}, {
-  id: "other",
-  label: "Other"
-}];
-const KCAL_PER_MIN = {
-  jog: 13,
-  run: 16,
-  bike: 13,
-  stairs: 12
-};
-const PACE_MIN_PER_KM = {
-  jog: 5.5,
-  run: 4.75
-};
+const CARDIO_TYPES = [
+  { id: "jog", label: "Jog" },
+  { id: "run", label: "Run" },
+  { id: "bike", label: "Bike" },
+  { id: "stairs", label: "Stairs" },
+  { id: "other", label: "Other" }
+];
+const KCAL_PER_MIN = { jog: 13, run: 16, bike: 13, stairs: 12 };
+const PACE_MIN_PER_KM = { jog: 5.5, run: 4.75 };
 
 // Cardio recommendation thresholds
 const CARDIO_REST_3D = 1200; // 3-day kcal above this → REST
@@ -1080,37 +995,32 @@ const CARDIO_REC_TYPES = ["jog", "bike", "stairs"];
 
 // Weekly cardio schedule, by day-of-week (0 = Sun … 6 = Sat).
 // Pattern: 3 on (Mon–Wed), 1 off (Thu), 2 on (Fri–Sat), 1 off (Sun).
-// Total ON days per week = SESSIONS_PER_WEEK (used as the divisor when
-// distributing the rolling-7-day deficit across sessions).
 const CARDIO_SCHEDULE = {
-  0: false,
-  // Sun OFF
-  1: true,
-  // Mon ON
-  2: true,
-  // Tue ON
-  3: true,
-  // Wed ON
-  4: false,
-  // Thu OFF
-  5: true,
-  // Fri ON
+  0: false, // Sun OFF
+  1: true, // Mon ON
+  2: true, // Tue ON
+  3: true, // Wed ON
+  4: false, // Thu OFF
+  5: true, // Fri ON
   6: true // Sat ON
 };
-const CARDIO_SESSIONS_PER_WEEK = Object.values(CARDIO_SCHEDULE).filter(Boolean).length;
+const CARDIO_SESSIONS_PER_WEEK = Object.values(CARDIO_SCHEDULE).filter(
+  Boolean
+).length;
 const CARDIO_BASELINE_KCAL = CARDIO_TARGET_7D / CARDIO_SESSIONS_PER_WEEK; // 300
+
+// Strength REST gate (2-day window)
+const STRENGTH_REST_SETS_2D = 20;
+const STRENGTH_REST_VOL_2D = 10000;
 
 // =============================================================================
 // Bodyweight equivalents (72 kg, 178 cm male)
 // Used to compute training volume for reps-only exercises.
 // =============================================================================
 const BW_EQUIV_KG = {
-  "Pull-ups": 68,
-  // ~95% bodyweight
-  "Chin-ups": 68,
-  // ~95% bodyweight
-  "Hanging leg raises": 24,
-  // legs only, ~33% bodyweight
+  "Pull-ups": 68, // ~95% bodyweight
+  "Chin-ups": 68, // ~95% bodyweight
+  "Hanging leg raises": 24, // legs only, ~33% bodyweight
   "Ab-roller": 40 // torso + arms, ~55% bodyweight
 };
 
@@ -1136,6 +1046,79 @@ function totalVolume(sets) {
   return sets.reduce((a, s) => a + setVolume(s), 0);
 }
 
+// Single shared scan of PAST days (today excluded — today's logging must never
+// alter today's recommendations). Returns newest-first:
+//   [{ dayIndex: 1..days, dk, sets, cardio }]
+// Both recommendation engines derive from this one pass instead of each
+// walking 30 days of storage independently.
+function loadPastHistory(days = 30) {
+  const today = todayKey();
+  const out = [];
+  for (let i = 1; i <= days; i++) {
+    const dk = dateKeyOffset(today, -i);
+    out.push({
+      dayIndex: i,
+      dk,
+      sets: storage.get(`strength:${dk}`, []),
+      cardio: storage.get(`cardio:${dk}`, [])
+    });
+  }
+  return out;
+}
+
+// =============================================================================
+// Export / import
+// =============================================================================
+function collectBackup() {
+  const dump = {
+    app: "exercise-tracker",
+    version: 3,
+    exported_at: nowISO(),
+    data: {}
+  };
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (!k || !k.startsWith(STORAGE_PREFIX)) continue;
+    try {
+      dump.data[k.slice(STORAGE_PREFIX.length)] = JSON.parse(
+        localStorage.getItem(k)
+      );
+    } catch {
+      // Skip unparseable values rather than aborting the whole export.
+    }
+  }
+  return dump;
+}
+function downloadBackup() {
+  const dump = collectBackup();
+  const n = Object.keys(dump.data).length;
+  const blob = new Blob([JSON.stringify(dump, null, 2)], {
+    type: "application/json"
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `exercise-tracker-backup-${todayKey()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  return n;
+}
+function restoreBackup(parsed) {
+  if (
+    !parsed ||
+    parsed.app !== "exercise-tracker" ||
+    typeof parsed.data !== "object" ||
+    parsed.data === null
+  ) {
+    return { ok: false, count: 0 };
+  }
+  const entries = Object.entries(parsed.data);
+  for (const [k, v] of entries) storage.set(k, v);
+  return { ok: true, count: entries.length };
+}
+
 // =============================================================================
 // SVG icons
 // =============================================================================
@@ -1151,435 +1134,377 @@ function sp(size, sw) {
     strokeLinejoin: "round"
   };
 }
-function IconDumbbell({
-  size = 22,
-  sw = 1.75
-}) {
-  return /*#__PURE__*/React.createElement("svg", sp(size, sw), /*#__PURE__*/React.createElement("path", {
-    d: "M6.5 6.5l11 11"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M21 21l-1-1"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M3 3l1 1"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M18 22l4-4"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M2 6l4-4"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M3 10l7-7"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M14 21l7-7"
-  }));
+function IconDumbbell({ size = 22, sw = 1.75 }) {
+  return h(
+    "svg",
+    sp(size, sw),
+    h("path", { d: "M6.5 6.5l11 11" }),
+    h("path", { d: "M21 21l-1-1" }),
+    h("path", { d: "M3 3l1 1" }),
+    h("path", { d: "M18 22l4-4" }),
+    h("path", { d: "M2 6l4-4" }),
+    h("path", { d: "M3 10l7-7" }),
+    h("path", { d: "M14 21l7-7" })
+  );
 }
-function IconActivity({
-  size = 22,
-  sw = 1.75
-}) {
-  return /*#__PURE__*/React.createElement("svg", sp(size, sw), /*#__PURE__*/React.createElement("polyline", {
-    points: "22 12 18 12 15 21 9 3 6 12 2 12"
-  }));
+function IconActivity({ size = 22, sw = 1.75 }) {
+  return h(
+    "svg",
+    sp(size, sw),
+    h("polyline", { points: "22 12 18 12 15 21 9 3 6 12 2 12" })
+  );
 }
-function IconPlus({
-  size = 16,
-  sw = 2
-}) {
-  return /*#__PURE__*/React.createElement("svg", sp(size, sw), /*#__PURE__*/React.createElement("line", {
-    x1: "12",
-    y1: "5",
-    x2: "12",
-    y2: "19"
-  }), /*#__PURE__*/React.createElement("line", {
-    x1: "5",
-    y1: "12",
-    x2: "19",
-    y2: "12"
-  }));
+function IconPlus({ size = 16, sw = 2 }) {
+  return h(
+    "svg",
+    sp(size, sw),
+    h("line", { x1: "12", y1: "5", x2: "12", y2: "19" }),
+    h("line", { x1: "5", y1: "12", x2: "19", y2: "12" })
+  );
 }
-function IconTrash({
-  size = 14,
-  sw = 1.75
-}) {
-  return /*#__PURE__*/React.createElement("svg", sp(size, sw), /*#__PURE__*/React.createElement("polyline", {
-    points: "3 6 5 6 21 6"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M10 11v6"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M14 11v6"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"
-  }));
+function IconTrash({ size = 14, sw = 1.75 }) {
+  return h(
+    "svg",
+    sp(size, sw),
+    h("polyline", { points: "3 6 5 6 21 6" }),
+    h("path", { d: "M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" }),
+    h("path", { d: "M10 11v6" }),
+    h("path", { d: "M14 11v6" }),
+    h("path", { d: "M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" })
+  );
 }
-function IconChevL({
-  size = 16,
-  sw = 1.75
-}) {
-  return /*#__PURE__*/React.createElement("svg", sp(size, sw), /*#__PURE__*/React.createElement("polyline", {
-    points: "15 18 9 12 15 6"
-  }));
+function IconChevL({ size = 16, sw = 1.75 }) {
+  return h("svg", sp(size, sw), h("polyline", { points: "15 18 9 12 15 6" }));
 }
-function IconChevR({
-  size = 16,
-  sw = 1.75
-}) {
-  return /*#__PURE__*/React.createElement("svg", sp(size, sw), /*#__PURE__*/React.createElement("polyline", {
-    points: "9 18 15 12 9 6"
-  }));
+function IconChevR({ size = 16, sw = 1.75 }) {
+  return h("svg", sp(size, sw), h("polyline", { points: "9 18 15 12 9 6" }));
 }
-function IconArrowL({
-  size = 14,
-  sw = 1.75
-}) {
-  return /*#__PURE__*/React.createElement("svg", sp(size, sw), /*#__PURE__*/React.createElement("line", {
-    x1: "19",
-    y1: "12",
-    x2: "5",
-    y2: "12"
-  }), /*#__PURE__*/React.createElement("polyline", {
-    points: "12 19 5 12 12 5"
-  }));
+function IconArrowL({ size = 14, sw = 1.75 }) {
+  return h(
+    "svg",
+    sp(size, sw),
+    h("line", { x1: "19", y1: "12", x2: "5", y2: "12" }),
+    h("polyline", { points: "12 19 5 12 12 5" })
+  );
 }
-function IconCalendar({
-  size = 22,
-  sw = 1.75
-}) {
-  return /*#__PURE__*/React.createElement("svg", sp(size, sw), /*#__PURE__*/React.createElement("rect", {
-    x: "3",
-    y: "4",
-    width: "18",
-    height: "18",
-    rx: "1"
-  }), /*#__PURE__*/React.createElement("line", {
-    x1: "16",
-    y1: "2",
-    x2: "16",
-    y2: "6"
-  }), /*#__PURE__*/React.createElement("line", {
-    x1: "8",
-    y1: "2",
-    x2: "8",
-    y2: "6"
-  }), /*#__PURE__*/React.createElement("line", {
-    x1: "3",
-    y1: "10",
-    x2: "21",
-    y2: "10"
-  }));
+function IconCalendar({ size = 22, sw = 1.75 }) {
+  return h(
+    "svg",
+    sp(size, sw),
+    h("rect", { x: "3", y: "4", width: "18", height: "18", rx: "1" }),
+    h("line", { x1: "16", y1: "2", x2: "16", y2: "6" }),
+    h("line", { x1: "8", y1: "2", x2: "8", y2: "6" }),
+    h("line", { x1: "3", y1: "10", x2: "21", y2: "10" })
+  );
 }
-function IconZap({
-  size = 22,
-  sw = 1.75
-}) {
-  return /*#__PURE__*/React.createElement("svg", sp(size, sw), /*#__PURE__*/React.createElement("polygon", {
-    points: "13 2 3 14 12 14 11 22 21 10 12 10 13 2"
-  }));
+function IconTimer({ size = 14, sw = 1.75 }) {
+  return h(
+    "svg",
+    sp(size, sw),
+    h("circle", { cx: "12", cy: "12", r: "9" }),
+    h("polyline", { points: "12 6 12 12 16 14" })
+  );
 }
-function IconTimer({
-  size = 14,
-  sw = 1.75
-}) {
-  return /*#__PURE__*/React.createElement("svg", sp(size, sw), /*#__PURE__*/React.createElement("circle", {
-    cx: "12",
-    cy: "12",
-    r: "9"
-  }), /*#__PURE__*/React.createElement("polyline", {
-    points: "12 6 12 12 16 14"
-  }));
+function IconCycle({ size = 16, sw = 1.75 }) {
+  return h(
+    "svg",
+    sp(size, sw),
+    h("polyline", { points: "23 4 23 10 17 10" }),
+    h("polyline", { points: "1 20 1 14 7 14" }),
+    h("path", {
+      d: "M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"
+    })
+  );
 }
-function IconCycle({
-  size = 16,
-  sw = 1.75
-}) {
-  return /*#__PURE__*/React.createElement("svg", sp(size, sw), /*#__PURE__*/React.createElement("polyline", {
-    points: "23 4 23 10 17 10"
-  }), /*#__PURE__*/React.createElement("polyline", {
-    points: "1 20 1 14 7 14"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"
-  }));
+function IconDownload({ size = 14, sw = 1.75 }) {
+  return h(
+    "svg",
+    sp(size, sw),
+    h("path", { d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" }),
+    h("polyline", { points: "7 10 12 15 17 10" }),
+    h("line", { x1: "12", y1: "15", x2: "12", y2: "3" })
+  );
+}
+function IconUpload({ size = 14, sw = 1.75 }) {
+  return h(
+    "svg",
+    sp(size, sw),
+    h("path", { d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" }),
+    h("polyline", { points: "17 8 12 3 7 8" }),
+    h("line", { x1: "12", y1: "3", x2: "12", y2: "15" })
+  );
 }
 
 // =============================================================================
 // Building blocks
 // =============================================================================
-function Panel({
-  title,
-  children,
-  action,
-  titleBg
-}) {
-  return /*#__PURE__*/React.createElement("div", {
-    className: "panel"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "panel-head",
-    style: titleBg ? {
-      background: titleBg
-    } : undefined
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "panel-title"
-  }, title), action), /*#__PURE__*/React.createElement("div", {
-    className: "panel-body"
-  }, children));
+function Panel({ title, children, action, titleBg }) {
+  return h(
+    "div",
+    { className: "panel" },
+    h(
+      "div",
+      {
+        className: "panel-head",
+        style: titleBg ? { background: titleBg } : undefined
+      },
+      h("span", { className: "panel-title" }, title),
+      action
+    ),
+    h("div", { className: "panel-body" }, children)
+  );
 }
-function Btn({
-  onClick,
-  disabled,
-  children,
-  variant = "primary",
-  sz = "md"
-}) {
-  return /*#__PURE__*/React.createElement("button", {
-    className: `btn btn-${variant} btn-${sz}${disabled ? " btn-disabled" : ""}`,
-    onClick: onClick,
-    disabled: disabled
-  }, children);
+function Btn({ onClick, disabled, children, variant = "primary", sz = "md" }) {
+  return h(
+    "button",
+    {
+      className: `btn btn-${variant} btn-${sz}${disabled ? " btn-disabled" : ""}`,
+      onClick,
+      disabled
+    },
+    children
+  );
 }
 
 // =============================================================================
 // Date bar
 // =============================================================================
-function DateBar({
-  dateKey,
-  onChange
-}) {
+function DateBar({ dateKey, onChange }) {
   const atToday = dateKey === todayKey();
-  return /*#__PURE__*/React.createElement("div", {
-    className: "datebar"
-  }, /*#__PURE__*/React.createElement("button", {
-    className: "datebar-step",
-    onClick: () => onChange(dateKeyOffset(dateKey, -1))
-  }, /*#__PURE__*/React.createElement(IconChevL, null)), /*#__PURE__*/React.createElement("div", {
-    className: "datebar-label"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "datebar-day mono"
-  }, atToday ? "Today" : formatDateLong(dateKey)), !atToday && /*#__PURE__*/React.createElement("button", {
-    className: "datebar-jump mono",
-    onClick: () => onChange(todayKey())
-  }, "jump to today")), /*#__PURE__*/React.createElement("button", {
-    className: "datebar-step",
-    onClick: () => onChange(dateKeyOffset(dateKey, 1)),
-    disabled: dateKey >= todayKey()
-  }, /*#__PURE__*/React.createElement(IconChevR, null)));
+  return h(
+    "div",
+    { className: "datebar" },
+    h(
+      "button",
+      {
+        className: "datebar-step",
+        onClick: () => onChange(dateKeyOffset(dateKey, -1))
+      },
+      h(IconChevL, null)
+    ),
+    h(
+      "div",
+      { className: "datebar-label" },
+      h(
+        "span",
+        { className: "datebar-day mono" },
+        atToday ? "Today" : formatDateLong(dateKey)
+      ),
+      !atToday &&
+        h(
+          "button",
+          { className: "datebar-jump mono", onClick: () => onChange(todayKey()) },
+          "jump to today"
+        )
+    ),
+    h(
+      "button",
+      {
+        className: "datebar-step",
+        onClick: () => onChange(dateKeyOffset(dateKey, 1)),
+        disabled: dateKey >= todayKey()
+      },
+      h(IconChevR, null)
+    )
+  );
 }
 
 // =============================================================================
 // Stopwatch
 // Tracks total session / current-or-last set / current rest.
 // Phases: idle → set → rest → set → rest …
+// Ticks at 250 ms — the display only resolves whole seconds, so 100 ms
+// re-renders were wasted work (and battery) on a phone.
 // =============================================================================
-function Stopwatch({
-  sw,
-  onStart,
-  onRest,
-  onEnd
-}) {
+function Stopwatch({ sw, onStart, onRest, onEnd }) {
   const [, setTick] = useState(0);
   const itvRef = useRef(null);
   const phase = sw.phase; // 'idle' | 'set' | 'rest'
 
-  // Tick while running so the live timers update.
   useEffect(() => {
     if (phase !== "idle") {
-      itvRef.current = setInterval(() => setTick(n => n + 1), 100);
+      itvRef.current = setInterval(() => setTick(n => n + 1), 250);
     } else {
       clearInterval(itvRef.current);
     }
     return () => clearInterval(itvRef.current);
   }, [phase]);
+
   const now = Date.now();
-  const totalMs = sw.totalStartAt ? now - sw.totalStartAt : 0;
-  const setMs = phase === "set" && sw.setStartAt ? now - sw.setStartAt : sw.setDoneMs;
-  const restMs = phase === "rest" && sw.restStartAt ? now - sw.restStartAt : 0;
   const inSet = phase === "set";
   const inRest = phase === "rest";
-  return /*#__PURE__*/React.createElement("div", {
-    className: "stopwatch"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "sw-timers"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "sw-cell"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "sw-lbl mono"
-  }, "TOTAL"), /*#__PURE__*/React.createElement("span", {
-    className: "sw-val mono"
-  }, formatMs(totalMs))), /*#__PURE__*/React.createElement("div", {
-    className: "sw-div"
-  }), /*#__PURE__*/React.createElement("div", {
-    className: "sw-cell"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "sw-lbl mono"
-  }, inSet ? "SET" : "LAST SET"), /*#__PURE__*/React.createElement("span", {
-    className: `sw-val mono${inSet ? " sw-active" : ""}`
-  }, formatMs(setMs))), /*#__PURE__*/React.createElement("div", {
-    className: "sw-div"
-  }), /*#__PURE__*/React.createElement("div", {
-    className: "sw-cell"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "sw-lbl mono"
-  }, "REST"), /*#__PURE__*/React.createElement("span", {
-    className: `sw-val mono${inRest ? " sw-resting" : ""}`
-  }, formatMs(restMs)))), /*#__PURE__*/React.createElement("div", {
-    className: "sw-btns"
-  }, !inSet ? /*#__PURE__*/React.createElement("button", {
-    className: "sw-btn sw-start",
-    onClick: onStart
-  }, /*#__PURE__*/React.createElement(IconTimer, {
-    size: 13,
-    sw: 2
-  }), "Start") : /*#__PURE__*/React.createElement("button", {
-    className: "sw-btn sw-stop",
-    onClick: onRest
-  }, /*#__PURE__*/React.createElement(IconTimer, {
-    size: 13,
-    sw: 2
-  }), "Rest"), /*#__PURE__*/React.createElement("button", {
-    className: "sw-btn sw-reset sw-end",
-    onClick: onEnd,
-    disabled: phase === "idle" && !sw.totalStartAt
-  }, "End session")));
+  // Single display: whichever timer is live. Idle shows SET at 00:00.
+  const activeMs = inSet
+    ? sw.setStartAt
+      ? now - sw.setStartAt
+      : 0
+    : inRest
+      ? sw.restStartAt
+        ? now - sw.restStartAt
+        : 0
+      : 0;
+
+  return h(
+    "div",
+    { className: "stopwatch" },
+    h(
+      "div",
+      { className: "sw-timers" },
+      h(
+        "div",
+        { className: "sw-cell sw-single" },
+        h("span", { className: "sw-lbl mono" }, inRest ? "REST" : "SET"),
+        h(
+          "span",
+          {
+            className: `sw-val mono${inSet ? " sw-active" : ""}${
+              inRest ? " sw-resting" : ""
+            }`
+          },
+          formatMs(activeMs)
+        )
+      )
+    ),
+    h(
+      "div",
+      { className: "sw-btns" },
+      !inSet
+        ? h(
+            "button",
+            { className: "sw-btn sw-start", onClick: onStart },
+            h(IconTimer, { size: 13, sw: 2 }),
+            "Start"
+          )
+        : h(
+            "button",
+            { className: "sw-btn sw-stop", onClick: onRest },
+            h(IconTimer, { size: 13, sw: 2 }),
+            "Rest"
+          ),
+      h(
+        "button",
+        {
+          className: "sw-btn sw-reset sw-end",
+          onClick: onEnd,
+          disabled: phase === "idle" && !sw.totalStartAt
+        },
+        "End session"
+      )
+    )
+  );
 }
 
 // =============================================================================
 // Suggested sessions (Today tab)
-// Two collapsible sessions:
-//   - Full body: 4 exercises from {push, pull, legs}.
-//     Least-used of those three over 7 days contributes 2; the other two each contribute 1.
-//   - Targeted: 4 exercises. Variant chosen by least-used primary:
-//     push least → 3 push + 1 isolation
-//     pull least → 3 pull + 1 isolation
-//     legs least → 3 legs + 1 core
-//   Within each category, oldest last_used_at first.
+// Derives everything from the shared `history` scan (past days only):
+//   - usage counts (7 days) for least-used category weighting
+//   - 2-day sets + volume for the REST gate
+//   - per-exercise last-used (30 days) for rotation ordering
 // =============================================================================
 const SUGGESTED_SETS = 3;
 
 // Pick up to n exercises from a category, excluding Other and hidden,
-// sorted by oldest last-used first. `lastUsed` maps exercise_name → ISO date string.
+// sorted by oldest last-used first. `lastUsed` maps exercise_name → ISO.
 function pickFromCat(catId, n, lastUsed) {
-  const pool = EXERCISES.filter(e => e.cat === catId && !e.hidden && !e.isOther);
-  return [...pool].sort((a, b) => {
-    const aIso = lastUsed[a.name];
-    const bIso = lastUsed[b.name];
-    if (!aIso && !bIso) return 0;
-    if (!aIso) return -1;
-    if (!bIso) return 1;
-    return new Date(aIso) - new Date(bIso);
-  }).slice(0, n);
+  const pool = EXERCISES.filter(
+    e => e.cat === catId && !e.hidden && !e.isOther
+  );
+  return [...pool]
+    .sort((a, b) => {
+      const aIso = lastUsed[a.name];
+      const bIso = lastUsed[b.name];
+      if (!aIso && !bIso) return 0;
+      if (!aIso) return -1;
+      if (!bIso) return 1;
+      return new Date(aIso) - new Date(bIso);
+    })
+    .slice(0, n);
 }
-function SuggestedSessions({
-  exerciseDict,
-  refreshKey,
-  onSelectExercise,
-  onStartSession
-}) {
-  const [usage, setUsage] = useState(null);
-  const [recent, setRecent] = useState(null); // { sets, volume } over yesterday + day-before
-  const [pastLastUsed, setPastLastUsed] = useState({}); // exercise_name → most recent ISO from past days
+
+function SuggestedSessions({ history, onSelectExercise, onStartSession }) {
   const [openFull, setOpenFull] = useState(false);
   const [openTargeted, setOpenTargeted] = useState(false);
 
-  // Walk past days only (i >= 1) — TODAY is intentionally excluded so logging
-  // an exercise today doesn't affect the recommendation that's already shown.
-  //  - usage counts: past 7 days, used for "least-used" category weighting
-  //  - recent (sets+volume): yesterday + day-before, used for REST gate
-  //  - pastLastUsed: past 30 days, used by pickFromCat for ordering
-  useEffect(() => {
-    async function load() {
-      const counts = {
-        push: 0,
-        pull: 0,
-        legs: 0,
-        coreiso: 0
-      };
-      const today = todayKey();
-      let precSets = 0;
-      let precVol = 0;
-      const lastUsed = {};
-      for (let i = 1; i <= 30; i++) {
-        const dk = dateKeyOffset(today, -i);
-        const sets = await storage.get(`strength:${dk}`, []);
-        for (const s of sets) {
-          // REST gate window
-          if (i === 1 || i === 2) {
-            if (s.input_type !== IN.CIRCUIT) precSets++;
-            precVol += setVolume(s);
-          }
-          // Category usage window
-          if (i <= 7) {
-            const ex = getExercise(s.exercise_name);
-            if (ex.cat === "core" || ex.cat === "isolation") counts.coreiso++;else if (counts[ex.cat] !== undefined) counts[ex.cat]++;
-          }
-          // First time we see this exercise wins (outer loop walks from i=1
-          // forward in time → earliest i = most recent past use)
-          if (!lastUsed[s.exercise_name]) {
-            lastUsed[s.exercise_name] = s.performed_at;
-          }
+  const { usage, recent, pastLastUsed } = useMemo(() => {
+    const counts = { push: 0, pull: 0, legs: 0, coreiso: 0 };
+    let precSets = 0;
+    let precVol = 0;
+    const lastUsed = {};
+    // history is newest-first, so the first time we see an exercise is its
+    // most recent past use.
+    for (const day of history) {
+      for (const s of day.sets) {
+        if (day.dayIndex <= 2) {
+          if (s.input_type !== IN.CIRCUIT) precSets++;
+          precVol += setVolume(s);
+        }
+        if (day.dayIndex <= 7) counts[entryCat(s)]++;
+        if (!lastUsed[s.exercise_name]) {
+          lastUsed[s.exercise_name] = s.performed_at;
         }
       }
-      setUsage(counts);
-      setRecent({
-        sets: precSets,
-        volume: precVol
-      });
-      setPastLastUsed(lastUsed);
     }
-    load();
-  }, [refreshKey]);
+    return {
+      usage: counts,
+      recent: { sets: precSets, volume: precVol },
+      pastLastUsed: lastUsed
+    };
+  }, [history]);
 
   // Full body (4 exercises):
   //   • 2× the LESS-trained of push/pull over the last 7 days
   //   • 1× the other of push/pull (so both patterns are always hit)
   //   • 1× the LESS-trained of legs/core-iso
-  // The 2× category is listed first so the session's focus is obvious.
   function buildFullBody() {
-    if (!usage) return [];
     const upperLeast = usage.push <= usage.pull ? "push" : "pull";
     const upperOther = upperLeast === "push" ? "pull" : "push";
     const lowerLeast = usage.legs <= usage.coreiso ? "legs" : "coreiso";
-    return [...pickFromCat(upperLeast, 2, pastLastUsed),
-    // 2× less-trained upper
-    ...pickFromCat(upperOther, 1, pastLastUsed),
-    // 1× the other upper
-    ...pickFromCat(lowerLeast, 1, pastLastUsed) // 1× less-trained lower
-    ].map(e => ({
-      ...e,
-      sets: SUGGESTED_SETS
-    }));
+    return [
+      ...pickFromCat(upperLeast, 2, pastLastUsed),
+      ...pickFromCat(upperOther, 1, pastLastUsed),
+      ...pickFromCat(lowerLeast, 1, pastLastUsed)
+    ].map(e => ({ ...e, sets: SUGGESTED_SETS }));
   }
 
-  // Targeted: 3 from one of push/pull (the least-used) + 1 from legs/coreiso.
+  // Targeted: 3 from the least-used of push/pull + 1 from legs/coreiso.
   function buildTargeted() {
-    if (!usage) return [];
     const primary = usage.push <= usage.pull ? "push" : "pull";
     const lowerLeast = usage.legs <= usage.coreiso ? "legs" : "coreiso";
-    return [...pickFromCat(primary, 3, pastLastUsed), ...pickFromCat(lowerLeast, 1, pastLastUsed)].map(e => ({
-      ...e,
-      sets: SUGGESTED_SETS
-    }));
+    return [
+      ...pickFromCat(primary, 3, pastLastUsed),
+      ...pickFromCat(lowerLeast, 1, pastLastUsed)
+    ].map(e => ({ ...e, sets: SUGGESTED_SETS }));
   }
 
   // High recent load → suggest rest, hide both session cards.
-  // Rule: REST if 2-day sets > 20 OR 2-day volume > 10000 kg.
-  if (recent !== null && (recent.sets > 20 || recent.volume > 10000)) {
-    return /*#__PURE__*/React.createElement("div", {
-      className: "sessions"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "cardio-rec cardio-rec-rest"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "cardio-rec-head"
-    }, /*#__PURE__*/React.createElement("span", {
-      className: "cardio-rec-title"
-    }, "Recommended session"), /*#__PURE__*/React.createElement("span", {
-      className: "cardio-rec-pill mono"
-    }, "REST"))));
+  if (
+    recent.sets > STRENGTH_REST_SETS_2D ||
+    recent.volume > STRENGTH_REST_VOL_2D
+  ) {
+    return h(
+      "div",
+      { className: "sessions" },
+      h(
+        "div",
+        { className: "cardio-rec cardio-rec-rest" },
+        h(
+          "div",
+          { className: "cardio-rec-head" },
+          h("span", { className: "cardio-rec-title" }, "Recommended session"),
+          h("span", { className: "cardio-rec-pill mono" }, "REST")
+        )
+      )
+    );
   }
+
   const fullBody = buildFullBody();
   const targeted = buildTargeted();
 
-  // Ordered rotation of a category's exercises, oldest-logged first
-  // (same ordering pickFromCat uses). Excludes hidden + Other.
+  // Ordered rotation of a category's exercises, oldest-logged first.
   function catRotation(catId) {
-    const pool = EXERCISES.filter(e => e.cat === catId && !e.hidden && !e.isOther);
+    const pool = EXERCISES.filter(
+      e => e.cat === catId && !e.hidden && !e.isOther
+    );
     return [...pool].sort((a, b) => {
       const aIso = pastLastUsed[a.name];
       const bIso = pastLastUsed[b.name];
@@ -1589,32 +1514,35 @@ function SuggestedSessions({
       return new Date(aIso) - new Date(bIso);
     });
   }
-  return /*#__PURE__*/React.createElement("div", {
-    className: "sessions"
-  }, /*#__PURE__*/React.createElement(SessionCard, {
-    label: "Full body session",
-    open: openFull,
-    onToggle: () => setOpenFull(!openFull),
-    baseExercises: fullBody,
-    onSelectExercise: onSelectExercise,
-    onStartSession: exs => onStartSession === null || onStartSession === void 0 ? void 0 : onStartSession({
-      title: "Full body session",
-      exercises: exs
+
+  return h(
+    "div",
+    { className: "sessions" },
+    h(SessionCard, {
+      label: "Full body session",
+      open: openFull,
+      onToggle: () => setOpenFull(!openFull),
+      baseExercises: fullBody,
+      onSelectExercise,
+      onStartSession: exs =>
+        onStartSession &&
+        onStartSession({ title: "Full body session", exercises: exs }),
+      catRotation
     }),
-    catRotation: catRotation
-  }), /*#__PURE__*/React.createElement(SessionCard, {
-    label: "Targeted session",
-    open: openTargeted,
-    onToggle: () => setOpenTargeted(!openTargeted),
-    baseExercises: targeted,
-    onSelectExercise: onSelectExercise,
-    onStartSession: exs => onStartSession === null || onStartSession === void 0 ? void 0 : onStartSession({
-      title: "Targeted session",
-      exercises: exs
-    }),
-    catRotation: catRotation
-  }));
+    h(SessionCard, {
+      label: "Targeted session",
+      open: openTargeted,
+      onToggle: () => setOpenTargeted(!openTargeted),
+      baseExercises: targeted,
+      onSelectExercise,
+      onStartSession: exs =>
+        onStartSession &&
+        onStartSession({ title: "Targeted session", exercises: exs }),
+      catRotation
+    })
+  );
 }
+
 function SessionCard({
   label,
   open,
@@ -1626,281 +1554,282 @@ function SessionCard({
 }) {
   // overrides: slotIndex → exercise object that replaces the base pick.
   const [overrides, setOverrides] = useState({});
+  const baseSig = baseExercises.map(e => e.name).join("|");
 
-  // Reset overrides whenever the card collapses or the base recommendation
-  // changes (e.g. after logging shifts the suggestions).
   useEffect(() => {
     if (!open) setOverrides({});
   }, [open]);
   useEffect(() => {
     setOverrides({});
-  }, [baseExercises.map(e => e.name).join("|")]);
+  }, [baseSig]);
 
-  // Effective exercise list = base with any slot overrides applied.
   const exercises = baseExercises.map((ex, i) => overrides[i] || ex);
+
   function cycleSlot(i) {
     const current = exercises[i];
     const rotation = catRotation(current.cat);
     if (rotation.length <= 1) return;
-    // Names used by OTHER slots — skip these to avoid duplicates.
-    const usedElsewhere = new Set(exercises.filter((_, idx) => idx !== i).map(e => e.name));
+    const usedElsewhere = new Set(
+      exercises.filter((_, idx) => idx !== i).map(e => e.name)
+    );
     const curIdx = rotation.findIndex(e => e.name === current.name);
-    // Walk forward from current, wrapping, until we find one not used elsewhere.
     for (let step = 1; step <= rotation.length; step++) {
       const cand = rotation[(curIdx + step) % rotation.length];
       if (!usedElsewhere.has(cand.name)) {
         setOverrides(prev => ({
           ...prev,
-          [i]: {
-            ...cand,
-            sets: SUGGESTED_SETS
-          }
+          [i]: { ...cand, sets: SUGGESTED_SETS }
         }));
         return;
       }
     }
   }
-  return /*#__PURE__*/React.createElement("div", {
-    className: "session-card"
-  }, /*#__PURE__*/React.createElement("button", {
-    className: `session-btn${open ? " session-open" : ""}`,
-    onClick: onToggle
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "session-label"
-  }, label), /*#__PURE__*/React.createElement("span", {
-    className: "session-chev mono"
-  }, open ? "−" : "+")), open && /*#__PURE__*/React.createElement("div", {
-    className: "session-body"
-  }, exercises.length === 0 ? /*#__PURE__*/React.createElement("div", {
-    className: "session-empty mono"
-  }, "Loading\u2026") : /*#__PURE__*/React.createElement(React.Fragment, null, exercises.map((ex, i) => {
-    const color = CAT_COLORS[ex.cat];
-    return /*#__PURE__*/React.createElement("div", {
-      key: i,
-      className: "session-row",
-      style: {
-        borderLeftColor: color
-      }
-    }, /*#__PURE__*/React.createElement("button", {
-      className: "session-cat mono session-pick",
-      style: {
-        color,
-        borderColor: color
+
+  return h(
+    "div",
+    { className: "session-card" },
+    h(
+      "button",
+      {
+        className: `session-btn${open ? " session-open" : ""}`,
+        onClick: onToggle
       },
-      onClick: () => onSelectExercise(ex.name)
-    }, CAT_LABELS[ex.cat]), /*#__PURE__*/React.createElement("button", {
-      className: "session-name session-pick",
-      onClick: () => onSelectExercise(ex.name)
-    }, ex.name), /*#__PURE__*/React.createElement("button", {
-      className: "session-cycle",
-      onClick: () => cycleSlot(i),
-      "aria-label": "Swap exercise",
-      title: "Swap exercise"
-    }, /*#__PURE__*/React.createElement(IconCycle, {
-      size: 15,
-      sw: 1.75
-    })));
-  }), /*#__PURE__*/React.createElement("button", {
-    className: "start-session-btn",
-    onClick: () => onStartSession(exercises)
-  }, "Start session"))));
+      h("span", { className: "session-label" }, label),
+      h("span", { className: "session-chev mono" }, open ? "−" : "+")
+    ),
+    open &&
+      h(
+        "div",
+        { className: "session-body" },
+        exercises.length === 0
+          ? h("div", { className: "session-empty mono" }, "Loading…")
+          : h(
+              React.Fragment,
+              null,
+              exercises.map((ex, i) => {
+                const color = CAT_COLORS[ex.cat];
+                return h(
+                  "div",
+                  {
+                    key: i,
+                    className: "session-row",
+                    style: { borderLeftColor: color }
+                  },
+                  h(
+                    "button",
+                    {
+                      className: "session-cat mono session-pick",
+                      style: { color, borderColor: color },
+                      onClick: () => onSelectExercise(ex.name)
+                    },
+                    CAT_LABELS[ex.cat]
+                  ),
+                  h(
+                    "button",
+                    {
+                      className: "session-name session-pick",
+                      onClick: () => onSelectExercise(ex.name)
+                    },
+                    ex.name
+                  ),
+                  h(
+                    "button",
+                    {
+                      className: "session-cycle",
+                      onClick: () => cycleSlot(i),
+                      "aria-label": "Swap exercise",
+                      title: "Swap exercise"
+                    },
+                    h(IconCycle, { size: 15, sw: 1.75 })
+                  )
+                );
+              }),
+              h(
+                "button",
+                {
+                  className: "start-session-btn",
+                  onClick: () => onStartSession(exercises)
+                },
+                "Start session"
+              )
+            )
+      )
+  );
 }
 
 // =============================================================================
 // Recommended cardio (Today tab)
-// Type = oldest-used of {jog, bike, stairs} based on last 30 days.
-// REST precedence (any one triggers REST with no body text):
-//   1. 3-day kcal > CARDIO_REST_3D       — heavy load, recovery
-//   2. Today is an OFF day in CARDIO_SCHEDULE
-//   3. Calculated session < CARDIO_MIN_SESSION kcal — already done plenty
-// Otherwise:
-//   session_kcal = BASELINE + (TARGET - last_7d_kcal) / SESSIONS_PER_WEEK
-//                = 300 + deficit/5
-//   capped at CARDIO_MAX_SESSION (500). minutes = ceil(session_kcal / kcal_per_min)
+// Same logic as v2, but derived from the shared history scan.
 // =============================================================================
-function RecommendedCardio({
-  refreshKey,
-  onStart
-}) {
-  var _CARDIO_TYPES$find;
-  const [rec, setRec] = useState(null);
-  useEffect(() => {
-    async function compute() {
-      const today = todayKey();
-      // PAST days only — today's logged cardio is intentionally excluded from
-      // the recommendation logic. Today's activity should never alter today's
-      // recommendation; only what came before does.
-      let kcal3 = 0,
-        kcal7 = 0;
-      const lastUsed = {
-        jog: null,
-        bike: null,
-        stairs: null
-      };
-      for (let i = 1; i <= 30; i++) {
-        const dk = dateKeyOffset(today, -i);
-        const sessions = await storage.get(`cardio:${dk}`, []);
-        for (const s of sessions) {
-          if (i <= 3) kcal3 += s.kcal_burned || 0;
-          if (i <= 7) kcal7 += s.kcal_burned || 0;
-          if (lastUsed[s.type] !== undefined && lastUsed[s.type] === null) {
-            lastUsed[s.type] = s.started_at;
-          }
+function RecommendedCardio({ history, onStart }) {
+  const rec = useMemo(() => {
+    let kcal3 = 0,
+      kcal7 = 0;
+    const lastUsed = { jog: null, bike: null, stairs: null };
+    for (const day of history) {
+      for (const s of day.cardio) {
+        if (day.dayIndex <= 3) kcal3 += s.kcal_burned || 0;
+        if (day.dayIndex <= 7) kcal7 += s.kcal_burned || 0;
+        if (lastUsed[s.type] !== undefined && lastUsed[s.type] === null) {
+          lastUsed[s.type] = s.started_at;
         }
       }
-      // Pick oldest type (null/never = highest priority).
-      const sorted = [...CARDIO_REC_TYPES].sort((a, b) => {
-        if (!lastUsed[a] && !lastUsed[b]) return 0;
-        if (!lastUsed[a]) return -1;
-        if (!lastUsed[b]) return 1;
-        return new Date(lastUsed[a]) - new Date(lastUsed[b]);
-      });
-      const type = sorted[0];
-
-      // Today's day-of-week against the schedule.
-      // Compute via the Australia/Melbourne date key so the schedule lines up
-      // with the user's local week.
-      const dow = new Date(today + "T12:00:00").getDay();
-      const isOnDay = CARDIO_SCHEDULE[dow] === true;
-      let rest = false,
-        minutes = 0;
-      if (kcal3 > CARDIO_REST_3D) {
-        rest = true; // heavy 3-day load
-      } else if (!isOnDay) {
-        rest = true; // scheduled off day
-      } else {
-        const deficit = CARDIO_TARGET_7D - kcal7; // can be negative
-        const sessionKcal = CARDIO_BASELINE_KCAL + deficit / CARDIO_SESSIONS_PER_WEEK;
-        const capped = Math.min(sessionKcal, CARDIO_MAX_SESSION);
-        if (capped < CARDIO_MIN_SESSION) {
-          rest = true; // already done plenty
-        } else {
-          minutes = Math.ceil(capped / KCAL_PER_MIN[type]);
-        }
-      }
-      setRec({
-        type,
-        rest,
-        minutes
-      });
     }
-    compute();
-  }, [refreshKey]);
-  if (!rec) return null;
-  const label = ((_CARDIO_TYPES$find = CARDIO_TYPES.find(t => t.id === rec.type)) === null || _CARDIO_TYPES$find === void 0 ? void 0 : _CARDIO_TYPES$find.label) || rec.type;
+    // Pick oldest type (null/never = highest priority).
+    const sorted = [...CARDIO_REC_TYPES].sort((a, b) => {
+      if (!lastUsed[a] && !lastUsed[b]) return 0;
+      if (!lastUsed[a]) return -1;
+      if (!lastUsed[b]) return 1;
+      return new Date(lastUsed[a]) - new Date(lastUsed[b]);
+    });
+    const type = sorted[0];
+
+    const dow = new Date(todayKey() + "T12:00:00").getDay();
+    const isOnDay = CARDIO_SCHEDULE[dow] === true;
+
+    let rest = false,
+      minutes = 0;
+    if (kcal3 > CARDIO_REST_3D) {
+      rest = true; // heavy 3-day load
+    } else if (!isOnDay) {
+      rest = true; // scheduled off day
+    } else {
+      const deficit = CARDIO_TARGET_7D - kcal7; // can be negative
+      const sessionKcal =
+        CARDIO_BASELINE_KCAL + deficit / CARDIO_SESSIONS_PER_WEEK;
+      const capped = Math.min(sessionKcal, CARDIO_MAX_SESSION);
+      if (capped < CARDIO_MIN_SESSION) {
+        rest = true; // already done plenty
+      } else {
+        minutes = Math.ceil(capped / KCAL_PER_MIN[type]);
+      }
+    }
+    return { type, rest, minutes };
+  }, [history]);
+
+  const found = CARDIO_TYPES.find(t => t.id === rec.type);
+  const label = found ? found.label : rec.type;
+
   if (rec.rest) {
-    return /*#__PURE__*/React.createElement("div", {
-      className: "cardio-rec cardio-rec-rest"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "cardio-rec-head"
-    }, /*#__PURE__*/React.createElement("span", {
-      className: "cardio-rec-title"
-    }, "Recommended cardio"), /*#__PURE__*/React.createElement("span", {
-      className: "cardio-rec-pill mono"
-    }, "REST")));
+    return h(
+      "div",
+      { className: "cardio-rec cardio-rec-rest" },
+      h(
+        "div",
+        { className: "cardio-rec-head" },
+        h("span", { className: "cardio-rec-title" }, "Recommended cardio"),
+        h("span", { className: "cardio-rec-pill mono" }, "REST")
+      )
+    );
   }
-  return /*#__PURE__*/React.createElement("button", {
-    className: "cardio-rec cardio-rec-go",
-    onClick: () => onStart(rec.type, rec.minutes)
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "cardio-rec-head"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "cardio-rec-title"
-  }, "Recommended cardio"), /*#__PURE__*/React.createElement("span", {
-    className: "cardio-rec-pill mono"
-  }, rec.minutes, " min")), /*#__PURE__*/React.createElement("div", {
-    className: "cardio-rec-body"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "cardio-rec-type"
-  }, label)));
+  return h(
+    "button",
+    {
+      className: "cardio-rec cardio-rec-go",
+      onClick: () => onStart(rec.type, rec.minutes)
+    },
+    h(
+      "div",
+      { className: "cardio-rec-head" },
+      h("span", { className: "cardio-rec-title" }, "Recommended cardio"),
+      h("span", { className: "cardio-rec-pill mono" }, rec.minutes, " min")
+    ),
+    h(
+      "div",
+      { className: "cardio-rec-body" },
+      h("span", { className: "cardio-rec-type" }, label)
+    )
+  );
 }
 
 // =============================================================================
-// Strength group — read view on Today tab
+// Strength group — read view on Today tab.
+// Group deletion happens in ONE pass via onDeleteGroup (the v2 per-set loop
+// raced against stale state and only ever removed one set).
 // =============================================================================
-function StrengthGroup({
-  name,
-  sets,
-  onDeleteSet
-}) {
-  var _sorted$;
-  const ex = getExercise(name);
-  const color = CAT_COLORS[ex.cat];
+function StrengthGroup({ name, sets, onDeleteGroup }) {
   const sorted = [...sets].sort((a, b) => a.set_index - b.set_index);
+  const color = CAT_COLORS[entryCat(sorted[0])];
 
   // Circuit: keep its own summary line.
-  if (((_sorted$ = sorted[0]) === null || _sorted$ === void 0 ? void 0 : _sorted$.input_type) === IN.CIRCUIT) {
+  if (sorted[0] && sorted[0].input_type === IN.CIRCUIT) {
     const e = sorted[0];
-    return /*#__PURE__*/React.createElement("div", {
-      className: "sg sg-compact",
-      style: {
-        borderLeftColor: color
-      }
-    }, /*#__PURE__*/React.createElement("span", {
-      className: "sg-name"
-    }, name), /*#__PURE__*/React.createElement("span", {
-      className: "sg-summary mono"
-    }, e.num_sets, " sets \xB7 ", e.duration_min, " min/set"), /*#__PURE__*/React.createElement("button", {
-      className: "sg-del",
-      onClick: () => onDeleteSet(e.id),
-      title: "Delete"
-    }, /*#__PURE__*/React.createElement(IconTrash, {
-      size: 13
-    })));
+    return h(
+      "div",
+      { className: "sg sg-compact", style: { borderLeftColor: color } },
+      h("span", { className: "sg-name" }, name),
+      h(
+        "span",
+        { className: "sg-summary mono" },
+        e.num_sets,
+        " sets · ",
+        e.duration_min,
+        " min/set"
+      ),
+      h(
+        "button",
+        {
+          className: "sg-del",
+          onClick: () => onDeleteGroup(name),
+          title: "Delete"
+        },
+        h(IconTrash, { size: 13 })
+      )
+    );
   }
-  const vol = totalVolume(sorted);
 
-  // Delete the whole group at once via the bin icon.
-  function deleteGroup() {
-    for (const s of sorted) onDeleteSet(s.id);
-  }
-  return /*#__PURE__*/React.createElement("div", {
-    className: "sg sg-compact",
-    style: {
-      borderLeftColor: color
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "sg-name"
-  }, name), /*#__PURE__*/React.createElement("span", {
-    className: "sg-summary mono"
-  }, sorted.length, " ", sorted.length === 1 ? "set" : "sets", vol > 0 ? ` · ${vol} kg vol` : ""), /*#__PURE__*/React.createElement("button", {
-    className: "sg-del",
-    onClick: deleteGroup,
-    title: "Delete"
-  }, /*#__PURE__*/React.createElement(IconTrash, {
-    size: 13
-  })));
+  const vol = totalVolume(sorted);
+  return h(
+    "div",
+    { className: "sg sg-compact", style: { borderLeftColor: color } },
+    h("span", { className: "sg-name" }, name),
+    h(
+      "span",
+      { className: "sg-summary mono" },
+      sorted.length,
+      " ",
+      sorted.length === 1 ? "set" : "sets",
+      vol > 0 ? ` · ${vol} kg vol` : ""
+    ),
+    h(
+      "button",
+      {
+        className: "sg-del",
+        onClick: () => onDeleteGroup(name),
+        title: "Delete"
+      },
+      h(IconTrash, { size: 13 })
+    )
+  );
 }
 
 // =============================================================================
 // Cardio row — read view on Today tab
 // =============================================================================
-function CardioRow({
-  session,
-  onDelete
-}) {
-  var _CARDIO_TYPES$find2;
-  const label = ((_CARDIO_TYPES$find2 = CARDIO_TYPES.find(t => t.id === session.type)) === null || _CARDIO_TYPES$find2 === void 0 ? void 0 : _CARDIO_TYPES$find2.label) || session.type;
-  return /*#__PURE__*/React.createElement("div", {
-    className: "cr-row"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "cr-time mono"
-  }, formatTime(session.started_at)), /*#__PURE__*/React.createElement("span", {
-    className: "cr-type"
-  }, label), session.distance_km ? /*#__PURE__*/React.createElement("span", {
-    className: "cr-dist mono"
-  }, session.distance_km.toFixed(1), " km") : /*#__PURE__*/React.createElement("span", {
-    className: "cr-dist"
-  }), /*#__PURE__*/React.createElement("span", {
-    className: "cr-dur mono"
-  }, session.duration_min, " min"), /*#__PURE__*/React.createElement("span", {
-    className: "cr-kcal mono"
-  }, session.kcal_burned, " kcal"), /*#__PURE__*/React.createElement("button", {
-    className: "cr-del",
-    onClick: () => onDelete(session.id)
-  }, /*#__PURE__*/React.createElement(IconTrash, {
-    size: 13
-  })));
+function CardioRow({ session, onDelete }) {
+  const found = CARDIO_TYPES.find(t => t.id === session.type);
+  const label = found ? found.label : session.type;
+  return h(
+    "div",
+    { className: "cr-row" },
+    h("span", { className: "cr-time mono" }, formatTime(session.started_at)),
+    h("span", { className: "cr-type" }, label),
+    session.distance_km
+      ? h(
+          "span",
+          { className: "cr-dist mono" },
+          session.distance_km.toFixed(1),
+          " km"
+        )
+      : h("span", { className: "cr-dist" }),
+    h("span", { className: "cr-dur mono" }, session.duration_min, " min"),
+    h("span", { className: "cr-kcal mono" }, session.kcal_burned, " kcal"),
+    h(
+      "button",
+      { className: "cr-del", onClick: () => onDelete(session.id) },
+      h(IconTrash, { size: 13 })
+    )
+  );
 }
 
 // =============================================================================
@@ -1911,83 +1840,113 @@ function TodayView({
   setDateKey,
   refreshKey,
   onChange,
-  exerciseDict,
   onSelectExercise,
   onStartSession,
   onStartCardio
 }) {
   const [sets, setSets] = useState([]);
   const [sessions, setSessions] = useState([]);
+
   useEffect(() => {
-    storage.get(`strength:${dateKey}`, []).then(setSets);
-    storage.get(`cardio:${dateKey}`, []).then(setSessions);
+    setSets(storage.get(`strength:${dateKey}`, []));
+    setSessions(storage.get(`cardio:${dateKey}`, []));
   }, [dateKey, refreshKey]);
-  async function deleteSet(id) {
-    const next = sets.filter(s => s.id !== id);
-    await storage.set(`strength:${dateKey}`, next);
+
+  // ONE scan of the past 30 days, shared by both recommendation engines.
+  const history = useMemo(() => loadPastHistory(30), [refreshKey]);
+
+  // FIX (v3): delete the whole group in a single filter + single write.
+  function deleteGroup(name) {
+    const next = sets.filter(s => s.exercise_name !== name);
+    storage.set(`strength:${dateKey}`, next);
     setSets(next);
-    onChange === null || onChange === void 0 || onChange();
+    if (onChange) onChange();
   }
-  async function deleteSession(id) {
+  function deleteSession(id) {
     const next = sessions.filter(s => s.id !== id);
-    await storage.set(`cardio:${dateKey}`, next);
+    storage.set(`cardio:${dateKey}`, next);
     setSessions(next);
-    onChange === null || onChange === void 0 || onChange();
+    if (onChange) onChange();
   }
+
   const groups = groupByExercise(sets);
   const totalSets = sets.filter(s => s.input_type !== IN.CIRCUIT).length;
   const vol = totalVolume(sets);
   const burn = sessions.reduce((a, s) => a + (s.kcal_burned || 0), 0);
   const empty = sets.length === 0 && sessions.length === 0;
-  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(DateBar, {
-    dateKey: dateKey,
-    onChange: setDateKey
-  }), /*#__PURE__*/React.createElement(SuggestedSessions, {
-    exerciseDict: exerciseDict,
-    refreshKey: refreshKey,
-    onSelectExercise: onSelectExercise,
-    onStartSession: onStartSession
-  }), /*#__PURE__*/React.createElement(RecommendedCardio, {
-    refreshKey: refreshKey,
-    onStart: onStartCardio
-  }), !empty && /*#__PURE__*/React.createElement("div", {
-    className: "totals-bar"
-  }, totalSets > 0 && /*#__PURE__*/React.createElement("div", {
-    className: "totals-cell"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "totals-num mono"
-  }, totalSets), /*#__PURE__*/React.createElement("span", {
-    className: "totals-lbl"
-  }, totalSets === 1 ? "set" : "sets")), vol > 0 && /*#__PURE__*/React.createElement("div", {
-    className: "totals-cell"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "totals-num mono"
-  }, vol), /*#__PURE__*/React.createElement("span", {
-    className: "totals-lbl"
-  }, "kg vol")), burn > 0 && /*#__PURE__*/React.createElement("div", {
-    className: "totals-cell"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "totals-num mono"
-  }, burn), /*#__PURE__*/React.createElement("span", {
-    className: "totals-lbl"
-  }, "kcal"))), Object.keys(groups).length > 0 && /*#__PURE__*/React.createElement(Panel, {
-    title: "Strength"
-  }, Object.entries(groups).map(([name, grp]) => /*#__PURE__*/React.createElement(StrengthGroup, {
-    key: name,
-    name: name,
-    sets: grp,
-    onDeleteSet: deleteSet
-  }))), sessions.length > 0 && /*#__PURE__*/React.createElement(Panel, {
-    title: "Cardio"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "cr-list"
-  }, [...sessions].sort((a, b) => a.started_at.localeCompare(b.started_at)).map(s => /*#__PURE__*/React.createElement(CardioRow, {
-    key: s.id,
-    session: s,
-    onDelete: deleteSession
-  })))), empty && /*#__PURE__*/React.createElement("div", {
-    className: "empty-state"
-  }, "No sessions logged for ", isToday(dateKey) ? "today" : formatDateLong(dateKey), " yet."));
+
+  return h(
+    React.Fragment,
+    null,
+    h(DateBar, { dateKey, onChange: setDateKey }),
+    h(SuggestedSessions, { history, onSelectExercise, onStartSession }),
+    h(RecommendedCardio, { history, onStart: onStartCardio }),
+    !empty &&
+      h(
+        "div",
+        { className: "totals-bar" },
+        totalSets > 0 &&
+          h(
+            "div",
+            { className: "totals-cell" },
+            h("span", { className: "totals-num mono" }, totalSets),
+            h(
+              "span",
+              { className: "totals-lbl" },
+              totalSets === 1 ? "set" : "sets"
+            )
+          ),
+        vol > 0 &&
+          h(
+            "div",
+            { className: "totals-cell" },
+            h("span", { className: "totals-num mono" }, vol),
+            h("span", { className: "totals-lbl" }, "kg vol")
+          ),
+        burn > 0 &&
+          h(
+            "div",
+            { className: "totals-cell" },
+            h("span", { className: "totals-num mono" }, burn),
+            h("span", { className: "totals-lbl" }, "kcal")
+          )
+      ),
+    Object.keys(groups).length > 0 &&
+      h(
+        Panel,
+        { title: "Strength" },
+        Object.entries(groups).map(([name, grp]) =>
+          h(StrengthGroup, {
+            key: name,
+            name,
+            sets: grp,
+            onDeleteGroup: deleteGroup
+          })
+        )
+      ),
+    sessions.length > 0 &&
+      h(
+        Panel,
+        { title: "Cardio" },
+        h(
+          "div",
+          { className: "cr-list" },
+          [...sessions]
+            .sort((a, b) => a.started_at.localeCompare(b.started_at))
+            .map(s =>
+              h(CardioRow, { key: s.id, session: s, onDelete: deleteSession })
+            )
+        )
+      ),
+    empty &&
+      h(
+        "div",
+        { className: "empty-state" },
+        "No sessions logged for ",
+        isToday(dateKey) ? "today" : formatDateLong(dateKey),
+        " yet."
+      )
+  );
 }
 
 // =============================================================================
@@ -2010,67 +1969,67 @@ function StrengthLog({
   const [circuitMin, setCircuitMin] = useState("");
   const [circuitSets, setCircuitSets] = useState("");
   const [otherName, setOtherName] = useState(""); // typed name when selected="Other"
+  const [otherCat, setOtherCat] = useState("coreiso"); // category of the Other button tapped
   const [logging, setLogging] = useState(false);
+
   useEffect(() => {
-    storage.get(`strength:${dateKey}`, []).then(setTodaySets);
-    storage.get("exercise_dict", {}).then(setExerciseDict);
+    setTodaySets(storage.get(`strength:${dateKey}`, []));
+    setExerciseDict(storage.get("exercise_dict", {}));
   }, [dateKey, refreshKey]);
 
   // Pending exercise from "Suggested session" tap
   useEffect(() => {
     if (!pendingExercise) return;
-    storage.get("exercise_dict", {}).then(dict => {
-      setExerciseDict(dict);
-      doSelect(pendingExercise, dict);
-    });
-    clearPending === null || clearPending === void 0 || clearPending();
+    const dict = storage.get("exercise_dict", {});
+    setExerciseDict(dict);
+    doSelect(pendingExercise, dict);
+    if (clearPending) clearPending();
   }, [pendingExercise]);
 
-  // Build N rows: prefill from last_session where available, padding with the last entry,
-  // or empty rows if no history. If suggestedSets is null, fall back to existing behaviour
-  // (use last_session length, or 1 row).
-  function doSelect(name, dict, suggestedSets = null) {
-    var _dict$name;
+  // Build N rows: prefill from last_session where available, padding with the
+  // last entry, or empty rows if no history.
+  function doSelect(name, dict, suggestedSets = null, cat = null) {
     const ex = getExercise(name);
-    const last = (_dict$name = dict[name]) === null || _dict$name === void 0 ? void 0 : _dict$name.last_session;
+    const last = dict[name] ? dict[name].last_session : undefined;
     if (name === "Other") {
-      var _dict$Other;
-      setOtherName(((_dict$Other = dict["Other"]) === null || _dict$Other === void 0 ? void 0 : _dict$Other.last_label) || "");
+      setOtherName((dict["Other"] && dict["Other"].last_label) || "");
+      setOtherCat(cat || "coreiso");
     } else {
       setOtherName("");
     }
     if (ex.input === IN.CIRCUIT) {
-      setCircuitMin(last !== null && last !== void 0 && last.duration_min ? String(last.duration_min) : "");
+      setCircuitMin(last && last.duration_min ? String(last.duration_min) : "");
       if (suggestedSets != null) {
         setCircuitSets(String(suggestedSets));
       } else {
-        setCircuitSets(last !== null && last !== void 0 && last.num_sets ? String(last.num_sets) : "");
+        setCircuitSets(last && last.num_sets ? String(last.num_sets) : "");
       }
     } else {
       const lastArr = Array.isArray(last) ? last : [];
-      const targetN = suggestedSets != null ? suggestedSets : lastArr.length > 0 ? lastArr.length : 1;
+      const targetN =
+        suggestedSets != null
+          ? suggestedSets
+          : lastArr.length > 0
+            ? lastArr.length
+            : 1;
       const rows = [];
       for (let i = 0; i < targetN; i++) {
         if (lastArr.length > 0) {
-          var _src$weight_kg, _src$reps;
           const src = lastArr[i] || lastArr[lastArr.length - 1];
           rows.push({
-            weight_kg: String((_src$weight_kg = src.weight_kg) !== null && _src$weight_kg !== void 0 ? _src$weight_kg : ""),
-            reps: String((_src$reps = src.reps) !== null && _src$reps !== void 0 ? _src$reps : "")
+            weight_kg: String(src.weight_kg != null ? src.weight_kg : ""),
+            reps: String(src.reps != null ? src.reps : "")
           });
         } else {
-          rows.push({
-            weight_kg: "",
-            reps: ""
-          });
+          rows.push({ weight_kg: "", reps: "" });
         }
       }
       setSets(rows);
     }
     setSelected(name);
   }
-  function selectExercise(name, suggestedSets = null) {
-    doSelect(name, exerciseDict, suggestedSets);
+  function selectExercise(name, suggestedSets = null, cat = null) {
+    doSelect(name, exerciseDict, suggestedSets, cat);
   }
   function backToList() {
     setSelected(null);
@@ -2078,32 +2037,33 @@ function StrengthLog({
     setCircuitMin("");
     setCircuitSets("");
     setOtherName("");
+    setOtherCat("coreiso");
   }
   function updateSet(i, field, val) {
-    setSets(prev => prev.map((s, idx) => idx === i ? {
-      ...s,
-      [field]: val
-    } : s));
+    setSets(prev =>
+      prev.map((s, idx) => (idx === i ? { ...s, [field]: val } : s))
+    );
   }
   function addSet() {
     setSets(prev => {
       const last = prev[prev.length - 1];
-      return [...prev, last ? {
-        weight_kg: last.weight_kg,
-        reps: last.reps
-      } : {
-        weight_kg: "",
-        reps: ""
-      }];
+      return [
+        ...prev,
+        last
+          ? { weight_kg: last.weight_kg, reps: last.reps }
+          : { weight_kg: "", reps: "" }
+      ];
     });
   }
   function removeSet(i) {
     setSets(prev => prev.filter((_, idx) => idx !== i));
   }
-  async function logExercise() {
+
+  function logExercise() {
     if (logging || !selected) return;
     const ex = getExercise(selected);
     const completedName = selected;
+
     if (ex.input === IN.CIRCUIT) {
       const dm = Number(circuitMin);
       const ns = Number(circuitSets);
@@ -2120,39 +2080,41 @@ function StrengthLog({
         set_index: 1
       };
       const nextSets = [...todaySets, entry];
-      await storage.set(`strength:${dateKey}`, nextSets);
+      storage.set(`strength:${dateKey}`, nextSets);
       setTodaySets(nextSets);
       const nextDict = {
         ...exerciseDict,
         [selected]: {
-          last_session: {
-            duration_min: dm,
-            num_sets: ns
-          },
+          last_session: { duration_min: dm, num_sets: ns },
           last_used_at: now
         }
       };
-      await storage.set("exercise_dict", nextDict);
+      storage.set("exercise_dict", nextDict);
       setExerciseDict(nextDict);
       setSelected(null);
       setCircuitMin("");
       setCircuitSets("");
       setLogging(false);
-      onCompleteExercise === null || onCompleteExercise === void 0 || onCompleteExercise(completedName);
-      onChange === null || onChange === void 0 || onChange();
+      if (onCompleteExercise) onCompleteExercise(completedName);
+      if (onChange) onChange();
       return;
     }
+
     const showWeight = ex.input !== IN.REPS;
-    const valid = sets.map(s => ({
-      weight_kg: showWeight ? Math.max(0, Number(s.weight_kg) || 0) : 0,
-      reps: Math.max(0, Number(s.reps) || 0)
-    })).filter(s => s.reps > 0);
+    const valid = sets
+      .map(s => ({
+        weight_kg: showWeight ? Math.max(0, Number(s.weight_kg) || 0) : 0,
+        reps: Math.max(0, Number(s.reps) || 0)
+      }))
+      .filter(s => s.reps > 0);
     if (valid.length === 0) return;
     setLogging(true);
     const now = nowISO();
     const isOther = selected === "Other";
     // For Other entries, use the typed label as the entry's exercise_name so
     // groupByExercise shows it under that name. Fall back to "Other".
+    // FIX (v3): custom_cat records the category of the picker button that was
+    // tapped (previously always coreiso, and never read back).
     const entryName = isOther ? otherName.trim() || "Other" : selected;
     const entries = valid.map((s, idx) => ({
       id: genId(),
@@ -2162,156 +2124,197 @@ function StrengthLog({
       set_index: idx + 1,
       reps: s.reps,
       weight_kg: s.weight_kg,
-      ...(isOther ? {
-        is_other: true,
-        custom_cat: ex.cat
-      } : {})
+      ...(isOther ? { is_other: true, custom_cat: otherCat } : {})
     }));
     const nextSets = [...todaySets, ...entries];
-    await storage.set(`strength:${dateKey}`, nextSets);
+    storage.set(`strength:${dateKey}`, nextSets);
     setTodaySets(nextSets);
-    // For Other, the shared prefill bucket is exercise_dict["Other"] with last_label.
+    // For Other, the shared prefill bucket is exercise_dict["Other"].
     const dictKey = isOther ? "Other" : selected;
     const nextDict = {
       ...exerciseDict,
-      [dictKey]: isOther ? {
-        last_session: valid,
-        last_used_at: now,
-        last_label: otherName.trim()
-      } : {
-        last_session: valid,
-        last_used_at: now
-      }
+      [dictKey]: isOther
+        ? {
+            last_session: valid,
+            last_used_at: now,
+            last_label: otherName.trim()
+          }
+        : { last_session: valid, last_used_at: now }
     };
-    await storage.set("exercise_dict", nextDict);
+    storage.set("exercise_dict", nextDict);
     setExerciseDict(nextDict);
     setSelected(null);
     setSets([]);
     setOtherName("");
+    setOtherCat("coreiso");
     setLogging(false);
-    onCompleteExercise === null || onCompleteExercise === void 0 || onCompleteExercise(completedName);
-    onChange === null || onChange === void 0 || onChange();
+    if (onCompleteExercise) onCompleteExercise(completedName);
+    if (onChange) onChange();
   }
 
   // ── Set-entry view ──
   if (selected) {
     const ex = getExercise(selected);
-    const color = CAT_COLORS[ex.cat];
-    const showWeight = ex.input !== IN.REPS;
-    const backAction = /*#__PURE__*/React.createElement("button", {
-      className: "panel-back mono",
-      onClick: backToList
-    }, /*#__PURE__*/React.createElement(IconArrowL, null), " ", /*#__PURE__*/React.createElement("span", null, "back"));
-    if (ex.input === IN.CIRCUIT) {
-      const canLog = Number(circuitMin) > 0 && Number(circuitSets) > 0 && !logging;
-      return /*#__PURE__*/React.createElement(Panel, {
-        title: selected,
-        action: backAction,
-        titleBg: color
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "circuit-form"
-      }, /*#__PURE__*/React.createElement("div", {
-        className: "circuit-field"
-      }, /*#__PURE__*/React.createElement("label", null, "Minutes / set"), /*#__PURE__*/React.createElement("div", {
-        className: "cardio-field"
-      }, /*#__PURE__*/React.createElement("input", {
-        type: "number",
-        inputMode: "decimal",
-        min: "0",
-        step: "any",
-        value: circuitMin,
-        onChange: e => setCircuitMin(e.target.value),
-        placeholder: "0"
-      }), /*#__PURE__*/React.createElement("span", {
-        className: "unit"
-      }, "min"))), /*#__PURE__*/React.createElement("div", {
-        className: "circuit-field"
-      }, /*#__PURE__*/React.createElement("label", null, "Number of sets"), /*#__PURE__*/React.createElement("div", {
-        className: "cardio-field"
-      }, /*#__PURE__*/React.createElement("input", {
-        type: "number",
-        inputMode: "numeric",
-        min: "1",
-        step: "1",
-        value: circuitSets,
-        onChange: e => setCircuitSets(e.target.value),
-        placeholder: "0"
-      }), /*#__PURE__*/React.createElement("span", {
-        className: "unit"
-      }, "sets")))), /*#__PURE__*/React.createElement("div", {
-        className: "form-actions"
-      }, /*#__PURE__*/React.createElement(Btn, {
-        onClick: logExercise,
-        disabled: !canLog
-      }, logging ? "Logging…" : "Log")));
-    }
     const isOther = selected === "Other";
+    const color = CAT_COLORS[isOther ? otherCat : ex.cat];
+    const showWeight = ex.input !== IN.REPS;
+    const backAction = h(
+      "button",
+      { className: "panel-back mono", onClick: backToList },
+      h(IconArrowL, null),
+      " ",
+      h("span", null, "back")
+    );
+
+    if (ex.input === IN.CIRCUIT) {
+      const canLog =
+        Number(circuitMin) > 0 && Number(circuitSets) > 0 && !logging;
+      return h(
+        Panel,
+        { title: selected, action: backAction, titleBg: color },
+        h(
+          "div",
+          { className: "circuit-form" },
+          h(
+            "div",
+            { className: "circuit-field" },
+            h("label", null, "Minutes / set"),
+            h(
+              "div",
+              { className: "cardio-field" },
+              h("input", {
+                type: "number",
+                inputMode: "decimal",
+                min: "0",
+                step: "any",
+                value: circuitMin,
+                onChange: e => setCircuitMin(e.target.value),
+                placeholder: "0"
+              }),
+              h("span", { className: "unit" }, "min")
+            )
+          ),
+          h(
+            "div",
+            { className: "circuit-field" },
+            h("label", null, "Number of sets"),
+            h(
+              "div",
+              { className: "cardio-field" },
+              h("input", {
+                type: "number",
+                inputMode: "numeric",
+                min: "1",
+                step: "1",
+                value: circuitSets,
+                onChange: e => setCircuitSets(e.target.value),
+                placeholder: "0"
+              }),
+              h("span", { className: "unit" }, "sets")
+            )
+          )
+        ),
+        h(
+          "div",
+          { className: "form-actions" },
+          h(
+            Btn,
+            { onClick: logExercise, disabled: !canLog },
+            logging ? "Logging…" : "Log"
+          )
+        )
+      );
+    }
+
     const canLog = sets.some(s => Number(s.reps) > 0) && !logging;
-    return /*#__PURE__*/React.createElement(Panel, {
-      title: selected,
-      action: backAction,
-      titleBg: color
-    }, isOther && /*#__PURE__*/React.createElement("div", {
-      className: "other-name-field"
-    }, /*#__PURE__*/React.createElement("label", null, "Exercise name"), /*#__PURE__*/React.createElement("div", {
-      className: "cardio-field"
-    }, /*#__PURE__*/React.createElement("input", {
-      type: "text",
-      value: otherName,
-      onChange: e => setOtherName(e.target.value),
-      placeholder: "e.g. Lateral lunge"
-    }))), /*#__PURE__*/React.createElement("div", {
-      className: "set-table"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: `set-row set-head${showWeight ? "" : " reps-only"}`
-    }, /*#__PURE__*/React.createElement("span", {
-      className: "set-idx mono"
-    }, "#"), showWeight && /*#__PURE__*/React.createElement("span", {
-      className: "set-kg mono"
-    }, "kg"), /*#__PURE__*/React.createElement("span", {
-      className: "set-reps mono"
-    }, "reps"), /*#__PURE__*/React.createElement("span", {
-      className: "set-del-h"
-    })), sets.map((s, i) => /*#__PURE__*/React.createElement("div", {
-      key: i,
-      className: `set-row${showWeight ? "" : " reps-only"}`
-    }, /*#__PURE__*/React.createElement("span", {
-      className: "set-idx mono"
-    }, i + 1), showWeight && /*#__PURE__*/React.createElement("input", {
-      className: "set-input mono",
-      type: "number",
-      inputMode: "decimal",
-      min: "0",
-      step: "any",
-      value: s.weight_kg,
-      onChange: e => updateSet(i, "weight_kg", e.target.value),
-      placeholder: "0"
-    }), /*#__PURE__*/React.createElement("input", {
-      className: "set-input mono",
-      type: "number",
-      inputMode: "numeric",
-      min: "0",
-      step: "1",
-      value: s.reps,
-      onChange: e => updateSet(i, "reps", e.target.value),
-      placeholder: "0"
-    }), /*#__PURE__*/React.createElement("button", {
-      className: "set-del",
-      onClick: () => removeSet(i),
-      disabled: sets.length === 1
-    }, /*#__PURE__*/React.createElement(IconTrash, {
-      size: 13
-    }))))), /*#__PURE__*/React.createElement("button", {
-      className: "add-set",
-      onClick: addSet
-    }, /*#__PURE__*/React.createElement(IconPlus, {
-      size: 14
-    }), " ", /*#__PURE__*/React.createElement("span", null, "Add set")), /*#__PURE__*/React.createElement("div", {
-      className: "form-actions"
-    }, /*#__PURE__*/React.createElement(Btn, {
-      onClick: logExercise,
-      disabled: !canLog
-    }, logging ? "Logging…" : "Log")));
+    return h(
+      Panel,
+      { title: selected, action: backAction, titleBg: color },
+      isOther &&
+        h(
+          "div",
+          { className: "other-name-field" },
+          h("label", null, "Exercise name"),
+          h(
+            "div",
+            { className: "cardio-field" },
+            h("input", {
+              type: "text",
+              value: otherName,
+              onChange: e => setOtherName(e.target.value),
+              placeholder: "e.g. Lateral lunge"
+            })
+          )
+        ),
+      h(
+        "div",
+        { className: "set-table" },
+        h(
+          "div",
+          { className: `set-row set-head${showWeight ? "" : " reps-only"}` },
+          h("span", { className: "set-idx mono" }, "#"),
+          showWeight && h("span", { className: "set-kg mono" }, "kg"),
+          h("span", { className: "set-reps mono" }, "reps"),
+          h("span", { className: "set-del-h" })
+        ),
+        sets.map((s, i) =>
+          h(
+            "div",
+            {
+              key: i,
+              className: `set-row${showWeight ? "" : " reps-only"}`
+            },
+            h("span", { className: "set-idx mono" }, i + 1),
+            showWeight &&
+              h("input", {
+                className: "set-input mono",
+                type: "number",
+                inputMode: "decimal",
+                min: "0",
+                step: "any",
+                value: s.weight_kg,
+                onChange: e => updateSet(i, "weight_kg", e.target.value),
+                placeholder: "0"
+              }),
+            h("input", {
+              className: "set-input mono",
+              type: "number",
+              inputMode: "numeric",
+              min: "0",
+              step: "1",
+              value: s.reps,
+              onChange: e => updateSet(i, "reps", e.target.value),
+              placeholder: "0"
+            }),
+            h(
+              "button",
+              {
+                className: "set-del",
+                onClick: () => removeSet(i),
+                disabled: sets.length === 1
+              },
+              h(IconTrash, { size: 13 })
+            )
+          )
+        )
+      ),
+      h(
+        "button",
+        { className: "add-set", onClick: addSet },
+        h(IconPlus, { size: 14 }),
+        " ",
+        h("span", null, "Add set")
+      ),
+      h(
+        "div",
+        { className: "form-actions" },
+        h(
+          Btn,
+          { onClick: logExercise, disabled: !canLog },
+          logging ? "Logging…" : "Log"
+        )
+      )
+    );
   }
 
   // ── Exercise list view ──
@@ -2321,102 +2324,129 @@ function StrengthLog({
   }
   const fiveDaysAgoMs = Date.now() - 5 * 86400000;
   const recentlyDone = name => {
-    var _exerciseDict$name;
-    const iso = (_exerciseDict$name = exerciseDict[name]) === null || _exerciseDict$name === void 0 ? void 0 : _exerciseDict$name.last_used_at;
+    const iso = exerciseDict[name] && exerciseDict[name].last_used_at;
     return iso && new Date(iso).getTime() > fiveDaysAgoMs;
   };
-  return /*#__PURE__*/React.createElement(React.Fragment, null, activeSession && /*#__PURE__*/React.createElement(SessionQueue, {
-    session: activeSession,
-    onSelectExercise: (name, sets) => selectExercise(name, sets),
-    onEndSession: onEndSession
-  }), CATEGORIES.map(cat => {
-    const catExs = EXERCISES.filter(e => e.cat === cat.id && !e.hidden && !e.isOther);
-    const color = CAT_COLORS[cat.id];
-    return /*#__PURE__*/React.createElement("div", {
-      key: cat.id,
-      className: "cat-group"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "cat-header",
-      style: {
-        background: color
-      }
-    }, cat.label.toUpperCase()), catExs.map(ex => {
-      const count = todayCounts[ex.name];
-      const recent = recentlyDone(ex.name);
-      return /*#__PURE__*/React.createElement("button", {
-        key: ex.name,
-        className: "exercise-btn",
-        style: {
-          borderLeftColor: color
-        },
-        onClick: () => selectExercise(ex.name)
-      }, /*#__PURE__*/React.createElement("span", {
-        className: "ex-name"
-      }, ex.name), /*#__PURE__*/React.createElement("span", {
-        className: "ex-badges"
-      }, recent && /*#__PURE__*/React.createElement("span", {
-        className: "badge-tick"
-      }, "\u2713"), count > 0 && /*#__PURE__*/React.createElement("span", {
-        className: "badge-count mono"
-      }, count)));
-    }), /*#__PURE__*/React.createElement("button", {
-      className: "exercise-btn exercise-other",
-      style: {
-        borderLeftColor: color
-      },
-      onClick: () => selectExercise("Other")
-    }, /*#__PURE__*/React.createElement("span", {
-      className: "ex-name mono"
-    }, "Other")));
-  }));
+
+  return h(
+    React.Fragment,
+    null,
+    activeSession &&
+      h(SessionQueue, {
+        session: activeSession,
+        onSelectExercise: (name, nSets) => selectExercise(name, nSets),
+        onEndSession
+      }),
+    CATEGORIES.map(cat => {
+      const catExs = EXERCISES.filter(
+        e => e.cat === cat.id && !e.hidden && !e.isOther
+      );
+      const color = CAT_COLORS[cat.id];
+      return h(
+        "div",
+        { key: cat.id, className: "cat-group" },
+        h(
+          "div",
+          { className: "cat-header", style: { background: color } },
+          cat.label.toUpperCase()
+        ),
+        catExs.map(ex => {
+          const count = todayCounts[ex.name];
+          const recent = recentlyDone(ex.name);
+          return h(
+            "button",
+            {
+              key: ex.name,
+              className: "exercise-btn",
+              style: { borderLeftColor: color },
+              onClick: () => selectExercise(ex.name)
+            },
+            h("span", { className: "ex-name" }, ex.name),
+            h(
+              "span",
+              { className: "ex-badges" },
+              recent && h("span", { className: "badge-tick" }, "✓"),
+              count > 0 &&
+                h("span", { className: "badge-count mono" }, count)
+            )
+          );
+        }),
+        // FIX (v3): the Other button passes its category through, so custom
+        // exercises are coloured + counted under the category they came from.
+        h(
+          "button",
+          {
+            className: "exercise-btn exercise-other",
+            style: { borderLeftColor: color },
+            onClick: () => selectExercise("Other", null, cat.id)
+          },
+          h("span", { className: "ex-name mono" }, "Other")
+        )
+      );
+    })
+  );
 }
 
 // =============================================================================
 // SessionQueue — active session panel rendered at top of strength log
 // =============================================================================
-function SessionQueue({
-  session,
-  onSelectExercise,
-  onEndSession
-}) {
+function SessionQueue({ session, onSelectExercise, onEndSession }) {
   const completed = session.completed || [];
   const total = session.exercises.length;
   const doneCount = completed.length;
   const allDone = doneCount === total && total > 0;
   const headBg = allDone ? "#3A7D52" : undefined;
-  return /*#__PURE__*/React.createElement("div", {
-    className: "panel queue-panel"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "panel-head",
-    style: headBg ? {
-      background: headBg
-    } : undefined
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "panel-title"
-  }, session.title, " \xB7 ", doneCount, "/", total, allDone ? " ✓" : ""), /*#__PURE__*/React.createElement("button", {
-    className: "panel-back mono",
-    onClick: onEndSession
-  }, allDone ? "Done" : "End")), /*#__PURE__*/React.createElement("div", {
-    className: "panel-body queue-body"
-  }, session.exercises.map((ex, i) => {
-    const isDone = completed.includes(ex.name);
-    const color = CAT_COLORS[ex.cat];
-    return /*#__PURE__*/React.createElement("button", {
-      key: ex.name + i,
-      className: `session-row queue-row${isDone ? " queue-done" : ""}`,
-      style: {
-        borderLeftColor: color
+  return h(
+    "div",
+    { className: "panel queue-panel" },
+    h(
+      "div",
+      {
+        className: "panel-head",
+        style: headBg ? { background: headBg } : undefined
       },
-      onClick: () => !isDone && onSelectExercise(ex.name, ex.sets),
-      disabled: isDone
-    }, /*#__PURE__*/React.createElement("span", {
-      className: "queue-mark mono"
-    }, isDone ? "✓" : "·"), /*#__PURE__*/React.createElement("span", {
-      className: "session-name"
-    }, ex.name), /*#__PURE__*/React.createElement("span", {
-      className: "session-sets mono"
-    }, isDone ? "done" : `${ex.sets}×`));
-  })));
+      h(
+        "span",
+        { className: "panel-title" },
+        session.title,
+        " · ",
+        doneCount,
+        "/",
+        total,
+        allDone ? " ✓" : ""
+      ),
+      h(
+        "button",
+        { className: "panel-back mono", onClick: onEndSession },
+        allDone ? "Done" : "End"
+      )
+    ),
+    h(
+      "div",
+      { className: "panel-body queue-body" },
+      session.exercises.map((ex, i) => {
+        const isDone = completed.includes(ex.name);
+        const color = CAT_COLORS[ex.cat];
+        return h(
+          "button",
+          {
+            key: ex.name + i,
+            className: `session-row queue-row${isDone ? " queue-done" : ""}`,
+            style: { borderLeftColor: color },
+            onClick: () => !isDone && onSelectExercise(ex.name, ex.sets),
+            disabled: isDone
+          },
+          h("span", { className: "queue-mark mono" }, isDone ? "✓" : "·"),
+          h("span", { className: "session-name" }, ex.name),
+          h(
+            "span",
+            { className: "session-sets mono" },
+            isDone ? "done" : `${ex.sets}×`
+          )
+        );
+      })
+    )
+  );
 }
 
 // =============================================================================
@@ -2437,8 +2467,9 @@ function CardioLog({
   const [logging, setLogging] = useState(false);
   const [todaySessions, setTodaySessions] = useState([]);
   const hasDistance = type === "jog" || type === "run";
+
   useEffect(() => {
-    storage.get(`cardio:${dateKey}`, []).then(setTodaySessions);
+    setTodaySessions(storage.get(`cardio:${dateKey}`, []));
   }, [dateKey, refreshKey]);
 
   // Apply pending cardio (from Today tab recommendation)
@@ -2449,14 +2480,13 @@ function CardioLog({
     setType(t);
     setKcalEdited(false);
     setDuration(d > 0 ? String(d) : "");
-    // For jog/run, also compute distance
     if ((t === "jog" || t === "run") && d > 0) {
       setDistance((d / PACE_MIN_PER_KM[t]).toFixed(1));
     } else {
       setDistance("");
     }
     // kcal will be auto-computed by the effect below
-    clearPendingCardio === null || clearPendingCardio === void 0 || clearPendingCardio();
+    if (clearPendingCardio) clearPendingCardio();
   }, [pendingCardio]);
 
   // Recalculate kcal when duration changes (unless manually overridden)
@@ -2473,6 +2503,7 @@ function CardioLog({
     }
     setKcal(String(Math.round(KCAL_PER_MIN[type] * dur)));
   }, [type, duration, kcalEdited]);
+
   function selectType(t) {
     setType(t);
     setKcalEdited(false);
@@ -2480,7 +2511,6 @@ function CardioLog({
     setDistance("");
     setKcal("");
   }
-
   // Duration entered → auto-fill distance
   function changeDuration(v) {
     setDuration(v);
@@ -2489,7 +2519,6 @@ function CardioLog({
       setDistance(dur > 0 ? (dur / PACE_MIN_PER_KM[type]).toFixed(1) : "");
     }
   }
-
   // Distance entered → auto-fill duration
   function changeDistance(v) {
     setDistance(v);
@@ -2500,7 +2529,8 @@ function CardioLog({
     setKcal(v);
     setKcalEdited(true);
   }
-  async function logCardio() {
+
+  function logCardio() {
     const dur = Number(duration);
     const burn = Number(kcal);
     if (!dur || dur <= 0 || !burn || burn <= 0 || logging) return;
@@ -2517,81 +2547,115 @@ function CardioLog({
       session.distance_km = parseFloat(Number(distance).toFixed(1));
     }
     const next = [...todaySessions, session];
-    await storage.set(`cardio:${dateKey}`, next);
+    storage.set(`cardio:${dateKey}`, next);
     setTodaySessions(next);
     setDuration("");
     setDistance("");
     setKcal("");
     setKcalEdited(false);
     setLogging(false);
-    onChange === null || onChange === void 0 || onChange();
+    if (onChange) onChange();
   }
+
   const canLog = Number(duration) > 0 && Number(kcal) > 0 && !logging;
-  return /*#__PURE__*/React.createElement(Panel, {
-    title: "New cardio"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "cardio-types"
-  }, CARDIO_TYPES.map(({
-    id,
-    label
-  }) => /*#__PURE__*/React.createElement("button", {
-    key: id,
-    onClick: () => selectType(id),
-    className: `cardio-type${type === id ? " active" : ""}`
-  }, label))), hasDistance && /*#__PURE__*/React.createElement("div", {
-    className: "distance-row"
-  }, /*#__PURE__*/React.createElement("label", {
-    className: "distance-lbl"
-  }, "Distance"), /*#__PURE__*/React.createElement("div", {
-    className: "cardio-field dist-field"
-  }, /*#__PURE__*/React.createElement("input", {
-    type: "number",
-    inputMode: "decimal",
-    min: "0",
-    step: "0.1",
-    value: distance,
-    onChange: e => changeDistance(e.target.value),
-    placeholder: "0.0"
-  }), /*#__PURE__*/React.createElement("span", {
-    className: "unit"
-  }, "km"))), /*#__PURE__*/React.createElement("div", {
-    className: "cardio-grid"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "cardio-input"
-  }, /*#__PURE__*/React.createElement("label", null, "Duration"), /*#__PURE__*/React.createElement("div", {
-    className: "cardio-field"
-  }, /*#__PURE__*/React.createElement("input", {
-    type: "number",
-    inputMode: "decimal",
-    min: "0",
-    step: "any",
-    value: duration,
-    onChange: e => changeDuration(e.target.value),
-    placeholder: "0"
-  }), /*#__PURE__*/React.createElement("span", {
-    className: "unit"
-  }, "min"))), /*#__PURE__*/React.createElement("div", {
-    className: "cardio-input"
-  }, /*#__PURE__*/React.createElement("label", null, "Calories", !kcalEdited && type !== "other" && Number(duration) > 0 && /*#__PURE__*/React.createElement("span", {
-    className: "auto-tag mono"
-  }, "auto")), /*#__PURE__*/React.createElement("div", {
-    className: "cardio-field"
-  }, /*#__PURE__*/React.createElement("input", {
-    type: "number",
-    inputMode: "decimal",
-    min: "0",
-    step: "any",
-    value: kcal,
-    onChange: e => changeKcal(e.target.value),
-    placeholder: "0"
-  }), /*#__PURE__*/React.createElement("span", {
-    className: "unit"
-  }, "kcal")))), /*#__PURE__*/React.createElement("div", {
-    className: "form-actions"
-  }, /*#__PURE__*/React.createElement(Btn, {
-    onClick: logCardio,
-    disabled: !canLog
-  }, logging ? "Logging…" : "Log")));
+  return h(
+    Panel,
+    { title: "New cardio" },
+    h(
+      "div",
+      { className: "cardio-types" },
+      CARDIO_TYPES.map(({ id, label }) =>
+        h(
+          "button",
+          {
+            key: id,
+            onClick: () => selectType(id),
+            className: `cardio-type${type === id ? " active" : ""}`
+          },
+          label
+        )
+      )
+    ),
+    hasDistance &&
+      h(
+        "div",
+        { className: "distance-row" },
+        h("label", { className: "distance-lbl" }, "Distance"),
+        h(
+          "div",
+          { className: "cardio-field dist-field" },
+          h("input", {
+            type: "number",
+            inputMode: "decimal",
+            min: "0",
+            step: "0.1",
+            value: distance,
+            onChange: e => changeDistance(e.target.value),
+            placeholder: "0.0"
+          }),
+          h("span", { className: "unit" }, "km")
+        )
+      ),
+    h(
+      "div",
+      { className: "cardio-grid" },
+      h(
+        "div",
+        { className: "cardio-input" },
+        h("label", null, "Duration"),
+        h(
+          "div",
+          { className: "cardio-field" },
+          h("input", {
+            type: "number",
+            inputMode: "decimal",
+            min: "0",
+            step: "any",
+            value: duration,
+            onChange: e => changeDuration(e.target.value),
+            placeholder: "0"
+          }),
+          h("span", { className: "unit" }, "min")
+        )
+      ),
+      h(
+        "div",
+        { className: "cardio-input" },
+        h(
+          "label",
+          null,
+          "Calories",
+          !kcalEdited &&
+            type !== "other" &&
+            Number(duration) > 0 &&
+            h("span", { className: "auto-tag mono" }, "auto")
+        ),
+        h(
+          "div",
+          { className: "cardio-field" },
+          h("input", {
+            type: "number",
+            inputMode: "decimal",
+            min: "0",
+            step: "any",
+            value: kcal,
+            onChange: e => changeKcal(e.target.value),
+            placeholder: "0"
+          }),
+          h("span", { className: "unit" }, "kcal")
+        )
+      )
+    ),
+    h(
+      "div",
+      { className: "form-actions" },
+      h(
+        Btn,
+        { onClick: logCardio, disabled: !canLog },
+        logging ? "Logging…" : "Log"
+      )
+    )
+  );
 }
 
 // =============================================================================
@@ -2621,352 +2685,497 @@ function LogScreen({
   useEffect(() => {
     if (pendingCardio) setMode("cardio");
   }, [pendingCardio]);
-  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(DateBar, {
-    dateKey: dateKey,
-    onChange: setDateKey
-  }), /*#__PURE__*/React.createElement("div", {
-    className: "segment"
-  }, /*#__PURE__*/React.createElement("button", {
-    className: `segment-btn${mode === "strength" ? " active" : ""}`,
-    onClick: () => setMode("strength")
-  }, /*#__PURE__*/React.createElement(IconDumbbell, {
-    size: 15,
-    sw: 1.75
-  }), " ", /*#__PURE__*/React.createElement("span", null, "Strength")), /*#__PURE__*/React.createElement("button", {
-    className: `segment-btn${mode === "cardio" ? " active" : ""}`,
-    onClick: () => setMode("cardio")
-  }, /*#__PURE__*/React.createElement(IconActivity, {
-    size: 15,
-    sw: 1.75
-  }), " ", /*#__PURE__*/React.createElement("span", null, "Cardio"))), mode === "strength" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Stopwatch, {
-    sw: sw,
-    onStart: swStart,
-    onRest: swRest,
-    onEnd: swEnd
-  }), /*#__PURE__*/React.createElement(StrengthLog, {
-    dateKey: dateKey,
-    refreshKey: refreshKey,
-    onChange: onChange,
-    pendingExercise: pendingExercise,
-    clearPending: clearPending,
-    activeSession: activeSession,
-    onEndSession: onEndSession,
-    onCompleteExercise: onCompleteExercise
-  })), mode === "cardio" && /*#__PURE__*/React.createElement(CardioLog, {
-    dateKey: dateKey,
-    refreshKey: refreshKey,
-    onChange: onChange,
-    pendingCardio: pendingCardio,
-    clearPendingCardio: clearPendingCardio
-  }));
+
+  return h(
+    React.Fragment,
+    null,
+    h(DateBar, { dateKey, onChange: setDateKey }),
+    h(
+      "div",
+      { className: "segment" },
+      h(
+        "button",
+        {
+          className: `segment-btn${mode === "strength" ? " active" : ""}`,
+          onClick: () => setMode("strength")
+        },
+        h(IconDumbbell, { size: 15, sw: 1.75 }),
+        " ",
+        h("span", null, "Strength")
+      ),
+      h(
+        "button",
+        {
+          className: `segment-btn${mode === "cardio" ? " active" : ""}`,
+          onClick: () => setMode("cardio")
+        },
+        h(IconActivity, { size: 15, sw: 1.75 }),
+        " ",
+        h("span", null, "Cardio")
+      )
+    ),
+    mode === "strength" &&
+      h(
+        React.Fragment,
+        null,
+        h(Stopwatch, { sw, onStart: swStart, onRest: swRest, onEnd: swEnd }),
+        h(StrengthLog, {
+          dateKey,
+          refreshKey,
+          onChange,
+          pendingExercise,
+          clearPending,
+          activeSession,
+          onEndSession,
+          onCompleteExercise
+        })
+      ),
+    mode === "cardio" &&
+      h(CardioLog, {
+        dateKey,
+        refreshKey,
+        onChange,
+        pendingCardio,
+        clearPendingCardio
+      })
+  );
 }
 
 // =============================================================================
-// Jiggle tab
+// Bar chart (SVG, scales via viewBox). Now supports STACKED bars:
+//   data: [{ label, parts: [{ color, value }] }]
+// Single-colour charts simply pass one part per bar.
+// - Avg (of bar totals) sits in the reserved top padding.
+// - Tapping a column toggles the bar's total above it.
 // =============================================================================
-// =============================================================================
-// Bar chart (SVG, scales via viewBox)
-// =============================================================================
-function BarChart({
-  data,
-  color = "#C9542A",
-  height = 124
-}) {
-  // data: [{ label, value }]
-  // - Avg label sits in the reserved top padding (top-right), so bars can never overlap it.
-  // - Tapping a column toggles a data label above (or inside the top of) that bar.
+function BarChart({ data, height = 124 }) {
   const [sel, setSel] = useState(null);
-  // Reset selection when the data set changes (e.g. 14↔30 day toggle).
   useEffect(() => {
     setSel(null);
-  }, [data.length, data]);
+  }, [data]);
+
   const W = 320,
     H = height;
-  const pad = {
-    top: 22,
-    bottom: 22,
-    left: 4,
-    right: 4
-  };
+  const pad = { top: 22, bottom: 22, left: 4, right: 4 };
   const chartW = W - pad.left - pad.right;
   const chartH = H - pad.top - pad.bottom;
   const n = data.length || 1;
   const colW = chartW / n;
   const barW = Math.max(2, colW - 3);
-  const max = Math.max(1, ...data.map(d => d.value));
-  const sum = data.reduce((a, d) => a + (d.value || 0), 0);
+
+  const totals = data.map(d =>
+    d.parts.reduce((a, p) => a + (p.value || 0), 0)
+  );
+  const max = Math.max(1, ...totals);
+  const sum = totals.reduce((a, v) => a + v, 0);
   const avg = data.length > 0 ? sum / data.length : 0;
-  const avgY = H - pad.bottom - avg / max * chartH;
+  const avgY = H - pad.bottom - (avg / max) * chartH;
   const labelEvery = data.length > 16 ? 5 : 1;
-  return /*#__PURE__*/React.createElement("svg", {
-    className: "bar-chart",
-    viewBox: `0 0 ${W} ${H}`,
-    preserveAspectRatio: "none",
-    role: "img",
-    "aria-label": "bar chart"
-  }, /*#__PURE__*/React.createElement("line", {
-    x1: pad.left,
-    x2: W - pad.right,
-    y1: H - pad.bottom + 0.5,
-    y2: H - pad.bottom + 0.5,
-    stroke: "#1B1A17",
-    strokeWidth: "1"
-  }), data.map((d, i) => {
-    const h = d.value > 0 ? d.value / max * chartH : 0;
-    const x = pad.left + i * colW + (colW - barW) / 2;
-    const y = H - pad.bottom - h;
-    const showLabel = (data.length - 1 - i) % labelEvery === 0;
-    return /*#__PURE__*/React.createElement("g", {
-      key: i
-    }, h > 0 && /*#__PURE__*/React.createElement("rect", {
-      x: x,
-      y: y,
-      width: barW,
-      height: h,
-      fill: color
-    }), showLabel && /*#__PURE__*/React.createElement("text", {
-      x: x + barW / 2,
-      y: H - pad.bottom + 12,
-      textAnchor: "middle",
-      fontSize: "8",
-      fontFamily: "JetBrains Mono, monospace",
-      fill: "#5C5849"
-    }, d.label));
-  }), avg > 0 && /*#__PURE__*/React.createElement("line", {
-    x1: pad.left,
-    x2: W - pad.right,
-    y1: avgY,
-    y2: avgY,
-    stroke: "#1B1A17",
-    strokeWidth: "1",
-    strokeDasharray: "2 3",
-    opacity: "0.55"
-  }), avg > 0 && /*#__PURE__*/React.createElement("text", {
-    x: W - pad.right,
-    y: 12,
-    textAnchor: "end",
-    fontSize: "10",
-    fontWeight: "700",
-    fontFamily: "JetBrains Mono, monospace",
-    fill: "#5C5849"
-  }, "avg ", Math.round(avg).toLocaleString()), sel !== null && data[sel] !== undefined && (() => {
-    const d = data[sel];
-    const h = d.value > 0 ? d.value / max * chartH : 0;
-    const cx = pad.left + sel * colW + colW / 2;
-    const barTop = H - pad.bottom - h;
-    const ty = Math.max(pad.top + 9, barTop - 4);
-    return /*#__PURE__*/React.createElement("text", {
-      x: cx,
-      y: ty,
-      textAnchor: "middle",
-      fontSize: "10",
-      fontWeight: "700",
-      fontFamily: "JetBrains Mono, monospace",
-      fill: "#1B1A17"
-    }, Math.round(d.value).toLocaleString());
-  })(), data.map((_, i) => {
-    const hx = pad.left + i * colW;
-    return /*#__PURE__*/React.createElement("rect", {
-      key: "hit" + i,
-      x: hx,
-      y: pad.top,
-      width: colW,
-      height: chartH,
-      fill: "transparent",
-      onClick: () => setSel(sel === i ? null : i),
-      style: {
-        cursor: "pointer"
+
+  return h(
+    "svg",
+    {
+      className: "bar-chart",
+      viewBox: `0 0 ${W} ${H}`,
+      preserveAspectRatio: "none",
+      role: "img",
+      "aria-label": "bar chart"
+    },
+    h("line", {
+      x1: pad.left,
+      x2: W - pad.right,
+      y1: H - pad.bottom + 0.5,
+      y2: H - pad.bottom + 0.5,
+      stroke: "#1B1A17",
+      strokeWidth: "1"
+    }),
+    data.map((d, i) => {
+      const total = totals[i];
+      const x = pad.left + i * colW + (colW - barW) / 2;
+      const showLabel = (data.length - 1 - i) % labelEvery === 0;
+      // Stack segments bottom-up from the baseline.
+      let yCursor = H - pad.bottom;
+      const segs = [];
+      for (let p = 0; p < d.parts.length; p++) {
+        const part = d.parts[p];
+        const segH = part.value > 0 ? (part.value / max) * chartH : 0;
+        if (segH > 0) {
+          yCursor -= segH;
+          segs.push(
+            h("rect", {
+              key: p,
+              x,
+              y: yCursor,
+              width: barW,
+              height: segH,
+              fill: part.color
+            })
+          );
+        }
       }
-    });
-  }));
+      return h(
+        "g",
+        { key: i },
+        total > 0 && segs,
+        showLabel &&
+          h(
+            "text",
+            {
+              x: x + barW / 2,
+              y: H - pad.bottom + 12,
+              textAnchor: "middle",
+              fontSize: "8",
+              fontFamily: "JetBrains Mono, monospace",
+              fill: "#5C5849"
+            },
+            d.label
+          )
+      );
+    }),
+    avg > 0 &&
+      h("line", {
+        x1: pad.left,
+        x2: W - pad.right,
+        y1: avgY,
+        y2: avgY,
+        stroke: "#1B1A17",
+        strokeWidth: "1",
+        strokeDasharray: "2 3",
+        opacity: "0.55"
+      }),
+    avg > 0 &&
+      h(
+        "text",
+        {
+          x: W - pad.right,
+          y: 12,
+          textAnchor: "end",
+          fontSize: "10",
+          fontWeight: "700",
+          fontFamily: "JetBrains Mono, monospace",
+          fill: "#5C5849"
+        },
+        "avg ",
+        Math.round(avg).toLocaleString()
+      ),
+    sel !== null &&
+      data[sel] !== undefined &&
+      (() => {
+        const total = totals[sel];
+        const hgt = total > 0 ? (total / max) * chartH : 0;
+        const cx = pad.left + sel * colW + colW / 2;
+        const barTop = H - pad.bottom - hgt;
+        const ty = Math.max(pad.top + 9, barTop - 4);
+        return h(
+          "text",
+          {
+            x: cx,
+            y: ty,
+            textAnchor: "middle",
+            fontSize: "10",
+            fontWeight: "700",
+            fontFamily: "JetBrains Mono, monospace",
+            fill: "#1B1A17"
+          },
+          Math.round(total).toLocaleString()
+        );
+      })(),
+    data.map((_, i) => {
+      const hx = pad.left + i * colW;
+      return h("rect", {
+        key: "hit" + i,
+        x: hx,
+        y: pad.top,
+        width: colW,
+        height: chartH,
+        fill: "transparent",
+        onClick: () => setSel(sel === i ? null : i),
+        style: { cursor: "pointer" }
+      });
+    })
+  );
 }
 
 // =============================================================================
-// Summary tab — 14- or 30-day rolling view of strength volume + cardio kcal.
+// Data panel — export / import JSON backup of everything under the app's
+// localStorage prefix (history, exercise dictionary, active session, settings).
 // =============================================================================
-function SummaryTab({
-  refreshKey
-}) {
-  const [range, setRange] = useState(14); // 14 or 30
-  const [data, setData] = useState(null);
-  useEffect(() => {
-    async function load() {
-      const today = todayKey();
-      const arr = [];
-      for (let i = range - 1; i >= 0; i--) {
-        const dk = dateKeyOffset(today, -i);
-        const sets = await storage.get(`strength:${dk}`, []);
-        const ses = await storage.get(`cardio:${dk}`, []);
-        const vol = totalVolume(sets);
-        const kcal = ses.reduce((a, s) => a + (s.kcal_burned || 0), 0);
-        const d = new Date(dk + "T12:00:00");
-        const dow = ["S", "M", "T", "W", "T", "F", "S"][d.getDay()];
-        arr.push({
-          dateKey: dk,
-          label: dow,
-          vol,
-          kcal
-        });
-      }
-      setData(arr);
+function DataPanel({ onImported }) {
+  const fileRef = useRef(null);
+  const [msg, setMsg] = useState("");
+
+  function doExport() {
+    try {
+      const n = downloadBackup();
+      setMsg(`Exported ${n} records.`);
+    } catch (err) {
+      console.error("export", err);
+      setMsg("Export failed.");
     }
-    load();
+  }
+  function onFile(e) {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = ""; // allow re-selecting the same file
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      let parsed = null;
+      try {
+        parsed = JSON.parse(reader.result);
+      } catch {
+        setMsg("Import failed — not a valid JSON file.");
+        return;
+      }
+      if (
+        !parsed ||
+        parsed.app !== "exercise-tracker" ||
+        typeof parsed.data !== "object" ||
+        parsed.data === null
+      ) {
+        setMsg("Import failed — not an exercise-tracker backup.");
+        return;
+      }
+      const n = Object.keys(parsed.data).length;
+      if (
+        !confirm(
+          `Import ${n} records? Entries with the same date/key will be overwritten.`
+        )
+      ) {
+        setMsg("Import cancelled.");
+        return;
+      }
+      const res = restoreBackup(parsed);
+      if (res.ok) {
+        setMsg(`Imported ${res.count} records.`);
+        if (onImported) onImported();
+      } else {
+        setMsg("Import failed.");
+      }
+    };
+    reader.onerror = () => setMsg("Import failed — could not read the file.");
+    reader.readAsText(file);
+  }
+
+  return h(
+    Panel,
+    { title: "Data", titleBg: "#5C5849" },
+    h(
+      "div",
+      { className: "data-actions" },
+      h(
+        "button",
+        { className: "btn btn-primary btn-md data-btn", onClick: doExport },
+        h(IconDownload, { size: 13, sw: 2 }),
+        " Export backup"
+      ),
+      h(
+        "button",
+        {
+          className: "btn btn-md data-btn",
+          onClick: () => fileRef.current && fileRef.current.click()
+        },
+        h(IconUpload, { size: 13, sw: 2 }),
+        " Import"
+      ),
+      h("input", {
+        ref: fileRef,
+        type: "file",
+        accept: "application/json,.json",
+        className: "hidden-file",
+        onChange: onFile
+      })
+    ),
+    msg && h("div", { className: "data-note mono" }, msg),
+    h(
+      "div",
+      { className: "data-note" },
+      "Everything lives in this browser's local storage. Export a backup occasionally — clearing site data (or iOS evicting storage) would otherwise wipe your history."
+    )
+  );
+}
+
+// =============================================================================
+// Summary tab — 14- or 30-day rolling view. Strength volume is stacked by
+// category (push / pull / legs / core-iso); cardio kcal is single-colour.
+// =============================================================================
+const CARDIO_CHART_COLOR = "#3B6FA0";
+
+function SummaryTab({ refreshKey, onChange }) {
+  const [range, setRange] = useState(14); // 14 or 30
+
+  const { strengthData, cardioData } = useMemo(() => {
+    const today = todayKey();
+    const sData = [];
+    const cData = [];
+    for (let i = range - 1; i >= 0; i--) {
+      const dk = dateKeyOffset(today, -i);
+      const sets = storage.get(`strength:${dk}`, []);
+      const ses = storage.get(`cardio:${dk}`, []);
+      const volByCat = { push: 0, pull: 0, legs: 0, coreiso: 0 };
+      for (const s of sets) volByCat[entryCat(s)] += setVolume(s);
+      const kcal = ses.reduce((a, s) => a + (s.kcal_burned || 0), 0);
+      const d = new Date(dk + "T12:00:00");
+      const label = ["S", "M", "T", "W", "T", "F", "S"][d.getDay()];
+      sData.push({
+        label,
+        parts: CATEGORIES.map(c => ({
+          color: CAT_COLORS[c.id],
+          value: volByCat[c.id]
+        }))
+      });
+      cData.push({
+        label,
+        parts: [{ color: CARDIO_CHART_COLOR, value: kcal }]
+      });
+    }
+    return { strengthData: sData, cardioData: cData };
   }, [refreshKey, range]);
-  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
-    className: "segment"
-  }, /*#__PURE__*/React.createElement("button", {
-    className: `segment-btn${range === 14 ? " active" : ""}`,
-    onClick: () => setRange(14)
-  }, /*#__PURE__*/React.createElement("span", null, "14 days")), /*#__PURE__*/React.createElement("button", {
-    className: `segment-btn${range === 30 ? " active" : ""}`,
-    onClick: () => setRange(30)
-  }, /*#__PURE__*/React.createElement("span", null, "30 days"))), data && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Panel, {
-    title: `Strength · ${range} days`
-  }, /*#__PURE__*/React.createElement(BarChart, {
-    data: data.map(d => ({
-      label: d.label,
-      value: d.vol
-    })),
-    color: "#C9542A"
-  })), /*#__PURE__*/React.createElement(Panel, {
-    title: `Cardio · ${range} days`,
-    titleBg: "#3B6FA0"
-  }, /*#__PURE__*/React.createElement(BarChart, {
-    data: data.map(d => ({
-      label: d.label,
-      value: d.kcal
-    })),
-    color: "#3B6FA0"
-  }))));
+
+  return h(
+    React.Fragment,
+    null,
+    h(
+      "div",
+      { className: "segment" },
+      h(
+        "button",
+        {
+          className: `segment-btn${range === 14 ? " active" : ""}`,
+          onClick: () => setRange(14)
+        },
+        h("span", null, "14 days")
+      ),
+      h(
+        "button",
+        {
+          className: `segment-btn${range === 30 ? " active" : ""}`,
+          onClick: () => setRange(30)
+        },
+        h("span", null, "30 days")
+      )
+    ),
+    h(
+      Panel,
+      { title: `Strength · ${range} days` },
+      h(BarChart, { data: strengthData }),
+      h(
+        "div",
+        { className: "legend" },
+        CATEGORIES.map(c =>
+          h(
+            "span",
+            { key: c.id, className: "legend-item" },
+            h("span", {
+              className: "legend-swatch",
+              style: { background: CAT_COLORS[c.id] }
+            }),
+            CAT_LABELS[c.id]
+          )
+        )
+      )
+    ),
+    h(
+      Panel,
+      { title: `Cardio · ${range} days`, titleBg: CARDIO_CHART_COLOR },
+      h(BarChart, { data: cardioData })
+    ),
+    h(DataPanel, { onImported: onChange })
+  );
 }
 
 // =============================================================================
 // Bottom nav
 // =============================================================================
-const TABS = [{
-  id: "today",
-  label: "Today",
-  Icon: IconCalendar
-}, {
-  id: "log",
-  label: "Log",
-  Icon: IconPlus
-}, {
-  id: "summary",
-  label: "Summary",
-  Icon: IconActivity
-}];
-function BottomNav({
-  active,
-  onChange
-}) {
-  return /*#__PURE__*/React.createElement("nav", {
-    className: "bottom-nav"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "bottom-nav-inner"
-  }, TABS.map(({
-    id,
-    label,
-    Icon
-  }) => {
-    const on = active === id;
-    return /*#__PURE__*/React.createElement("button", {
-      key: id,
-      onClick: () => onChange(id),
-      className: `tab${on ? " tab-active" : ""}`,
-      "aria-label": label,
-      title: label
-    }, /*#__PURE__*/React.createElement(Icon, {
-      size: 22,
-      sw: on ? 2 : 1.75
-    }), /*#__PURE__*/React.createElement("span", {
-      className: "tab-label"
-    }, label));
-  })));
+const TABS = [
+  { id: "today", label: "Today", Icon: IconCalendar },
+  { id: "log", label: "Log", Icon: IconPlus },
+  { id: "summary", label: "Summary", Icon: IconActivity }
+];
+function BottomNav({ active, onChange }) {
+  return h(
+    "nav",
+    { className: "bottom-nav" },
+    h(
+      "div",
+      { className: "bottom-nav-inner" },
+      TABS.map(({ id, label, Icon }) => {
+        const on = active === id;
+        return h(
+          "button",
+          {
+            key: id,
+            onClick: () => onChange(id),
+            className: `tab${on ? " tab-active" : ""}`,
+            "aria-label": label,
+            title: label
+          },
+          h(Icon, { size: 22, sw: on ? 2 : 1.75 }),
+          h("span", { className: "tab-label" }, label)
+        );
+      })
+    )
+  );
 }
 
 // =============================================================================
 // App shell
 // =============================================================================
+const SW_IDLE = {
+  phase: "idle",
+  totalStartAt: null,
+  setStartAt: null,
+  setDoneMs: 0,
+  restStartAt: null
+};
+
 function App() {
   const [tab, setTab] = useState("today");
   const [dateKey, setDateKey] = useState(todayKey());
   const [refreshKey, setRefreshKey] = useState(0);
-  const [exerciseDict, setExerciseDict] = useState({});
   const [pendingExercise, setPendingExercise] = useState(null);
   const [pendingCardio, setPendingCardio] = useState(null);
 
-  // activeSession persists across reloads via localStorage.
-  // Shape: { title, exercises: [{name, cat, input, sets}], completed: [name, ...] }
-  const [activeSession, setActiveSession] = useState(() => {
-    try {
-      const raw = localStorage.getItem("exercise-tracker:active_session");
-      return raw ? JSON.parse(raw) : null;
-    } catch {
-      return null;
-    }
-  });
+  // activeSession persists across reloads (same storage key as v2).
+  // Shape: { title, exercises: [{name, cat, input, sets}], completed: [...] }
+  const [activeSession, setActiveSession] = useState(() =>
+    storage.get("active_session", null)
+  );
 
-  // Stopwatch state lives here (not inside Stopwatch) so it keeps running when
-  // navigating between tabs, and persists across reloads.
-  // Shape: { phase: 'idle'|'set'|'rest', totalStartAt, setStartAt, setDoneMs, restStartAt }
-  const [sw, setSw] = useState(() => {
-    try {
-      const raw = localStorage.getItem("exercise-tracker:stopwatch");
-      if (raw) return JSON.parse(raw);
-    } catch {}
-    return {
-      phase: "idle",
-      totalStartAt: null,
-      setStartAt: null,
-      setDoneMs: 0,
-      restStartAt: null
-    };
-  });
+  // Stopwatch state lives here so it keeps running across tabs and reloads.
+  const [sw, setSw] = useState(() => storage.get("stopwatch", SW_IDLE));
+
   const bump = () => setRefreshKey(x => x + 1);
-  useEffect(() => {
-    storage.get("exercise_dict", {}).then(setExerciseDict);
-  }, [refreshKey]);
+
+  // Refresh data when switching tabs (cheap now that storage is sync).
   useEffect(() => {
     bump();
   }, [tab]);
 
   // Persist activeSession on every change.
   useEffect(() => {
-    try {
-      if (activeSession === null) {
-        localStorage.removeItem("exercise-tracker:active_session");
-      } else {
-        localStorage.setItem("exercise-tracker:active_session", JSON.stringify(activeSession));
-      }
-    } catch (err) {
-      console.error("save active_session", err);
+    if (activeSession === null) {
+      storage.remove("active_session");
+    } else {
+      storage.set("active_session", activeSession);
     }
   }, [activeSession]);
 
   // Persist stopwatch on every change.
   useEffect(() => {
-    try {
-      localStorage.setItem("exercise-tracker:stopwatch", JSON.stringify(sw));
-    } catch (err) {
-      console.error("save stopwatch", err);
-    }
+    storage.set("stopwatch", sw);
   }, [sw]);
 
   // Stopwatch handlers
   function swStart() {
     const t = Date.now();
-    setSw(p => {
-      var _p$totalStartAt;
-      return {
-        ...p,
-        phase: "set",
-        totalStartAt: (_p$totalStartAt = p.totalStartAt) !== null && _p$totalStartAt !== void 0 ? _p$totalStartAt : t,
-        setStartAt: t,
-        setDoneMs: 0,
-        restStartAt: null
-      };
-    });
+    setSw(p => ({
+      ...p,
+      phase: "set",
+      totalStartAt: p.totalStartAt != null ? p.totalStartAt : t,
+      setStartAt: t,
+      setDoneMs: 0,
+      restStartAt: null
+    }));
   }
   function swRest() {
     setSw(p => {
@@ -2982,30 +3191,19 @@ function App() {
     });
   }
   function swEnd() {
-    setSw({
-      phase: "idle",
-      totalStartAt: null,
-      setStartAt: null,
-      setDoneMs: 0,
-      restStartAt: null
-    });
+    setSw({ ...SW_IDLE });
   }
+
   function handleSelectExercise(name) {
     setPendingExercise(name);
     setTab("log");
   }
   function handleStartCardio(type, durationMin) {
-    setPendingCardio({
-      type,
-      duration_min: durationMin
-    });
+    setPendingCardio({ type, duration_min: durationMin });
     setTab("log");
   }
   function handleStartSession(session) {
-    setActiveSession({
-      ...session,
-      completed: []
-    });
+    setActiveSession({ ...session, completed: [] });
     setTab("log");
   }
   function handleEndSession() {
@@ -3017,54 +3215,58 @@ function App() {
       if (!prev.exercises.some(e => e.name === name)) return prev;
       const completed = prev.completed || [];
       if (completed.includes(name)) return prev;
-      return {
-        ...prev,
-        completed: [...completed, name]
-      };
+      return { ...prev, completed: [...completed, name] };
     });
   }
-  return /*#__PURE__*/React.createElement("div", {
-    className: "app"
-  }, /*#__PURE__*/React.createElement("header", {
-    className: "app-head"
-  }, /*#__PURE__*/React.createElement("h1", {
-    className: "app-title"
-  }, "Exercise")), /*#__PURE__*/React.createElement("main", {
-    className: "app-main"
-  }, tab === "today" && /*#__PURE__*/React.createElement(TodayView, {
-    dateKey: dateKey,
-    setDateKey: setDateKey,
-    refreshKey: refreshKey,
-    onChange: bump,
-    exerciseDict: exerciseDict,
-    onSelectExercise: handleSelectExercise,
-    onStartSession: handleStartSession,
-    onStartCardio: handleStartCardio
-  }), tab === "log" && /*#__PURE__*/React.createElement(LogScreen, {
-    dateKey: dateKey,
-    setDateKey: setDateKey,
-    refreshKey: refreshKey,
-    onChange: bump,
-    pendingExercise: pendingExercise,
-    clearPending: () => setPendingExercise(null),
-    activeSession: activeSession,
-    onEndSession: handleEndSession,
-    onCompleteExercise: handleCompleteExercise,
-    pendingCardio: pendingCardio,
-    clearPendingCardio: () => setPendingCardio(null),
-    sw: sw,
-    swStart: swStart,
-    swRest: swRest,
-    swEnd: swEnd
-  }), tab === "summary" && /*#__PURE__*/React.createElement(SummaryTab, {
-    refreshKey: refreshKey
-  })), /*#__PURE__*/React.createElement(BottomNav, {
-    active: tab,
-    onChange: setTab
-  }));
+
+  return h(
+    "div",
+    { className: "app" },
+    h(
+      "header",
+      { className: "app-head" },
+      h("h1", { className: "app-title" }, "Exercise")
+    ),
+    h(
+      "main",
+      { className: "app-main" },
+      tab === "today" &&
+        h(TodayView, {
+          dateKey,
+          setDateKey,
+          refreshKey,
+          onChange: bump,
+          onSelectExercise: handleSelectExercise,
+          onStartSession: handleStartSession,
+          onStartCardio: handleStartCardio
+        }),
+      tab === "log" &&
+        h(LogScreen, {
+          dateKey,
+          setDateKey,
+          refreshKey,
+          onChange: bump,
+          pendingExercise,
+          clearPending: () => setPendingExercise(null),
+          activeSession,
+          onEndSession: handleEndSession,
+          onCompleteExercise: handleCompleteExercise,
+          pendingCardio,
+          clearPendingCardio: () => setPendingCardio(null),
+          sw,
+          swStart,
+          swRest,
+          swEnd
+        }),
+      tab === "summary" &&
+        h(SummaryTab, { refreshKey, onChange: bump })
+    ),
+    h(BottomNav, { active: tab, onChange: setTab })
+  );
 }
+
 const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(/*#__PURE__*/React.createElement(App, null));
+root.render(h(App, null));
 </script>
 </body>
 </html>
