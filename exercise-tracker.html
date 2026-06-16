@@ -162,7 +162,7 @@ input[type=number] { -moz-appearance: textfield; }
 .session-row {
   width: 100%;
   display: grid;
-  grid-template-columns: 70px 1fr auto;
+  grid-template-columns: 84px 1fr auto;
   align-items: center; gap: 10px;
   padding: 0 8px 0 14px;
   border-bottom: 1px solid var(--cream-2);
@@ -177,9 +177,12 @@ input[type=number] { -moz-appearance: textfield; }
 }
 .session-pick:active { opacity: 0.55; }
 .session-cat {
+  display: inline-flex; align-items: center; justify-content: center; gap: 3px;
   font-size: 9.5px; font-weight: 600; letter-spacing: 0.04em;
-  border: 1px solid; padding: 2px 3px; text-align: center;
+  border: 1px solid; padding: 6px 5px; text-align: center; line-height: 1;
 }
+.session-cat:active { opacity: 0.55; }
+.session-cat-lbl { white-space: nowrap; }
 .session-name { font-size: 13.5px; font-weight: 500; }
 .session-sets { font-size: 12px; color: var(--ink-s); font-weight: 500; }
 .session-cycle {
@@ -1423,7 +1426,6 @@ function pickFromCat(catId, n, lastUsed) {
 
 function SuggestedSessions({ history, onSelectExercise, onStartSession }) {
   const [openFull, setOpenFull] = useState(false);
-  const [openTargeted, setOpenTargeted] = useState(false);
 
   const { usage, recent, pastLastUsed } = useMemo(() => {
     const counts = { push: 0, pull: 0, legs: 0, coreiso: 0 };
@@ -1451,11 +1453,11 @@ function SuggestedSessions({ history, onSelectExercise, onStartSession }) {
     };
   }, [history]);
 
-  // Full body (4 exercises):
+  // Strength (4 exercises):
   //   • 2× the LESS-trained of push/pull over the last 7 days
   //   • 1× the other of push/pull (so both patterns are always hit)
   //   • 1× the LESS-trained of legs/core-iso
-  function buildFullBody() {
+  function buildStrength() {
     const upperLeast = usage.push <= usage.pull ? "push" : "pull";
     const upperOther = upperLeast === "push" ? "pull" : "push";
     const lowerLeast = usage.legs <= usage.coreiso ? "legs" : "coreiso";
@@ -1466,17 +1468,7 @@ function SuggestedSessions({ history, onSelectExercise, onStartSession }) {
     ].map(e => ({ ...e, sets: SUGGESTED_SETS }));
   }
 
-  // Targeted: 3 from the least-used of push/pull + 1 from legs/coreiso.
-  function buildTargeted() {
-    const primary = usage.push <= usage.pull ? "push" : "pull";
-    const lowerLeast = usage.legs <= usage.coreiso ? "legs" : "coreiso";
-    return [
-      ...pickFromCat(primary, 3, pastLastUsed),
-      ...pickFromCat(lowerLeast, 1, pastLastUsed)
-    ].map(e => ({ ...e, sets: SUGGESTED_SETS }));
-  }
-
-  // High recent load → suggest rest, hide both session cards.
+  // High recent load → suggest rest, hide the session card.
   if (
     recent.sets > STRENGTH_REST_SETS_2D ||
     recent.volume > STRENGTH_REST_VOL_2D
@@ -1490,15 +1482,14 @@ function SuggestedSessions({ history, onSelectExercise, onStartSession }) {
         h(
           "div",
           { className: "cardio-rec-head" },
-          h("span", { className: "cardio-rec-title" }, "Recommended session"),
+          h("span", { className: "cardio-rec-title" }, "Strength"),
           h("span", { className: "cardio-rec-pill mono" }, "REST")
         )
       )
     );
   }
 
-  const fullBody = buildFullBody();
-  const targeted = buildTargeted();
+  const strength = buildStrength();
 
   // Ordered rotation of a category's exercises, oldest-logged first.
   function catRotation(catId) {
@@ -1519,25 +1510,14 @@ function SuggestedSessions({ history, onSelectExercise, onStartSession }) {
     "div",
     { className: "sessions" },
     h(SessionCard, {
-      label: "Full body session",
+      label: "Strength",
       open: openFull,
       onToggle: () => setOpenFull(!openFull),
-      baseExercises: fullBody,
+      baseExercises: strength,
       onSelectExercise,
       onStartSession: exs =>
         onStartSession &&
-        onStartSession({ title: "Full body session", exercises: exs }),
-      catRotation
-    }),
-    h(SessionCard, {
-      label: "Targeted session",
-      open: openTargeted,
-      onToggle: () => setOpenTargeted(!openTargeted),
-      baseExercises: targeted,
-      onSelectExercise,
-      onStartSession: exs =>
-        onStartSession &&
-        onStartSession({ title: "Targeted session", exercises: exs }),
+        onStartSession({ title: "Strength", exercises: exs }),
       catRotation
     })
   );
@@ -1565,7 +1545,9 @@ function SessionCard({
 
   const exercises = baseExercises.map((ex, i) => overrides[i] || ex);
 
-  function cycleSlot(i) {
+  // Cycle the exercise WITHIN the current category (oldest-used first,
+  // skipping anything already used in another slot).
+  function cycleExercise(i) {
     const current = exercises[i];
     const rotation = catRotation(current.cat);
     if (rotation.length <= 1) return;
@@ -1579,6 +1561,28 @@ function SessionCard({
         setOverrides(prev => ({
           ...prev,
           [i]: { ...cand, sets: SUGGESTED_SETS }
+        }));
+        return;
+      }
+    }
+  }
+
+  // Cycle the CATEGORY (push → pull → legs → core/iso), loading the freshest
+  // unused exercise from the next category that has one available.
+  function cycleCategory(i) {
+    const order = CATEGORIES.map(c => c.id);
+    const current = exercises[i];
+    const curCatIdx = order.indexOf(current.cat);
+    const usedElsewhere = new Set(
+      exercises.filter((_, idx) => idx !== i).map(e => e.name)
+    );
+    for (let step = 1; step <= order.length; step++) {
+      const nextCat = order[(curCatIdx + step) % order.length];
+      const pick = catRotation(nextCat).find(e => !usedElsewhere.has(e.name));
+      if (pick) {
+        setOverrides(prev => ({
+          ...prev,
+          [i]: { ...pick, sets: SUGGESTED_SETS }
         }));
         return;
       }
@@ -1618,11 +1622,18 @@ function SessionCard({
                   h(
                     "button",
                     {
-                      className: "session-cat mono session-pick",
+                      className: "session-cat mono",
                       style: { color, borderColor: color },
-                      onClick: () => onSelectExercise(ex.name)
+                      onClick: () => cycleCategory(i),
+                      "aria-label": "Change muscle group",
+                      title: "Change muscle group"
                     },
-                    CAT_LABELS[ex.cat]
+                    h(IconCycle, { size: 11, sw: 2 }),
+                    h(
+                      "span",
+                      { className: "session-cat-lbl" },
+                      CAT_LABELS[ex.cat]
+                    )
                   ),
                   h(
                     "button",
@@ -1636,9 +1647,9 @@ function SessionCard({
                     "button",
                     {
                       className: "session-cycle",
-                      onClick: () => cycleSlot(i),
-                      "aria-label": "Swap exercise",
-                      title: "Swap exercise"
+                      onClick: () => cycleExercise(i),
+                      "aria-label": "Change exercise",
+                      title: "Change exercise"
                     },
                     h(IconCycle, { size: 15, sw: 1.75 })
                   )
@@ -1717,7 +1728,7 @@ function RecommendedCardio({ history, onStart }) {
       h(
         "div",
         { className: "cardio-rec-head" },
-        h("span", { className: "cardio-rec-title" }, "Recommended cardio"),
+        h("span", { className: "cardio-rec-title" }, "Cardio"),
         h("span", { className: "cardio-rec-pill mono" }, "REST")
       )
     );
@@ -1731,7 +1742,7 @@ function RecommendedCardio({ history, onStart }) {
     h(
       "div",
       { className: "cardio-rec-head" },
-      h("span", { className: "cardio-rec-title" }, "Recommended cardio"),
+      h("span", { className: "cardio-rec-title" }, "Cardio"),
       h("span", { className: "cardio-rec-pill mono" }, rec.minutes, " min")
     ),
     h(
@@ -2756,7 +2767,7 @@ function BarChart({ data, height = 124 }) {
 
   const W = 320,
     H = height;
-  const pad = { top: 22, bottom: 22, left: 4, right: 4 };
+  const pad = { top: 30, bottom: 22, left: 4, right: 4 };
   const chartW = W - pad.left - pad.right;
   const chartH = H - pad.top - pad.bottom;
   const n = data.length || 1;
@@ -2865,7 +2876,10 @@ function BarChart({ data, height = 124 }) {
         const hgt = total > 0 ? (total / max) * chartH : 0;
         const cx = pad.left + sel * colW + colW / 2;
         const barTop = H - pad.bottom - hgt;
-        const ty = Math.max(pad.top + 9, barTop - 4);
+        // Always sit just above the bar. barTop is never less than pad.top
+        // (a full-height bar tops out there), so this never overlaps a bar
+        // and never clips the top of the chart.
+        const ty = barTop - 7;
         return h(
           "text",
           {
