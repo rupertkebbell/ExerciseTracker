@@ -990,27 +990,18 @@ const KCAL_PER_MIN = { jog: 13, run: 16, bike: 13, stairs: 12 };
 const PACE_MIN_PER_KM = { jog: 5.5, run: 4.75 };
 
 // Cardio recommendation thresholds
-const CARDIO_REST_3D = 1200; // 3-day kcal above this → REST
-const CARDIO_TARGET_7D = 1500; // 7-day kcal target
+// Cardio recommendation targets. Rest days are emergent — there is no fixed
+// calendar. The aim is CARDIO_WEEKLY_TARGET kcal over a rolling 7 days,
+// delivered as CARDIO_SESSIONS_PER_WEEK sessions plus CARDIO_REST_DAYS_PER_WEEK
+// rest days, sized dynamically and planned a week ahead (see planCardioSession).
+const CARDIO_REST_3D = 1200; // 3-day kcal above this → REST (recovery guard)
+const CARDIO_WEEKLY_TARGET = 1500; // rolling 7-day kcal goal
+const CARDIO_SESSIONS_PER_WEEK = 5; // target sessions per 7 days
+const CARDIO_REST_DAYS_PER_WEEK = 2; // target rest days per 7 days (7 − sessions)
 const CARDIO_MAX_SESSION = 500; // cap kcal per session
-const CARDIO_MIN_SESSION = 100; // below this → REST (already done plenty)
+const CARDIO_MIN_SESSION = 100; // a session sized below this becomes a rest
+const CARDIO_CATCHUP = 0.5; // fraction of last week's miss/surplus to repay
 const CARDIO_REC_TYPES = ["jog", "bike", "stairs"];
-
-// Weekly cardio schedule, by day-of-week (0 = Sun … 6 = Sat).
-// Pattern: 3 on (Mon–Wed), 1 off (Thu), 2 on (Fri–Sat), 1 off (Sun).
-const CARDIO_SCHEDULE = {
-  0: false, // Sun OFF
-  1: true, // Mon ON
-  2: true, // Tue ON
-  3: true, // Wed ON
-  4: false, // Thu OFF
-  5: true, // Fri ON
-  6: true // Sat ON
-};
-const CARDIO_SESSIONS_PER_WEEK = Object.values(CARDIO_SCHEDULE).filter(
-  Boolean
-).length;
-const CARDIO_BASELINE_KCAL = CARDIO_TARGET_7D / CARDIO_SESSIONS_PER_WEEK; // 300
 
 // Strength REST gate (2-day window)
 const STRENGTH_REST_SETS_2D = 20;
@@ -1670,23 +1661,92 @@ function SessionCard({
 
 // =============================================================================
 // Recommended cardio (Today tab)
-// Same logic as v2, but derived from the shared history scan.
 // =============================================================================
+
+// Pure forward planner. Given per-day cardio kcal for the days BEFORE the
+// selected day (newest first; index 0 = yesterday), decide today's session.
+// Returns { rest: true } or { rest: false, kcal }.
+//
+// Priority of logic (each step overrides the ones below it):
+//   1. Recovery guard — if the last 3 days burned > CARDIO_REST_3D, rest.
+//   2. Weekly target — size the coming week to repay the rolling-7 miss/surplus
+//      (CARDIO_CATCHUP of it), capped at what 5×max can deliver.
+//   3. Cadence — spread the week as N sessions (≤5, so ≥2 rest days always) of
+//      equal size; shrink N only if sessions would fall below the floor.
+//   4. Look-ahead spacing — place today's rest by how many days you've trained
+//      in a row, widened/tightened by how many of the last 7 days were rests.
+function planCardioSession(dayKcal) {
+  const sliceSum = n =>
+    dayKcal.slice(0, n).reduce((a, v) => a + (v || 0), 0);
+  const kcal3 = sliceSum(3);
+  const kcal7 = sliceSum(7);
+
+  let restDays7 = 0;
+  for (let i = 0; i < 7; i++) if ((dayKcal[i] || 0) === 0) restDays7++;
+
+  // Consecutive most-recent days that had cardio (drives rest spacing).
+  let daysSinceRest = 0;
+  for (let i = 0; i < dayKcal.length; i++) {
+    if ((dayKcal[i] || 0) > 0) daysSinceRest++;
+    else break;
+  }
+
+  // 1) Recovery guard.
+  if (kcal3 > CARDIO_REST_3D) return { rest: true };
+
+  // 2) Forward weekly goal, repaying CARDIO_CATCHUP of the trailing drift,
+  //    capped at the most 5 sessions can deliver (so N never needs to exceed 5).
+  const trailingDeficit = CARDIO_WEEKLY_TARGET - kcal7;
+  const targetForward = Math.max(
+    0,
+    Math.min(
+      CARDIO_SESSIONS_PER_WEEK * CARDIO_MAX_SESSION,
+      CARDIO_WEEKLY_TARGET + CARDIO_CATCHUP * trailingDeficit
+    )
+  );
+  // At/over target → nothing meaningful to burn → rest day.
+  if (targetForward < CARDIO_MIN_SESSION) return { rest: true };
+
+  // 3) Plan the forward week. Prefer 5 sessions; only drop the count if a
+  //    session would fall below the floor (i.e. you're ahead). N ≤ 5 keeps at
+  //    least 2 rest days every week by construction.
+  let n = CARDIO_SESSIONS_PER_WEEK;
+  let size = targetForward / n;
+  while (n > 1 && size < CARDIO_MIN_SESSION) {
+    n--;
+    size = targetForward / n;
+  }
+  size = Math.min(CARDIO_MAX_SESSION, Math.round(size));
+  const restsForward = CARDIO_SESSIONS_PER_WEEK + CARDIO_REST_DAYS_PER_WEEK - n; // 7 − n
+
+  // 4) Decide whether TODAY is one of those rests. Rests are spread evenly:
+  //    a rest is due once you've trained `threshold` days in a row. The
+  //    threshold widens if you've already rested your weekly quota, and
+  //    tightens if you haven't rested at all in the last 7 days.
+  let threshold = Math.max(1, Math.floor(7 / restsForward));
+  if (restDays7 >= CARDIO_REST_DAYS_PER_WEEK) threshold += 1;
+  if (restDays7 === 0) threshold = Math.max(1, threshold - 1);
+
+  if (daysSinceRest >= threshold) return { rest: true };
+  return { rest: false, kcal: size };
+}
+
 function RecommendedCardio({ history, onStart }) {
   const rec = useMemo(() => {
-    let kcal3 = 0,
-      kcal7 = 0;
+    // Per-day cardio kcal, newest first (index 0 = the day before today).
+    const dayKcal = history.map(d =>
+      d.cardio.reduce((a, s) => a + (s.kcal_burned || 0), 0)
+    );
+
+    // Type: least-recently-used of jog / bike / stairs (never-used first).
     const lastUsed = { jog: null, bike: null, stairs: null };
     for (const day of history) {
       for (const s of day.cardio) {
-        if (day.dayIndex <= 3) kcal3 += s.kcal_burned || 0;
-        if (day.dayIndex <= 7) kcal7 += s.kcal_burned || 0;
         if (lastUsed[s.type] !== undefined && lastUsed[s.type] === null) {
           lastUsed[s.type] = s.started_at;
         }
       }
     }
-    // Pick oldest type (null/never = highest priority).
     const sorted = [...CARDIO_REC_TYPES].sort((a, b) => {
       if (!lastUsed[a] && !lastUsed[b]) return 0;
       if (!lastUsed[a]) return -1;
@@ -1695,27 +1755,13 @@ function RecommendedCardio({ history, onStart }) {
     });
     const type = sorted[0];
 
-    const dow = new Date(todayKey() + "T12:00:00").getDay();
-    const isOnDay = CARDIO_SCHEDULE[dow] === true;
-
-    let rest = false,
-      minutes = 0;
-    if (kcal3 > CARDIO_REST_3D) {
-      rest = true; // heavy 3-day load
-    } else if (!isOnDay) {
-      rest = true; // scheduled off day
-    } else {
-      const deficit = CARDIO_TARGET_7D - kcal7; // can be negative
-      const sessionKcal =
-        CARDIO_BASELINE_KCAL + deficit / CARDIO_SESSIONS_PER_WEEK;
-      const capped = Math.min(sessionKcal, CARDIO_MAX_SESSION);
-      if (capped < CARDIO_MIN_SESSION) {
-        rest = true; // already done plenty
-      } else {
-        minutes = Math.ceil(capped / KCAL_PER_MIN[type]);
-      }
-    }
-    return { type, rest, minutes };
+    const plan = planCardioSession(dayKcal);
+    if (plan.rest) return { type, rest: true, minutes: 0 };
+    return {
+      type,
+      rest: false,
+      minutes: Math.ceil(plan.kcal / KCAL_PER_MIN[type])
+    };
   }, [history]);
 
   const found = CARDIO_TYPES.find(t => t.id === rec.type);
