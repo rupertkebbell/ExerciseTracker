@@ -444,21 +444,27 @@ input[type=number] { -moz-appearance: textfield; }
 }
 .bar-chart { width: 100%; height: auto; display: block; }
 
-/* Chart legend (v3: category-split strength chart) */
+/* Chart legend doubles as a category filter (v3) */
 .legend {
-  display: flex; flex-wrap: wrap; gap: 4px 12px;
-  padding: 8px 2px 0;
+  display: flex; flex-wrap: wrap; gap: 6px 6px;
+  padding: 10px 2px 2px;
 }
-.legend-item {
-  display: flex; align-items: center; gap: 5px;
-  font-size: 10px; color: var(--ink-s);
-  letter-spacing: 0.04em;
+.legend-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 10px; letter-spacing: 0.04em;
   font-family: 'JetBrains Mono', ui-monospace, monospace;
+  color: var(--ink-s);
+  border: 1px solid var(--line);
+  background: var(--cream);
+  padding: 3px 7px;
 }
+.legend-btn:active { opacity: 0.6; }
 .legend-swatch {
   width: 9px; height: 9px; display: inline-block;
   border: 1px solid var(--line);
 }
+.legend-off { opacity: 0.5; }
+.legend-off .legend-lbl { text-decoration: line-through; }
 
 /* Data backup panel (v3: export / import) */
 .data-actions { display: flex; gap: 8px; }
@@ -3062,34 +3068,63 @@ const CARDIO_CHART_COLOR = "#3B6FA0";
 
 function SummaryTab({ refreshKey, onChange }) {
   const [range, setRange] = useState(14); // 14 or 30
+  // Which strength categories are shown in the chart. Tap the legend to filter.
+  const [activeCats, setActiveCats] = useState({
+    push: true,
+    pull: true,
+    legs: true,
+    coreiso: true
+  });
 
-  const { strengthData, cardioData } = useMemo(() => {
+  // Heavy pass: read storage once per range/refresh and keep the full
+  // per-day breakdown. Filtering categories below is cheap and doesn't re-read.
+  const daily = useMemo(() => {
     const today = todayKey();
-    const sData = [];
-    const cData = [];
+    const out = [];
     for (let i = range - 1; i >= 0; i--) {
       const dk = dateKeyOffset(today, -i);
       const sets = storage.get(`strength:${dk}`, []);
       const ses = storage.get(`cardio:${dk}`, []);
-      const volByCat = { push: 0, pull: 0, legs: 0, coreiso: 0 };
-      for (const s of sets) volByCat[entryCat(s)] += setVolume(s);
+      const vols = { push: 0, pull: 0, legs: 0, coreiso: 0 };
+      for (const s of sets) vols[entryCat(s)] += setVolume(s);
       const kcal = ses.reduce((a, s) => a + (s.kcal_burned || 0), 0);
       const d = new Date(dk + "T12:00:00");
       const label = ["S", "M", "T", "W", "T", "F", "S"][d.getDay()];
-      sData.push({
-        label,
-        parts: CATEGORIES.map(c => ({
-          color: CAT_COLORS[c.id],
-          value: volByCat[c.id]
-        }))
-      });
-      cData.push({
-        label,
-        parts: [{ color: CARDIO_CHART_COLOR, value: kcal }]
-      });
+      out.push({ label, vols, kcal });
     }
-    return { strengthData: sData, cardioData: cData };
+    return out;
   }, [refreshKey, range]);
+
+  // Only the selected categories become stacked segments; the chart's totals
+  // and average line then reflect the filtered volume.
+  const strengthData = useMemo(
+    () =>
+      daily.map(d => ({
+        label: d.label,
+        parts: CATEGORIES.filter(c => activeCats[c.id]).map(c => ({
+          color: CAT_COLORS[c.id],
+          value: d.vols[c.id]
+        }))
+      })),
+    [daily, activeCats]
+  );
+  const cardioData = useMemo(
+    () =>
+      daily.map(d => ({
+        label: d.label,
+        parts: [{ color: CARDIO_CHART_COLOR, value: d.kcal }]
+      })),
+    [daily]
+  );
+
+  function toggleCat(id) {
+    setActiveCats(prev => {
+      const next = { ...prev, [id]: !prev[id] };
+      // Never allow an empty chart — ignore turning off the last category.
+      if (!Object.values(next).some(Boolean)) return prev;
+      return next;
+    });
+  }
 
   return h(
     React.Fragment,
@@ -3121,17 +3156,26 @@ function SummaryTab({ refreshKey, onChange }) {
       h(
         "div",
         { className: "legend" },
-        CATEGORIES.map(c =>
-          h(
-            "span",
-            { key: c.id, className: "legend-item" },
+        CATEGORIES.map(c => {
+          const on = activeCats[c.id];
+          return h(
+            "button",
+            {
+              key: c.id,
+              className: `legend-btn${on ? "" : " legend-off"}`,
+              onClick: () => toggleCat(c.id),
+              "aria-pressed": on,
+              title: on
+                ? `Hide ${CAT_LABELS[c.id]}`
+                : `Show ${CAT_LABELS[c.id]}`
+            },
             h("span", {
               className: "legend-swatch",
-              style: { background: CAT_COLORS[c.id] }
+              style: { background: on ? CAT_COLORS[c.id] : "transparent" }
             }),
-            CAT_LABELS[c.id]
-          )
-        )
+            h("span", { className: "legend-lbl" }, CAT_LABELS[c.id])
+          );
+        })
       )
     ),
     h(
