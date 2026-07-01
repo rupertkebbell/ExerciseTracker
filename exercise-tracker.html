@@ -1000,7 +1000,8 @@ const PACE_MIN_PER_KM = { jog: 5.5, run: 4.75 };
 // calendar. The aim is CARDIO_WEEKLY_TARGET kcal over a rolling 7 days,
 // delivered as CARDIO_SESSIONS_PER_WEEK sessions plus CARDIO_REST_DAYS_PER_WEEK
 // rest days, sized dynamically and planned a week ahead (see planCardioSession).
-const CARDIO_REST_3D = 1200; // 3-day kcal above this → REST (recovery guard)
+const CARDIO_REST_3D = 900; // 3-day kcal above this → REST (recovery guard)
+const CARDIO_REST_2D = 700; // 2-day kcal above this → REST (recovery guard)
 const CARDIO_WEEKLY_TARGET = 1500; // rolling 7-day kcal goal
 const CARDIO_SESSIONS_PER_WEEK = 5; // target sessions per 7 days
 const CARDIO_REST_DAYS_PER_WEEK = 2; // target rest days per 7 days (7 − sessions)
@@ -1403,6 +1404,14 @@ function Stopwatch({ sw, onStart, onRest, onEnd }) {
 // =============================================================================
 const SUGGESTED_SETS = 3;
 
+// Order the 4 strength picks so the doubled category isn't consecutive.
+// upper = [A1, A2] (the doubled group), other = [B1], lower = [C1].
+// Result A1, B1, A2, C1 — adjacent pairs are always different categories
+// (A≠B and B≠C because one is upper and the other lower; A≠C likewise).
+function orderStrengthSlots(upper, other, lower) {
+  return [upper[0], other[0], upper[1], lower[0]].filter(Boolean);
+}
+
 // Pick up to n exercises from a category, excluding Other and hidden,
 // sorted by oldest last-used first. `lastUsed` maps exercise_name → ISO.
 function pickFromCat(catId, n, lastUsed) {
@@ -1450,19 +1459,21 @@ function SuggestedSessions({ history, onSelectExercise, onStartSession }) {
     };
   }, [history]);
 
-  // Strength (4 exercises):
-  //   • 2× the LESS-trained of push/pull over the last 7 days
-  //   • 1× the other of push/pull (so both patterns are always hit)
-  //   • 1× the LESS-trained of legs/core-iso
+  // Strength (4 exercises): the doubled group is split so the same category
+  // never appears back-to-back — e.g. push, pull, push, legs.
+  //   • 2× the LESS-trained of push/pull over the last 7 days (split apart)
+  //   • 1× the other of push/pull, placed between them
+  //   • 1× the LESS-trained of legs/core-iso, last
   function buildStrength() {
     const upperLeast = usage.push <= usage.pull ? "push" : "pull";
     const upperOther = upperLeast === "push" ? "pull" : "push";
     const lowerLeast = usage.legs <= usage.coreiso ? "legs" : "coreiso";
-    return [
-      ...pickFromCat(upperLeast, 2, pastLastUsed),
-      ...pickFromCat(upperOther, 1, pastLastUsed),
-      ...pickFromCat(lowerLeast, 1, pastLastUsed)
-    ].map(e => ({ ...e, sets: SUGGESTED_SETS }));
+    const ordered = orderStrengthSlots(
+      pickFromCat(upperLeast, 2, pastLastUsed),
+      pickFromCat(upperOther, 1, pastLastUsed),
+      pickFromCat(lowerLeast, 1, pastLastUsed)
+    );
+    return ordered.map(e => ({ ...e, sets: SUGGESTED_SETS }));
   }
 
   // High recent load → suggest rest, hide the session card.
@@ -1674,7 +1685,8 @@ function SessionCard({
 // Returns { rest: true } or { rest: false, kcal }.
 //
 // Priority of logic (each step overrides the ones below it):
-//   1. Recovery guard — if the last 3 days burned > CARDIO_REST_3D, rest.
+//   1. Recovery guard — rest if the last 2 days burned > CARDIO_REST_2D or the
+//      last 3 days burned > CARDIO_REST_3D.
 //   2. Weekly target — size the coming week to repay the rolling-7 miss/surplus
 //      (CARDIO_CATCHUP of it), capped at what 5×max can deliver.
 //   3. Cadence — spread the week as N sessions (≤5, so ≥2 rest days always) of
@@ -1684,6 +1696,7 @@ function SessionCard({
 function planCardioSession(dayKcal) {
   const sliceSum = n =>
     dayKcal.slice(0, n).reduce((a, v) => a + (v || 0), 0);
+  const kcal2 = sliceSum(2);
   const kcal3 = sliceSum(3);
   const kcal7 = sliceSum(7);
 
@@ -1697,8 +1710,8 @@ function planCardioSession(dayKcal) {
     else break;
   }
 
-  // 1) Recovery guard.
-  if (kcal3 > CARDIO_REST_3D) return { rest: true };
+  // 1) Recovery guards — heavy recent load always wins (2-day or 3-day).
+  if (kcal2 > CARDIO_REST_2D || kcal3 > CARDIO_REST_3D) return { rest: true };
 
   // 2) Forward weekly goal, repaying CARDIO_CATCHUP of the trailing drift,
   //    capped at the most 5 sessions can deliver (so N never needs to exceed 5).
