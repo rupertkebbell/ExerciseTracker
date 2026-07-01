@@ -1010,9 +1010,12 @@ const CARDIO_MIN_SESSION = 100; // a session sized below this becomes a rest
 const CARDIO_CATCHUP = 0.5; // fraction of last week's miss/surplus to repay
 const CARDIO_REC_TYPES = ["jog", "bike", "stairs"];
 
-// Strength REST gate (2-day window)
+// Strength REST gate (2-day window) — heavy-load safety backstop.
 const STRENGTH_REST_SETS_2D = 20;
 const STRENGTH_REST_VOL_2D = 10000;
+// Strength frequency: aim for ~3–4 sessions per 7 days. Achieved by resting
+// the day after any session (≈ every other day) and capping the weekly count.
+const STRENGTH_MAX_SESSIONS_7D = 4; // never suggest a session beyond this in a 7-day window
 
 // =============================================================================
 // Bodyweight equivalents (72 kg, 178 cm male)
@@ -1412,6 +1415,23 @@ function orderStrengthSlots(upper, other, lower) {
   return [upper[0], other[0], upper[1], lower[0]].filter(Boolean);
 }
 
+// True when today should be a strength REST day. Targets ~3–4 sessions per
+// 7 days: rest after a heavy 2-day load, once the weekly cap is reached, or
+// the day after any session (≈ every other day).
+function strengthShouldRest({
+  recentSets,
+  recentVol,
+  sessions7,
+  daysSinceStrength
+}) {
+  return (
+    recentSets > STRENGTH_REST_SETS_2D ||
+    recentVol > STRENGTH_REST_VOL_2D ||
+    sessions7 >= STRENGTH_MAX_SESSIONS_7D ||
+    daysSinceStrength === 0
+  );
+}
+
 // Pick up to n exercises from a category, excluding Other and hidden,
 // sorted by oldest last-used first. `lastUsed` maps exercise_name → ISO.
 function pickFromCat(catId, n, lastUsed) {
@@ -1433,31 +1453,43 @@ function pickFromCat(catId, n, lastUsed) {
 function SuggestedSessions({ history, onSelectExercise, onStartSession }) {
   const [openFull, setOpenFull] = useState(false);
 
-  const { usage, recent, pastLastUsed } = useMemo(() => {
-    const counts = { push: 0, pull: 0, legs: 0, coreiso: 0 };
-    let precSets = 0;
-    let precVol = 0;
-    const lastUsed = {};
-    // history is newest-first, so the first time we see an exercise is its
-    // most recent past use.
-    for (const day of history) {
-      for (const s of day.sets) {
-        if (day.dayIndex <= 2) {
-          if (s.input_type !== IN.CIRCUIT) precSets++;
-          precVol += setVolume(s);
+  const { usage, recent, pastLastUsed, sessions7, daysSinceStrength } =
+    useMemo(() => {
+      const counts = { push: 0, pull: 0, legs: 0, coreiso: 0 };
+      let precSets = 0;
+      let precVol = 0;
+      const lastUsed = {};
+      let sessionCount7 = 0; // days in the last 7 with any strength logged
+      let sinceStrength = 0; // consecutive most-recent days with NO strength
+      let streakOpen = true;
+      // history is newest-first, so the first time we see an exercise is its
+      // most recent past use, and history[0] is yesterday.
+      for (const day of history) {
+        const trained = day.sets.length > 0;
+        if (day.dayIndex <= 7 && trained) sessionCount7++;
+        if (streakOpen) {
+          if (trained) streakOpen = false; // most recent session found
+          else sinceStrength++;
         }
-        if (day.dayIndex <= 7) counts[entryCat(s)]++;
-        if (!lastUsed[s.exercise_name]) {
-          lastUsed[s.exercise_name] = s.performed_at;
+        for (const s of day.sets) {
+          if (day.dayIndex <= 2) {
+            if (s.input_type !== IN.CIRCUIT) precSets++;
+            precVol += setVolume(s);
+          }
+          if (day.dayIndex <= 7) counts[entryCat(s)]++;
+          if (!lastUsed[s.exercise_name]) {
+            lastUsed[s.exercise_name] = s.performed_at;
+          }
         }
       }
-    }
-    return {
-      usage: counts,
-      recent: { sets: precSets, volume: precVol },
-      pastLastUsed: lastUsed
-    };
-  }, [history]);
+      return {
+        usage: counts,
+        recent: { sets: precSets, volume: precVol },
+        pastLastUsed: lastUsed,
+        sessions7: sessionCount7,
+        daysSinceStrength: sinceStrength
+      };
+    }, [history]);
 
   // Strength (4 exercises): the doubled group is split so the same category
   // never appears back-to-back — e.g. push, pull, push, legs.
@@ -1476,10 +1508,17 @@ function SuggestedSessions({ history, onSelectExercise, onStartSession }) {
     return ordered.map(e => ({ ...e, sets: SUGGESTED_SETS }));
   }
 
-  // High recent load → suggest rest, hide the session card.
+  // Suggest REST when any of these hold:
+  //   • heavy 2-day load (safety backstop), or
+  //   • you've already hit the weekly session cap (~3–4/week), or
+  //   • you trained yesterday — space sessions to roughly every other day.
   if (
-    recent.sets > STRENGTH_REST_SETS_2D ||
-    recent.volume > STRENGTH_REST_VOL_2D
+    strengthShouldRest({
+      recentSets: recent.sets,
+      recentVol: recent.volume,
+      sessions7,
+      daysSinceStrength
+    })
   ) {
     return h(
       "div",
