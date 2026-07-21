@@ -807,13 +807,10 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 //   • Strength: 3 full-body sessions per 7-day span (was up to 4), always on
 //     non-consecutive days. Session shape unchanged (4 exercises × 3 sets
 //     ≈ 8–14 effective sets per muscle per week via fractional counting).
-//   • Cardio: 3 sessions per span (was 5), ~1,400 kcal/week — two easy
-//     zone-2 sessions (jog/bike, 20–45 min) plus ONE harder session
-//     (run/stairs, 20–30 min). Each pool rotates least-recently-used; jog and
-//     bike form the easy pool because cycling shows the least interference
-//     with lifting adaptations.
-//   • Coordination: cardio defers on days the strength engine suggests a
-//     lift ("LIFT DAY" card), so cardio lands on strength off-days.
+//   • Cardio: 3 sessions per span (was 5), ~1,400 kcal/week, each 20–45 min
+//     and rotating least-recently-used across jog/run/bike/stairs. Cardio and
+//     strength are recommended independently — neither engine defers to the
+//     other.
 //   • Shared full-rest gate: if the previous 6 days all had activity of any
 //     kind, both engines recommend REST — guaranteeing at least one
 //     completely empty day per week.
@@ -1005,28 +1002,26 @@ const CARDIO_TYPES = [
 const KCAL_PER_MIN = { jog: 13, run: 16, bike: 13, stairs: 12 };
 const PACE_MIN_PER_KM = { jog: 5.5, run: 4.75 };
 
-// Cardio recommendation targets (v4 regime).
-// Weekly shape: ~3 cardio sessions per 7-day span — 2 easy zone-2 sessions
-// (jog/bike, 20–45 min) + 1 harder session (run/stairs, 20–30 min) —
-// totalling ~CARDIO_WEEKLY_TARGET kcal (≈100–130 min). Cardio slots onto
-// non-lift days (see planCardioSession); rest days are emergent, and the
-// shared full-rest gate below guarantees at least one completely empty day
-// per week across BOTH engines.
+// Cardio recommendation targets.
+// Weekly shape: ~3 cardio sessions per 7-day span totalling
+// ~CARDIO_WEEKLY_TARGET kcal, each rotating least-recently-used across
+// CARDIO_REC_TYPES. Rest days are emergent (recovery guards + frequency cap +
+// spacing), and the shared full-rest gate below guarantees at least one
+// completely empty day per week across BOTH engines. Cardio and strength are
+// planned independently — neither engine defers to the other.
 const CARDIO_REST_3D = 1300; // 3-day kcal above this → REST (recovery guard)
 const CARDIO_REST_2D = 1000; // 2-day kcal above this → REST (recovery guard)
 const CARDIO_WEEKLY_TARGET = 1400; // rolling 7-day kcal goal
 const CARDIO_SESSIONS_PER_WEEK = 3; // target sessions per 7-day span
-const CARDIO_MAX_SESSION = 600; // cap kcal per session (≈45 min easy)
-const CARDIO_MIN_SESSION = 250; // sized below this → rest instead (≈20 min easy)
+const CARDIO_MAX_SESSION = 600; // cap kcal per session (≈45 min)
+const CARDIO_MIN_SESSION = 250; // sized below this → rest instead (≈20 min)
 const CARDIO_CATCHUP = 0.5; // fraction of last week's miss/surplus to repay
-// Easy sessions rotate jog/bike (cycling interferes least with lifting);
-// the one weekly hard session rotates run/stairs.
-const CARDIO_EASY_TYPES = ["jog", "bike"];
-const CARDIO_HARD_TYPES = ["run", "stairs"];
-const CARDIO_EASY_MIN_MIN = 20; // easy session duration clamp (minutes)
-const CARDIO_EASY_MAX_MIN = 45;
-const CARDIO_HARD_MIN_MIN = 20; // hard session duration clamp (minutes)
-const CARDIO_HARD_MAX_MIN = 30;
+// Recommendations rotate least-recently-used across this pool (cycling stays
+// in the mix — it interferes least with lifting). One duration clamp applies
+// to every recommended session.
+const CARDIO_REC_TYPES = ["jog", "run", "bike", "stairs"];
+const CARDIO_SESSION_MIN_MIN = 20; // session duration clamp (minutes)
+const CARDIO_SESSION_MAX_MIN = 45;
 
 // Strength REST gate (2-day window) — heavy-load safety backstop.
 const STRENGTH_REST_SETS_2D = 20;
@@ -1115,7 +1110,6 @@ function analyzeHistory(history) {
   const dayKcal = []; // per-day cardio kcal, newest first
   const cardioLastUsed = {}; // cardio type → most recent past ISO
   let cardioSessionsWk = 0; // days with cardio, past 6 days
-  let hardWk = 0; // days with a hard (run/stairs) session, past 6 days
 
   let daysSinceFullRest = 0; // consecutive most-recent days with ANY activity
   let fullRestStreakOpen = true;
@@ -1128,7 +1122,6 @@ function analyzeHistory(history) {
     if (day.dayIndex <= 6) {
       if (lifted) strengthSessionsWk++;
       if (didCardio) cardioSessionsWk++;
-      if (day.cardio.some(s => CARDIO_HARD_TYPES.includes(s.type))) hardWk++;
     }
     if (strengthStreakOpen) {
       if (lifted) strengthStreakOpen = false; // most recent session found
@@ -1165,7 +1158,6 @@ function analyzeHistory(history) {
     cardio: {
       dayKcal,
       sessionsWk: cardioSessionsWk,
-      hardWk,
       lastUsed: cardioLastUsed,
       daysSinceFullRest
     }
@@ -1782,38 +1774,30 @@ function SessionCard({
 
 // =============================================================================
 // Recommended cardio (Today tab)
-// v4 regime: ~3 sessions per 7-day span — 2 easy zone-2 (jog/bike, 20–45 min)
-// + 1 harder (run/stairs, 20–30 min) — targeting CARDIO_WEEKLY_TARGET kcal.
-// Cardio slots onto non-lift days, and the shared full-rest gate keeps at
-// least one day per week completely empty across both engines.
+// ~3 sessions per 7-day span targeting CARDIO_WEEKLY_TARGET kcal, each 20–45
+// min and rotating least-recently-used across CARDIO_REC_TYPES. Rest days are
+// emergent, and the shared full-rest gate keeps at least one fully empty day
+// per week. Planned independently of the strength suggestion.
 // =============================================================================
 
 // Pure planner for today's cardio, driven by the shared history stats.
-//   cardio    — stats.cardio from analyzeHistory
-//   liftToday — the strength engine is suggesting a session today
-//   lifts     — the user has actually lifted inside the current span (a
-//               cardio-only user shouldn't be deferred forever by lift
-//               suggestions they never take)
-// Returns { rest: true, reason } or { rest: false, mode: 'easy'|'hard', kcal }.
+//   cardio — stats.cardio from analyzeHistory
+// Returns { rest: true, reason } or { rest: false, kcal }.
 //
 // Priority of checks (each overrides those below it):
 //   1. Full-rest gate — guarantee one completely empty day per week.
-//   2. Lift-day deference — cardio lives on strength off-days, keeping the
-//      modalities separated (less interference, better recovery).
-//   3. Recovery guards — heavy recent cardio load always rests.
-//   4. Frequency caps — max 3 sessions per span, never a 3rd day in a row.
-//   5. Weekly sizing — split the forward target (plus CARDIO_CATCHUP of the
+//   2. Recovery guards — heavy recent cardio load always rests.
+//   3. Frequency cap — max 3 sessions per span, never a 3rd day in a row.
+//   4. Weekly sizing — split the forward target (plus CARDIO_CATCHUP of the
 //      trailing 7-day miss/surplus) across the span's sessions; too small to
 //      matter → rest instead.
-//   6. Mode — one hard session per span; everything else is easy zone-2.
-function planCardioSession(cardio, { liftToday, lifts }) {
-  const { dayKcal, sessionsWk, hardWk, daysSinceFullRest } = cardio;
+function planCardioSession(cardio) {
+  const { dayKcal, sessionsWk, daysSinceFullRest } = cardio;
   const sum = n => dayKcal.slice(0, n).reduce((a, v) => a + (v || 0), 0);
 
   if (daysSinceFullRest >= FULL_REST_GATE_DAYS) {
     return { rest: true, reason: "full" };
   }
-  if (liftToday && lifts) return { rest: true, reason: "lift" };
   if (sum(2) > CARDIO_REST_2D || sum(3) > CARDIO_REST_3D) {
     return { rest: true, reason: "load" };
   }
@@ -1833,24 +1817,18 @@ function planCardioSession(cardio, { liftToday, lifts }) {
 
   return {
     rest: false,
-    mode: hardWk === 0 ? "hard" : "easy",
     kcal: Math.min(CARDIO_MAX_SESSION, Math.round(perSession))
   };
 }
 
-function RecommendedCardio({ stats, strengthRest, onStart }) {
+function RecommendedCardio({ stats, onStart }) {
   const rec = useMemo(() => {
-    const plan = planCardioSession(stats.cardio, {
-      liftToday: !strengthRest,
-      lifts: stats.strength.sessionsWk > 0
-    });
+    const plan = planCardioSession(stats.cardio);
     if (plan.rest) return { rest: true, reason: plan.reason };
 
-    // Type: least-recently-used within the mode's pool (never-used first).
-    const pool =
-      plan.mode === "hard" ? CARDIO_HARD_TYPES : CARDIO_EASY_TYPES;
+    // Type: least-recently-used across the pool (never-used first).
     const lastUsed = stats.cardio.lastUsed;
-    const type = [...pool].sort((a, b) => {
+    const type = [...CARDIO_REC_TYPES].sort((a, b) => {
       const aIso = lastUsed[a];
       const bIso = lastUsed[b];
       if (!aIso && !bIso) return 0;
@@ -1859,19 +1837,20 @@ function RecommendedCardio({ stats, strengthRest, onStart }) {
       return new Date(aIso) - new Date(bIso);
     })[0];
 
-    const lo =
-      plan.mode === "hard" ? CARDIO_HARD_MIN_MIN : CARDIO_EASY_MIN_MIN;
-    const hi =
-      plan.mode === "hard" ? CARDIO_HARD_MAX_MIN : CARDIO_EASY_MAX_MIN;
     const minutes = Math.min(
-      hi,
-      Math.max(lo, Math.ceil(plan.kcal / KCAL_PER_MIN[type]))
+      CARDIO_SESSION_MAX_MIN,
+      Math.max(
+        CARDIO_SESSION_MIN_MIN,
+        Math.ceil(plan.kcal / KCAL_PER_MIN[type])
+      )
     );
-    return { rest: false, mode: plan.mode, type, minutes };
-  }, [stats, strengthRest]);
+    // Show the kcal the logged session will actually record (minutes × rate),
+    // so the card and the eventual log entry agree.
+    const kcal = Math.round(minutes * KCAL_PER_MIN[type]);
+    return { rest: false, type, minutes, kcal };
+  }, [stats]);
 
   if (rec.rest) {
-    const lift = rec.reason === "lift";
     return h(
       "div",
       { className: "cardio-rec cardio-rec-rest" },
@@ -1879,18 +1858,8 @@ function RecommendedCardio({ stats, strengthRest, onStart }) {
         "div",
         { className: "cardio-rec-head" },
         h("span", { className: "cardio-rec-title" }, "Cardio"),
-        h(
-          "span",
-          { className: "cardio-rec-pill mono" },
-          lift ? "LIFT DAY" : "REST"
-        )
-      ),
-      lift &&
-        h(
-          "div",
-          { className: "cardio-rec-body" },
-          "Strength is on today — cardio slots onto your off days."
-        )
+        h("span", { className: "cardio-rec-pill mono" }, "REST")
+      )
     );
   }
   const found = CARDIO_TYPES.find(t => t.id === rec.type);
@@ -1911,11 +1880,7 @@ function RecommendedCardio({ stats, strengthRest, onStart }) {
       "div",
       { className: "cardio-rec-body" },
       h("span", { className: "cardio-rec-type" }, label),
-      h(
-        "span",
-        { className: "cardio-rec-meta mono" },
-        rec.mode === "hard" ? "hard effort" : "easy · zone 2"
-      )
+      h("span", { className: "cardio-rec-meta mono" }, "≈ ", rec.kcal, " kcal")
     )
   );
 }
@@ -2067,7 +2032,7 @@ function TodayView({
       onSelectExercise,
       onStartSession
     }),
-    h(RecommendedCardio, { stats, strengthRest, onStart: onStartCardio }),
+    h(RecommendedCardio, { stats, onStart: onStartCardio }),
     !empty &&
       h(
         "div",
@@ -2788,14 +2753,16 @@ function LogScreen({
 // =============================================================================
 // Summary chart — stacked bars by category (strength) or plain bars (cardio)
 // =============================================================================
-function BarChart({ days, series, avgLabel, unit, colors }) {
+function BarChart({ days, series, avgLabel, colors }) {
   const [activeIdx, setActiveIdx] = useState(null);
   const W = 320;
   const barGap = 2;
-  const padTop = 30;
+  const padTop = 40; // reserved strip above the plot for the avg label + chips
   const padBottom = 22;
   const chartH = 120;
   const H = chartH + padTop + padBottom;
+  const TOPBAND = 18; // bottom of the reserved strip; chips never rise past it
+  const baseY = padTop + chartH; // y of the chart floor
   const n = days.length;
   const barW = (W - barGap * (n - 1)) / n;
 
@@ -2808,7 +2775,25 @@ function BarChart({ days, series, avgLabel, unit, colors }) {
     nonZero.length > 0
       ? nonZero.reduce((a, v) => a + v, 0) / nonZero.length
       : 0;
-  const avgY = padTop + chartH - (avg / max) * chartH;
+  const avgY = baseY - (avg / max) * chartH;
+
+  // Geometry for the tapped-bar total. Rendered LAST (below), as an opaque
+  // chip, so it sits above the bars, the average line and the axis labels and
+  // can't visually collide with any of them. Clamped horizontally to the
+  // plot and vertically to stay clear of the reserved top band (and thus the
+  // average label that lives there).
+  let callout = null;
+  if (activeIdx !== null && totals[activeIdx] > 0) {
+    const i = activeIdx;
+    const barTopY = baseY - (totals[i] / max) * chartH;
+    const txt = String(totals[i]);
+    const chipW = txt.length * 6 + 10;
+    const chipH = 15;
+    const cx = Math.min(Math.max(i * (barW + barGap) + barW / 2, chipW / 2), W - chipW / 2);
+    let cy = barTopY - 5 - chipH / 2; // float just above the bar
+    if (cy - chipH / 2 < TOPBAND + 2) cy = TOPBAND + 2 + chipH / 2; // clamp
+    callout = { cx, cy, chipW, chipH, txt };
+  }
 
   return h(
     "svg",
@@ -2817,9 +2802,10 @@ function BarChart({ days, series, avgLabel, unit, colors }) {
       viewBox: `0 0 ${W} ${H}`,
       onClick: () => setActiveIdx(null)
     },
+    // 1) Bars + full-height tap targets + sparse axis labels.
     days.map((d, i) => {
       const x = i * (barW + barGap);
-      let y = padTop + chartH;
+      let y = baseY;
       const segs = [];
       series.forEach((s, si) => {
         const v = s.values[i] || 0;
@@ -2841,21 +2827,6 @@ function BarChart({ days, series, avgLabel, unit, colors }) {
         React.Fragment,
         { key: d.dk },
         segs,
-        totals[i] > 0 &&
-          activeIdx === i &&
-          h(
-            "text",
-            {
-              x: Math.min(Math.max(x + barW / 2, 14), W - 14),
-              y: padTop + chartH - (totals[i] / max) * chartH - 6,
-              textAnchor: "middle",
-              fontSize: 9.5,
-              fontFamily: "'JetBrains Mono', monospace",
-              fill: "#1B1A17"
-            },
-            totals[i]
-          ),
-        // Invisible tap target covering the full column height.
         h("rect", {
           x,
           y: padTop,
@@ -2882,6 +2853,8 @@ function BarChart({ days, series, avgLabel, unit, colors }) {
           )
       );
     }),
+    // 2) Average line, with its label pinned in the reserved top strip so it
+    //    is always clear of the bars.
     avg > 0 &&
       h(
         React.Fragment,
@@ -2899,13 +2872,41 @@ function BarChart({ days, series, avgLabel, unit, colors }) {
           "text",
           {
             x: W,
-            y: Math.max(avgY - 5, 9),
+            y: 12,
             textAnchor: "end",
             fontSize: 9.5,
             fontFamily: "'JetBrains Mono', monospace",
             fill: "#1B1A17"
           },
-          `${avgLabel} ${Math.round(avg)}${unit}`
+          `${avgLabel} ${Math.round(avg)}`
+        )
+      ),
+    // 3) Tapped-bar total chip — drawn last so it paints over everything else.
+    callout &&
+      h(
+        React.Fragment,
+        null,
+        h("rect", {
+          x: callout.cx - callout.chipW / 2,
+          y: callout.cy - callout.chipH / 2,
+          width: callout.chipW,
+          height: callout.chipH,
+          rx: 2,
+          fill: "#F6EFDC",
+          stroke: "#1B1A17",
+          strokeWidth: 1
+        }),
+        h(
+          "text",
+          {
+            x: callout.cx,
+            y: callout.cy + 3.4,
+            textAnchor: "middle",
+            fontSize: 9.5,
+            fontFamily: "'JetBrains Mono', monospace",
+            fill: "#1B1A17"
+          },
+          callout.txt
         )
       )
   );
@@ -3094,7 +3095,6 @@ function SummaryTab({ refreshKey, onImported }) {
         days: strengthDays,
         series: strengthSeries,
         avgLabel: "avg",
-        unit: "",
         colors: strengthColors
       }),
       h(
@@ -3133,7 +3133,6 @@ function SummaryTab({ refreshKey, onImported }) {
         days: daily.map(d => ({ dk: d.dk, label: d.label })),
         series: [{ id: "kcal", values: daily.map(d => d.kcal) }],
         avgLabel: "avg",
-        unit: " kcal",
         colors: [CARDIO_CHART_COLOR]
       })
     ),
