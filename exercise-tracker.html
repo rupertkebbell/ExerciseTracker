@@ -526,6 +526,7 @@ render:a}};c.isValidElement=M;c.lazy=function(a){return{$$typeof:Aa,_payload:{_s
 c.useEffect=function(a,b){return g.current.useEffect(a,b)};c.useId=function(){return g.current.useId()};c.useImperativeHandle=function(a,b,c){return g.current.useImperativeHandle(a,b,c)};c.useInsertionEffect=function(a,b){return g.current.useInsertionEffect(a,b)};c.useLayoutEffect=function(a,b){return g.current.useLayoutEffect(a,b)};c.useMemo=function(a,b){return g.current.useMemo(a,b)};c.useReducer=function(a,b,c){return g.current.useReducer(a,b,c)};c.useRef=function(a){return g.current.useRef(a)};
 c.useState=function(a){return g.current.useState(a)};c.useSyncExternalStore=function(a,b,c){return g.current.useSyncExternalStore(a,b,c)};c.useTransition=function(){return g.current.useTransition()};c.version="18.3.1"});
 })();
+
 </script>
 <script>
 /**
@@ -795,24 +796,33 @@ c,!1,d,e);a[Ja]=b.current;sc(8===a.nodeType?a.parentNode:a);return new Xf(b)};Q.
 var d=null!=c&&c.hydratedSources||null,e=!1,f="",g=aj;null!==c&&void 0!==c&&(!0===c.unstable_strictMode&&(e=!0),void 0!==c.identifierPrefix&&(f=c.identifierPrefix),void 0!==c.onRecoverableError&&(g=c.onRecoverableError));b=Wi(b,null,a,1,null!=c?c:null,e,!1,f,g);a[Ja]=b.current;sc(a);if(d)for(a=0;a<d.length;a++)c=d[a],e=c._getVersion,e=e(c._source),null==b.mutableSourceEagerHydrationData?b.mutableSourceEagerHydrationData=[c,e]:b.mutableSourceEagerHydrationData.push(c,e);return new Ud(b)};Q.render=
 function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmountComponentAtNode=function(a){if(!Vd(a))throw Error(m(40));return a._reactRootContainer?(yb(function(){Wd(null,null,a,!1,function(){a._reactRootContainer=null;a[Ja]=null})}),!0):!1};Q.unstable_batchedUpdates=Tf;Q.unstable_renderSubtreeIntoContainer=function(a,b,c,d){if(!Vd(c))throw Error(m(200));if(null==a||void 0===a._reactInternals)throw Error(m(38));return Wd(a,b,c,!1,d)};Q.version="18.3.1-next-f1338f8080-20240426"});
 })();
+
 </script>
 <script>
 // =============================================================================
-// Standalone Exercise Tracker v3
-// Changes from v2:
-//   • FIX: deleting a strength group now removes all its sets in one pass
-//     (previously a stale-closure race meant only one set was deleted).
-//   • FIX: "Other" exercises carry the category of the picker button they
-//     were started from (custom_cat), and custom_cat is now read everywhere —
-//     colour coding on Today and the 7-day usage weighting are correct for
-//     custom exercises, including previously logged ones.
-//   • Storage is synchronous (localStorage is sync; async façade removed).
-//   • The past-30-day history is scanned ONCE per refresh in TodayView and
-//     shared by the suggested-session and recommended-cardio engines.
-//   • Stopwatch ticks at 250 ms instead of 100 ms.
-//   • Removed dead code (daysAgo, unused exerciseDict prop on suggestions).
-//   • NEW: Export / import JSON backup (Summary tab, "Data" panel).
-//   • NEW: Summary strength chart is stacked by category with a legend.
+// Standalone Exercise Tracker v4
+// Changes from v3 — both recommendation engines reworked around an
+// evidence-based weekly regime (recovery-first; maintain/slightly gain muscle,
+// hold weight steady or nudge it down):
+//   • Strength: 3 full-body sessions per 7-day span (was up to 4), always on
+//     non-consecutive days. Session shape unchanged (4 exercises × 3 sets
+//     ≈ 8–14 effective sets per muscle per week via fractional counting).
+//   • Cardio: 3 sessions per span (was 5), ~1,400 kcal/week — two easy
+//     zone-2 sessions (jog/bike, 20–45 min) plus ONE harder session
+//     (run/stairs, 20–30 min). Each pool rotates least-recently-used; jog and
+//     bike form the easy pool because cycling shows the least interference
+//     with lifting adaptations.
+//   • Coordination: cardio defers on days the strength engine suggests a
+//     lift ("LIFT DAY" card), so cardio lands on strength off-days.
+//   • Shared full-rest gate: if the previous 6 days all had activity of any
+//     kind, both engines recommend REST — guaranteeing at least one
+//     completely empty day per week.
+//   • Frequency windows count the past 6 days (+ today = the 7-day span the
+//     caps reason about), so a fixed-weekday cadence like Mon/Wed/Fri repeats
+//     cleanly week after week instead of drifting.
+//   • All shared history derivation now lives in analyzeHistory(), computed
+//     once in TodayView and handed to both engines (strength decides first;
+//     cardio coordinates with it).
 // React from CDN; no JSX (h = React.createElement); localStorage persistence.
 // =============================================================================
 
@@ -995,27 +1005,42 @@ const CARDIO_TYPES = [
 const KCAL_PER_MIN = { jog: 13, run: 16, bike: 13, stairs: 12 };
 const PACE_MIN_PER_KM = { jog: 5.5, run: 4.75 };
 
-// Cardio recommendation thresholds
-// Cardio recommendation targets. Rest days are emergent — there is no fixed
-// calendar. The aim is CARDIO_WEEKLY_TARGET kcal over a rolling 7 days,
-// delivered as CARDIO_SESSIONS_PER_WEEK sessions plus CARDIO_REST_DAYS_PER_WEEK
-// rest days, sized dynamically and planned a week ahead (see planCardioSession).
-const CARDIO_REST_3D = 900; // 3-day kcal above this → REST (recovery guard)
-const CARDIO_REST_2D = 700; // 2-day kcal above this → REST (recovery guard)
-const CARDIO_WEEKLY_TARGET = 1500; // rolling 7-day kcal goal
-const CARDIO_SESSIONS_PER_WEEK = 5; // target sessions per 7 days
-const CARDIO_REST_DAYS_PER_WEEK = 2; // target rest days per 7 days (7 − sessions)
-const CARDIO_MAX_SESSION = 500; // cap kcal per session
-const CARDIO_MIN_SESSION = 100; // a session sized below this becomes a rest
+// Cardio recommendation targets (v4 regime).
+// Weekly shape: ~3 cardio sessions per 7-day span — 2 easy zone-2 sessions
+// (jog/bike, 20–45 min) + 1 harder session (run/stairs, 20–30 min) —
+// totalling ~CARDIO_WEEKLY_TARGET kcal (≈100–130 min). Cardio slots onto
+// non-lift days (see planCardioSession); rest days are emergent, and the
+// shared full-rest gate below guarantees at least one completely empty day
+// per week across BOTH engines.
+const CARDIO_REST_3D = 1300; // 3-day kcal above this → REST (recovery guard)
+const CARDIO_REST_2D = 1000; // 2-day kcal above this → REST (recovery guard)
+const CARDIO_WEEKLY_TARGET = 1400; // rolling 7-day kcal goal
+const CARDIO_SESSIONS_PER_WEEK = 3; // target sessions per 7-day span
+const CARDIO_MAX_SESSION = 600; // cap kcal per session (≈45 min easy)
+const CARDIO_MIN_SESSION = 250; // sized below this → rest instead (≈20 min easy)
 const CARDIO_CATCHUP = 0.5; // fraction of last week's miss/surplus to repay
-const CARDIO_REC_TYPES = ["jog", "bike", "stairs"];
+// Easy sessions rotate jog/bike (cycling interferes least with lifting);
+// the one weekly hard session rotates run/stairs.
+const CARDIO_EASY_TYPES = ["jog", "bike"];
+const CARDIO_HARD_TYPES = ["run", "stairs"];
+const CARDIO_EASY_MIN_MIN = 20; // easy session duration clamp (minutes)
+const CARDIO_EASY_MAX_MIN = 45;
+const CARDIO_HARD_MIN_MIN = 20; // hard session duration clamp (minutes)
+const CARDIO_HARD_MAX_MIN = 30;
 
 // Strength REST gate (2-day window) — heavy-load safety backstop.
 const STRENGTH_REST_SETS_2D = 20;
 const STRENGTH_REST_VOL_2D = 10000;
-// Strength frequency: aim for ~3–4 sessions per 7 days. Achieved by resting
-// the day after any session (≈ every other day) and capping the weekly count.
-const STRENGTH_MAX_SESSIONS_7D = 4; // never suggest a session beyond this in a 7-day window
+// Strength frequency (v4 regime): 3 full-body sessions per 7-day span on
+// non-consecutive days (4 exercises × 3 sets ≈ 8–14 effective sets per muscle
+// weekly). Achieved by resting the day after any session and capping the
+// span's session count.
+const STRENGTH_MAX_SESSIONS_7D = 3; // never suggest beyond this per 7-day span
+
+// Shared full-rest gate: if every one of the last N past days had ANY logged
+// activity (strength or cardio), both engines recommend REST today, so at
+// least one day per rolling week is completely off.
+const FULL_REST_GATE_DAYS = 6;
 
 // =============================================================================
 // Bodyweight equivalents (72 kg, 178 cm male)
@@ -1070,13 +1095,90 @@ function loadPastHistory(days = 30) {
   return out;
 }
 
+// Distil the shared history scan into the numbers both recommendation engines
+// need. history is newest-first (index 0 = yesterday); today is excluded so
+// today's logging never alters today's recommendations.
+//
+// Frequency windows count the PAST 6 days — adding today's potential session
+// makes up the 7-day span the caps reason about. This also lets a fixed
+// same-weekday cadence (e.g. lift Mon/Wed/Fri) repeat cleanly: last Monday is
+// 7 days back and correctly outside next Monday's window.
+function analyzeHistory(history) {
+  const usage = { push: 0, pull: 0, legs: 0, coreiso: 0 };
+  let recentSets = 0; // strength sets, past 2 days (circuit excluded)
+  let recentVol = 0; // strength volume, past 2 days
+  const strengthLastUsed = {}; // exercise_name → most recent past ISO
+  let strengthSessionsWk = 0; // days with strength, past 6 days
+  let daysSinceStrength = 0; // consecutive most-recent days with NO strength
+  let strengthStreakOpen = true;
+
+  const dayKcal = []; // per-day cardio kcal, newest first
+  const cardioLastUsed = {}; // cardio type → most recent past ISO
+  let cardioSessionsWk = 0; // days with cardio, past 6 days
+  let hardWk = 0; // days with a hard (run/stairs) session, past 6 days
+
+  let daysSinceFullRest = 0; // consecutive most-recent days with ANY activity
+  let fullRestStreakOpen = true;
+
+  for (const day of history) {
+    const lifted = day.sets.length > 0;
+    const didCardio = day.cardio.length > 0;
+    dayKcal.push(day.cardio.reduce((a, s) => a + (s.kcal_burned || 0), 0));
+
+    if (day.dayIndex <= 6) {
+      if (lifted) strengthSessionsWk++;
+      if (didCardio) cardioSessionsWk++;
+      if (day.cardio.some(s => CARDIO_HARD_TYPES.includes(s.type))) hardWk++;
+    }
+    if (strengthStreakOpen) {
+      if (lifted) strengthStreakOpen = false; // most recent session found
+      else daysSinceStrength++;
+    }
+    if (fullRestStreakOpen) {
+      if (lifted || didCardio) daysSinceFullRest++;
+      else fullRestStreakOpen = false; // most recent fully-off day found
+    }
+    for (const s of day.sets) {
+      if (day.dayIndex <= 2) {
+        if (s.input_type !== IN.CIRCUIT) recentSets++;
+        recentVol += setVolume(s);
+      }
+      if (day.dayIndex <= 7) usage[entryCat(s)]++;
+      if (!strengthLastUsed[s.exercise_name]) {
+        strengthLastUsed[s.exercise_name] = s.performed_at;
+      }
+    }
+    for (const s of day.cardio) {
+      if (!cardioLastUsed[s.type]) cardioLastUsed[s.type] = s.started_at;
+    }
+  }
+  return {
+    strength: {
+      usage,
+      recentSets,
+      recentVol,
+      sessionsWk: strengthSessionsWk,
+      daysSinceStrength,
+      lastUsed: strengthLastUsed,
+      daysSinceFullRest
+    },
+    cardio: {
+      dayKcal,
+      sessionsWk: cardioSessionsWk,
+      hardWk,
+      lastUsed: cardioLastUsed,
+      daysSinceFullRest
+    }
+  };
+}
+
 // =============================================================================
 // Export / import
 // =============================================================================
 function collectBackup() {
   const dump = {
     app: "exercise-tracker",
-    version: 3,
+    version: 4,
     exported_at: nowISO(),
     data: {}
   };
@@ -1400,10 +1502,11 @@ function Stopwatch({ sw, onStart, onRest, onEnd }) {
 
 // =============================================================================
 // Suggested sessions (Today tab)
-// Derives everything from the shared `history` scan (past days only):
+// Consumes the shared stats from analyzeHistory():
 //   - usage counts (7 days) for least-used category weighting
-//   - 2-day sets + volume for the REST gate
 //   - per-exercise last-used (30 days) for rotation ordering
+// The REST decision itself (strengthRest) is made upstream in TodayView via
+// strengthShouldRest, so the cardio engine can coordinate with it.
 // =============================================================================
 const SUGGESTED_SETS = 3;
 
@@ -1415,20 +1518,23 @@ function orderStrengthSlots(upper, other, lower) {
   return [upper[0], other[0], upper[1], lower[0]].filter(Boolean);
 }
 
-// True when today should be a strength REST day. Targets ~3–4 sessions per
-// 7 days: rest after a heavy 2-day load, once the weekly cap is reached, or
-// the day after any session (≈ every other day).
+// True when today should be a strength REST day. Targets 3 full-body sessions
+// per 7-day span on non-consecutive days: rest after a heavy 2-day load, once
+// the span's cap is reached, the day after any session (≈ every other day),
+// or when the shared full-rest gate fires.
 function strengthShouldRest({
   recentSets,
   recentVol,
-  sessions7,
-  daysSinceStrength
+  sessionsWk,
+  daysSinceStrength,
+  daysSinceFullRest
 }) {
   return (
     recentSets > STRENGTH_REST_SETS_2D ||
     recentVol > STRENGTH_REST_VOL_2D ||
-    sessions7 >= STRENGTH_MAX_SESSIONS_7D ||
-    daysSinceStrength === 0
+    sessionsWk >= STRENGTH_MAX_SESSIONS_7D ||
+    daysSinceStrength === 0 ||
+    daysSinceFullRest >= FULL_REST_GATE_DAYS
   );
 }
 
@@ -1450,46 +1556,14 @@ function pickFromCat(catId, n, lastUsed) {
     .slice(0, n);
 }
 
-function SuggestedSessions({ history, onSelectExercise, onStartSession }) {
+function SuggestedSessions({
+  stats,
+  strengthRest,
+  onSelectExercise,
+  onStartSession
+}) {
   const [openFull, setOpenFull] = useState(false);
-
-  const { usage, recent, pastLastUsed, sessions7, daysSinceStrength } =
-    useMemo(() => {
-      const counts = { push: 0, pull: 0, legs: 0, coreiso: 0 };
-      let precSets = 0;
-      let precVol = 0;
-      const lastUsed = {};
-      let sessionCount7 = 0; // days in the last 7 with any strength logged
-      let sinceStrength = 0; // consecutive most-recent days with NO strength
-      let streakOpen = true;
-      // history is newest-first, so the first time we see an exercise is its
-      // most recent past use, and history[0] is yesterday.
-      for (const day of history) {
-        const trained = day.sets.length > 0;
-        if (day.dayIndex <= 7 && trained) sessionCount7++;
-        if (streakOpen) {
-          if (trained) streakOpen = false; // most recent session found
-          else sinceStrength++;
-        }
-        for (const s of day.sets) {
-          if (day.dayIndex <= 2) {
-            if (s.input_type !== IN.CIRCUIT) precSets++;
-            precVol += setVolume(s);
-          }
-          if (day.dayIndex <= 7) counts[entryCat(s)]++;
-          if (!lastUsed[s.exercise_name]) {
-            lastUsed[s.exercise_name] = s.performed_at;
-          }
-        }
-      }
-      return {
-        usage: counts,
-        recent: { sets: precSets, volume: precVol },
-        pastLastUsed: lastUsed,
-        sessions7: sessionCount7,
-        daysSinceStrength: sinceStrength
-      };
-    }, [history]);
+  const { usage, lastUsed } = stats.strength;
 
   // Strength (4 exercises): the doubled group is split so the same category
   // never appears back-to-back — e.g. push, pull, push, legs.
@@ -1501,25 +1575,16 @@ function SuggestedSessions({ history, onSelectExercise, onStartSession }) {
     const upperOther = upperLeast === "push" ? "pull" : "push";
     const lowerLeast = usage.legs <= usage.coreiso ? "legs" : "coreiso";
     const ordered = orderStrengthSlots(
-      pickFromCat(upperLeast, 2, pastLastUsed),
-      pickFromCat(upperOther, 1, pastLastUsed),
-      pickFromCat(lowerLeast, 1, pastLastUsed)
+      pickFromCat(upperLeast, 2, lastUsed),
+      pickFromCat(upperOther, 1, lastUsed),
+      pickFromCat(lowerLeast, 1, lastUsed)
     );
     return ordered.map(e => ({ ...e, sets: SUGGESTED_SETS }));
   }
 
-  // Suggest REST when any of these hold:
-  //   • heavy 2-day load (safety backstop), or
-  //   • you've already hit the weekly session cap (~3–4/week), or
-  //   • you trained yesterday — space sessions to roughly every other day.
-  if (
-    strengthShouldRest({
-      recentSets: recent.sets,
-      recentVol: recent.volume,
-      sessions7,
-      daysSinceStrength
-    })
-  ) {
+  // Rest today — decided upstream (heavy 2-day load, span cap reached,
+  // trained yesterday, or the shared full-rest gate).
+  if (strengthRest) {
     return h(
       "div",
       { className: "sessions" },
@@ -1544,8 +1609,8 @@ function SuggestedSessions({ history, onSelectExercise, onStartSession }) {
       e => e.cat === catId && !e.hidden && !e.isOther
     );
     return [...pool].sort((a, b) => {
-      const aIso = pastLastUsed[a.name];
-      const bIso = pastLastUsed[b.name];
+      const aIso = lastUsed[a.name];
+      const bIso = lastUsed[b.name];
       if (!aIso && !bIso) return 0;
       if (!aIso) return -1;
       if (!bIso) return 1;
@@ -1717,115 +1782,96 @@ function SessionCard({
 
 // =============================================================================
 // Recommended cardio (Today tab)
+// v4 regime: ~3 sessions per 7-day span — 2 easy zone-2 (jog/bike, 20–45 min)
+// + 1 harder (run/stairs, 20–30 min) — targeting CARDIO_WEEKLY_TARGET kcal.
+// Cardio slots onto non-lift days, and the shared full-rest gate keeps at
+// least one day per week completely empty across both engines.
 // =============================================================================
 
-// Pure forward planner. Given per-day cardio kcal for the days BEFORE the
-// selected day (newest first; index 0 = yesterday), decide today's session.
-// Returns { rest: true } or { rest: false, kcal }.
+// Pure planner for today's cardio, driven by the shared history stats.
+//   cardio    — stats.cardio from analyzeHistory
+//   liftToday — the strength engine is suggesting a session today
+//   lifts     — the user has actually lifted inside the current span (a
+//               cardio-only user shouldn't be deferred forever by lift
+//               suggestions they never take)
+// Returns { rest: true, reason } or { rest: false, mode: 'easy'|'hard', kcal }.
 //
-// Priority of logic (each step overrides the ones below it):
-//   1. Recovery guard — rest if the last 2 days burned > CARDIO_REST_2D or the
-//      last 3 days burned > CARDIO_REST_3D.
-//   2. Weekly target — size the coming week to repay the rolling-7 miss/surplus
-//      (CARDIO_CATCHUP of it), capped at what 5×max can deliver.
-//   3. Cadence — spread the week as N sessions (≤5, so ≥2 rest days always) of
-//      equal size; shrink N only if sessions would fall below the floor.
-//   4. Look-ahead spacing — place today's rest by how many days you've trained
-//      in a row, widened/tightened by how many of the last 7 days were rests.
-function planCardioSession(dayKcal) {
-  const sliceSum = n =>
-    dayKcal.slice(0, n).reduce((a, v) => a + (v || 0), 0);
-  const kcal2 = sliceSum(2);
-  const kcal3 = sliceSum(3);
-  const kcal7 = sliceSum(7);
+// Priority of checks (each overrides those below it):
+//   1. Full-rest gate — guarantee one completely empty day per week.
+//   2. Lift-day deference — cardio lives on strength off-days, keeping the
+//      modalities separated (less interference, better recovery).
+//   3. Recovery guards — heavy recent cardio load always rests.
+//   4. Frequency caps — max 3 sessions per span, never a 3rd day in a row.
+//   5. Weekly sizing — split the forward target (plus CARDIO_CATCHUP of the
+//      trailing 7-day miss/surplus) across the span's sessions; too small to
+//      matter → rest instead.
+//   6. Mode — one hard session per span; everything else is easy zone-2.
+function planCardioSession(cardio, { liftToday, lifts }) {
+  const { dayKcal, sessionsWk, hardWk, daysSinceFullRest } = cardio;
+  const sum = n => dayKcal.slice(0, n).reduce((a, v) => a + (v || 0), 0);
 
-  let restDays7 = 0;
-  for (let i = 0; i < 7; i++) if ((dayKcal[i] || 0) === 0) restDays7++;
-
-  // Consecutive most-recent days that had cardio (drives rest spacing).
-  let daysSinceRest = 0;
-  for (let i = 0; i < dayKcal.length; i++) {
-    if ((dayKcal[i] || 0) > 0) daysSinceRest++;
-    else break;
+  if (daysSinceFullRest >= FULL_REST_GATE_DAYS) {
+    return { rest: true, reason: "full" };
+  }
+  if (liftToday && lifts) return { rest: true, reason: "lift" };
+  if (sum(2) > CARDIO_REST_2D || sum(3) > CARDIO_REST_3D) {
+    return { rest: true, reason: "load" };
+  }
+  if (sessionsWk >= CARDIO_SESSIONS_PER_WEEK) {
+    return { rest: true, reason: "week" };
+  }
+  if ((dayKcal[0] || 0) > 0 && (dayKcal[1] || 0) > 0) {
+    return { rest: true, reason: "spacing" };
   }
 
-  // 1) Recovery guards — heavy recent load always wins (2-day or 3-day).
-  if (kcal2 > CARDIO_REST_2D || kcal3 > CARDIO_REST_3D) return { rest: true };
-
-  // 2) Forward weekly goal, repaying CARDIO_CATCHUP of the trailing drift,
-  //    capped at the most 5 sessions can deliver (so N never needs to exceed 5).
-  const trailingDeficit = CARDIO_WEEKLY_TARGET - kcal7;
-  const targetForward = Math.max(
+  const target = Math.max(
     0,
-    Math.min(
-      CARDIO_SESSIONS_PER_WEEK * CARDIO_MAX_SESSION,
-      CARDIO_WEEKLY_TARGET + CARDIO_CATCHUP * trailingDeficit
-    )
+    CARDIO_WEEKLY_TARGET + CARDIO_CATCHUP * (CARDIO_WEEKLY_TARGET - sum(7))
   );
-  // At/over target → nothing meaningful to burn → rest day.
-  if (targetForward < CARDIO_MIN_SESSION) return { rest: true };
+  const perSession = target / CARDIO_SESSIONS_PER_WEEK;
+  if (perSession < CARDIO_MIN_SESSION) return { rest: true, reason: "ahead" };
 
-  // 3) Plan the forward week. Prefer 5 sessions; only drop the count if a
-  //    session would fall below the floor (i.e. you're ahead). N ≤ 5 keeps at
-  //    least 2 rest days every week by construction.
-  let n = CARDIO_SESSIONS_PER_WEEK;
-  let size = targetForward / n;
-  while (n > 1 && size < CARDIO_MIN_SESSION) {
-    n--;
-    size = targetForward / n;
-  }
-  size = Math.min(CARDIO_MAX_SESSION, Math.round(size));
-  const restsForward = CARDIO_SESSIONS_PER_WEEK + CARDIO_REST_DAYS_PER_WEEK - n; // 7 − n
-
-  // 4) Decide whether TODAY is one of those rests. Rests are spread evenly:
-  //    a rest is due once you've trained `threshold` days in a row. The
-  //    threshold widens if you've already rested your weekly quota, and
-  //    tightens if you haven't rested at all in the last 7 days.
-  let threshold = Math.max(1, Math.floor(7 / restsForward));
-  if (restDays7 >= CARDIO_REST_DAYS_PER_WEEK) threshold += 1;
-  if (restDays7 === 0) threshold = Math.max(1, threshold - 1);
-
-  if (daysSinceRest >= threshold) return { rest: true };
-  return { rest: false, kcal: size };
+  return {
+    rest: false,
+    mode: hardWk === 0 ? "hard" : "easy",
+    kcal: Math.min(CARDIO_MAX_SESSION, Math.round(perSession))
+  };
 }
 
-function RecommendedCardio({ history, onStart }) {
+function RecommendedCardio({ stats, strengthRest, onStart }) {
   const rec = useMemo(() => {
-    // Per-day cardio kcal, newest first (index 0 = the day before today).
-    const dayKcal = history.map(d =>
-      d.cardio.reduce((a, s) => a + (s.kcal_burned || 0), 0)
-    );
-
-    // Type: least-recently-used of jog / bike / stairs (never-used first).
-    const lastUsed = { jog: null, bike: null, stairs: null };
-    for (const day of history) {
-      for (const s of day.cardio) {
-        if (lastUsed[s.type] !== undefined && lastUsed[s.type] === null) {
-          lastUsed[s.type] = s.started_at;
-        }
-      }
-    }
-    const sorted = [...CARDIO_REC_TYPES].sort((a, b) => {
-      if (!lastUsed[a] && !lastUsed[b]) return 0;
-      if (!lastUsed[a]) return -1;
-      if (!lastUsed[b]) return 1;
-      return new Date(lastUsed[a]) - new Date(lastUsed[b]);
+    const plan = planCardioSession(stats.cardio, {
+      liftToday: !strengthRest,
+      lifts: stats.strength.sessionsWk > 0
     });
-    const type = sorted[0];
+    if (plan.rest) return { rest: true, reason: plan.reason };
 
-    const plan = planCardioSession(dayKcal);
-    if (plan.rest) return { type, rest: true, minutes: 0 };
-    return {
-      type,
-      rest: false,
-      minutes: Math.ceil(plan.kcal / KCAL_PER_MIN[type])
-    };
-  }, [history]);
+    // Type: least-recently-used within the mode's pool (never-used first).
+    const pool =
+      plan.mode === "hard" ? CARDIO_HARD_TYPES : CARDIO_EASY_TYPES;
+    const lastUsed = stats.cardio.lastUsed;
+    const type = [...pool].sort((a, b) => {
+      const aIso = lastUsed[a];
+      const bIso = lastUsed[b];
+      if (!aIso && !bIso) return 0;
+      if (!aIso) return -1;
+      if (!bIso) return 1;
+      return new Date(aIso) - new Date(bIso);
+    })[0];
 
-  const found = CARDIO_TYPES.find(t => t.id === rec.type);
-  const label = found ? found.label : rec.type;
+    const lo =
+      plan.mode === "hard" ? CARDIO_HARD_MIN_MIN : CARDIO_EASY_MIN_MIN;
+    const hi =
+      plan.mode === "hard" ? CARDIO_HARD_MAX_MIN : CARDIO_EASY_MAX_MIN;
+    const minutes = Math.min(
+      hi,
+      Math.max(lo, Math.ceil(plan.kcal / KCAL_PER_MIN[type]))
+    );
+    return { rest: false, mode: plan.mode, type, minutes };
+  }, [stats, strengthRest]);
 
   if (rec.rest) {
+    const lift = rec.reason === "lift";
     return h(
       "div",
       { className: "cardio-rec cardio-rec-rest" },
@@ -1833,10 +1879,22 @@ function RecommendedCardio({ history, onStart }) {
         "div",
         { className: "cardio-rec-head" },
         h("span", { className: "cardio-rec-title" }, "Cardio"),
-        h("span", { className: "cardio-rec-pill mono" }, "REST")
-      )
+        h(
+          "span",
+          { className: "cardio-rec-pill mono" },
+          lift ? "LIFT DAY" : "REST"
+        )
+      ),
+      lift &&
+        h(
+          "div",
+          { className: "cardio-rec-body" },
+          "Strength is on today — cardio slots onto your off days."
+        )
     );
   }
+  const found = CARDIO_TYPES.find(t => t.id === rec.type);
+  const label = found ? found.label : rec.type;
   return h(
     "button",
     {
@@ -1852,7 +1910,12 @@ function RecommendedCardio({ history, onStart }) {
     h(
       "div",
       { className: "cardio-rec-body" },
-      h("span", { className: "cardio-rec-type" }, label)
+      h("span", { className: "cardio-rec-type" }, label),
+      h(
+        "span",
+        { className: "cardio-rec-meta mono" },
+        rec.mode === "hard" ? "hard effort" : "easy · zone 2"
+      )
     )
   );
 }
@@ -1967,8 +2030,12 @@ function TodayView({
     setSessions(storage.get(`cardio:${dateKey}`, []));
   }, [dateKey, refreshKey]);
 
-  // ONE scan of the past 30 days, shared by both recommendation engines.
+  // ONE scan of the past 30 days, distilled once and shared by both
+  // recommendation engines. Strength decides first; cardio coordinates
+  // with that decision (see planCardioSession).
   const history = useMemo(() => loadPastHistory(30), [refreshKey]);
+  const stats = useMemo(() => analyzeHistory(history), [history]);
+  const strengthRest = strengthShouldRest(stats.strength);
 
   // FIX (v3): delete the whole group in a single filter + single write.
   function deleteGroup(name) {
@@ -1994,8 +2061,13 @@ function TodayView({
     React.Fragment,
     null,
     h(DateBar, { dateKey, onChange: setDateKey }),
-    h(SuggestedSessions, { history, onSelectExercise, onStartSession }),
-    h(RecommendedCardio, { history, onStart: onStartCardio }),
+    h(SuggestedSessions, {
+      stats,
+      strengthRest,
+      onSelectExercise,
+      onStartSession
+    }),
+    h(RecommendedCardio, { stats, strengthRest, onStart: onStartCardio }),
     !empty &&
       h(
         "div",
@@ -2065,286 +2137,156 @@ function TodayView({
 }
 
 // =============================================================================
-// Strength log (Log tab)
+// Strength logging (Log tab)
 // =============================================================================
 function StrengthLog({
   dateKey,
   refreshKey,
-  onChange,
+  onLogged,
   pendingExercise,
-  clearPending,
+  onPendingConsumed,
   activeSession,
-  onEndSession,
   onCompleteExercise
 }) {
+  const [selected, setSelected] = useState(null); // exercise object
+  const [otherName, setOtherName] = useState("");
+  const [otherCat, setOtherCat] = useState("coreiso");
+  const [rows, setRows] = useState([{ weight: "", reps: "" }]);
+  const [circuit, setCircuit] = useState({ sets: "3", minutes: "5" });
   const [todaySets, setTodaySets] = useState([]);
-  const [exerciseDict, setExerciseDict] = useState({});
-  const [selected, setSelected] = useState(null);
-  const [sets, setSets] = useState([]);
-  const [circuitMin, setCircuitMin] = useState("");
-  const [circuitSets, setCircuitSets] = useState("");
-  const [otherName, setOtherName] = useState(""); // typed name when selected="Other"
-  const [otherCat, setOtherCat] = useState("coreiso"); // category of the Other button tapped
-  const [logging, setLogging] = useState(false);
 
   useEffect(() => {
     setTodaySets(storage.get(`strength:${dateKey}`, []));
-    setExerciseDict(storage.get("exercise_dict", {}));
   }, [dateKey, refreshKey]);
 
-  // Pending exercise from "Suggested session" tap
+  // Jumping in from a suggestion / session queue pre-selects the exercise.
   useEffect(() => {
-    if (!pendingExercise) return;
-    const dict = storage.get("exercise_dict", {});
-    setExerciseDict(dict);
-    doSelect(pendingExercise, dict);
-    if (clearPending) clearPending();
+    if (pendingExercise) {
+      doSelect(pendingExercise.name, pendingExercise.cat);
+      onPendingConsumed();
+    }
   }, [pendingExercise]);
 
-  // Build N rows: prefill from last_session where available, padding with the
-  // last entry, or empty rows if no history.
-  function doSelect(name, dict, suggestedSets = null, cat = null) {
+  function doSelect(name, catFromButton) {
     const ex = getExercise(name);
-    const last = dict[name] ? dict[name].last_session : undefined;
-    if (name === "Other") {
-      setOtherName((dict["Other"] && dict["Other"].last_label) || "");
-      setOtherCat(cat || "coreiso");
-    } else {
-      setOtherName("");
-    }
+    setSelected(ex);
+    setOtherName("");
+    setOtherCat(catFromButton || ex.cat);
     if (ex.input === IN.CIRCUIT) {
-      setCircuitMin(last && last.duration_min ? String(last.duration_min) : "");
-      if (suggestedSets != null) {
-        setCircuitSets(String(suggestedSets));
-      } else {
-        setCircuitSets(last && last.num_sets ? String(last.num_sets) : "");
-      }
+      setCircuit({ sets: "3", minutes: "5" });
     } else {
-      const lastArr = Array.isArray(last) ? last : [];
-      const targetN =
-        suggestedSets != null
-          ? suggestedSets
-          : lastArr.length > 0
-            ? lastArr.length
-            : 1;
-      const rows = [];
-      for (let i = 0; i < targetN; i++) {
-        if (lastArr.length > 0) {
-          const src = lastArr[i] || lastArr[lastArr.length - 1];
-          rows.push({
-            weight_kg: String(src.weight_kg != null ? src.weight_kg : ""),
-            reps: String(src.reps != null ? src.reps : "")
-          });
-        } else {
-          rows.push({ weight_kg: "", reps: "" });
+      // Prefill weight from the most recent time this exercise was logged
+      // (scan back up to 60 days).
+      let prefillW = "";
+      outer: for (let i = 0; i <= 60; i++) {
+        const dk = dateKeyOffset(dateKey, -i);
+        const daySets = (i === 0
+          ? storage.get(`strength:${dk}`, [])
+          : storage.get(`strength:${dk}`, [])
+        ).filter(s => s.exercise_name === name);
+        for (let j = daySets.length - 1; j >= 0; j--) {
+          if (daySets[j].weight_kg) {
+            prefillW = String(daySets[j].weight_kg);
+            break outer;
+          }
         }
       }
-      setSets(rows);
+      setRows([{ weight: prefillW, reps: "" }]);
     }
-    setSelected(name);
   }
-  function selectExercise(name, suggestedSets = null, cat = null) {
-    doSelect(name, exerciseDict, suggestedSets, cat);
+  function selectExercise(ex, catFromButton) {
+    doSelect(ex.name, catFromButton);
   }
   function backToList() {
     setSelected(null);
-    setSets([]);
-    setCircuitMin("");
-    setCircuitSets("");
-    setOtherName("");
-    setOtherCat("coreiso");
   }
+
   function updateSet(i, field, val) {
-    setSets(prev =>
-      prev.map((s, idx) => (idx === i ? { ...s, [field]: val } : s))
+    setRows(prev =>
+      prev.map((r, idx) => (idx === i ? { ...r, [field]: val } : r))
     );
   }
   function addSet() {
-    setSets(prev => {
+    setRows(prev => {
       const last = prev[prev.length - 1];
-      return [
-        ...prev,
-        last
-          ? { weight_kg: last.weight_kg, reps: last.reps }
-          : { weight_kg: "", reps: "" }
-      ];
+      return [...prev, { weight: last ? last.weight : "", reps: "" }];
     });
   }
   function removeSet(i) {
-    setSets(prev => prev.filter((_, idx) => idx !== i));
+    setRows(prev => prev.filter((_, idx) => idx !== i));
   }
 
   function logExercise() {
-    if (logging || !selected) return;
-    const ex = getExercise(selected);
-    const completedName = selected;
+    if (!selected) return;
+    const isOther = selected.isOther;
+    const name = isOther ? otherName.trim() : selected.name;
+    if (!name) return;
+    const existing = storage.get(`strength:${dateKey}`, []);
+    const baseIndex = existing.filter(s => s.exercise_name === name).length;
+    let entries = [];
 
-    if (ex.input === IN.CIRCUIT) {
-      const dm = Number(circuitMin);
-      const ns = Number(circuitSets);
-      if (!dm || dm <= 0 || !ns || ns <= 0) return;
-      setLogging(true);
-      const now = nowISO();
-      const entry = {
-        id: genId(),
-        performed_at: now,
-        exercise_name: selected,
-        input_type: IN.CIRCUIT,
-        duration_min: dm,
-        num_sets: ns,
-        set_index: 1
-      };
-      const nextSets = [...todaySets, entry];
-      storage.set(`strength:${dateKey}`, nextSets);
-      setTodaySets(nextSets);
-      const nextDict = {
-        ...exerciseDict,
-        [selected]: {
-          last_session: { duration_min: dm, num_sets: ns },
-          last_used_at: now
+    if (selected.input === IN.CIRCUIT) {
+      const ns = parseInt(circuit.sets, 10);
+      const nm = parseFloat(circuit.minutes);
+      if (!ns || !nm) return;
+      entries = [
+        {
+          id: genId(),
+          exercise_name: name,
+          input_type: IN.CIRCUIT,
+          num_sets: ns,
+          duration_min: nm,
+          set_index: baseIndex + 1,
+          performed_at: nowISO()
         }
-      };
-      storage.set("exercise_dict", nextDict);
-      setExerciseDict(nextDict);
-      setSelected(null);
-      setCircuitMin("");
-      setCircuitSets("");
-      setLogging(false);
-      if (onCompleteExercise) onCompleteExercise(completedName);
-      if (onChange) onChange();
-      return;
+      ];
+    } else {
+      const repsOnly = selected.input === IN.REPS;
+      const valid = rows.filter(
+        r => r.reps && (repsOnly || r.weight !== "")
+      );
+      if (valid.length === 0) return;
+      entries = valid.map((r, i) => ({
+        id: genId(),
+        exercise_name: name,
+        input_type: repsOnly ? IN.REPS : IN.STD,
+        weight_kg: repsOnly ? null : parseFloat(r.weight),
+        reps: parseInt(r.reps, 10),
+        set_index: baseIndex + 1 + i,
+        performed_at: nowISO(),
+        ...(isOther ? { custom_cat: otherCat } : {})
+      }));
     }
 
-    const showWeight = ex.input !== IN.REPS;
-    const valid = sets
-      .map(s => ({
-        weight_kg: showWeight ? Math.max(0, Number(s.weight_kg) || 0) : 0,
-        reps: Math.max(0, Number(s.reps) || 0)
-      }))
-      .filter(s => s.reps > 0);
-    if (valid.length === 0) return;
-    setLogging(true);
-    const now = nowISO();
-    const isOther = selected === "Other";
-    // For Other entries, use the typed label as the entry's exercise_name so
-    // groupByExercise shows it under that name. Fall back to "Other".
-    // FIX (v3): custom_cat records the category of the picker button that was
-    // tapped (previously always coreiso, and never read back).
-    const entryName = isOther ? otherName.trim() || "Other" : selected;
-    const entries = valid.map((s, idx) => ({
-      id: genId(),
-      performed_at: now,
-      exercise_name: entryName,
-      input_type: ex.input,
-      set_index: idx + 1,
-      reps: s.reps,
-      weight_kg: s.weight_kg,
-      ...(isOther ? { is_other: true, custom_cat: otherCat } : {})
-    }));
-    const nextSets = [...todaySets, ...entries];
-    storage.set(`strength:${dateKey}`, nextSets);
-    setTodaySets(nextSets);
-    // For Other, the shared prefill bucket is exercise_dict["Other"].
-    const dictKey = isOther ? "Other" : selected;
-    const nextDict = {
-      ...exerciseDict,
-      [dictKey]: isOther
-        ? {
-            last_session: valid,
-            last_used_at: now,
-            last_label: otherName.trim()
-          }
-        : { last_session: valid, last_used_at: now }
-    };
-    storage.set("exercise_dict", nextDict);
-    setExerciseDict(nextDict);
+    storage.set(`strength:${dateKey}`, [...existing, ...entries]);
+    setTodaySets([...existing, ...entries]);
+    if (activeSession && onCompleteExercise) onCompleteExercise(name);
     setSelected(null);
-    setSets([]);
-    setOtherName("");
-    setOtherCat("coreiso");
-    setLogging(false);
-    if (onCompleteExercise) onCompleteExercise(completedName);
-    if (onChange) onChange();
+    onLogged();
   }
 
-  // ── Set-entry view ──
+  // ---- Set-entry view --------------------------------------------------------
   if (selected) {
-    const ex = getExercise(selected);
-    const isOther = selected === "Other";
-    const color = CAT_COLORS[isOther ? otherCat : ex.cat];
-    const showWeight = ex.input !== IN.REPS;
-    const backAction = h(
-      "button",
-      { className: "panel-back mono", onClick: backToList },
-      h(IconArrowL, null),
-      " ",
-      h("span", null, "back")
-    );
+    const repsOnly = selected.input === IN.REPS;
+    const isCircuit = selected.input === IN.CIRCUIT;
+    const isOther = selected.isOther;
+    const canLog = isCircuit
+      ? circuit.sets && circuit.minutes
+      : (!isOther || otherName.trim()) &&
+        rows.some(r => r.reps && (repsOnly || r.weight !== ""));
 
-    if (ex.input === IN.CIRCUIT) {
-      const canLog =
-        Number(circuitMin) > 0 && Number(circuitSets) > 0 && !logging;
-      return h(
-        Panel,
-        { title: selected, action: backAction, titleBg: color },
-        h(
-          "div",
-          { className: "circuit-form" },
-          h(
-            "div",
-            { className: "circuit-field" },
-            h("label", null, "Minutes / set"),
-            h(
-              "div",
-              { className: "cardio-field" },
-              h("input", {
-                type: "number",
-                inputMode: "decimal",
-                min: "0",
-                step: "any",
-                value: circuitMin,
-                onChange: e => setCircuitMin(e.target.value),
-                placeholder: "0"
-              }),
-              h("span", { className: "unit" }, "min")
-            )
-          ),
-          h(
-            "div",
-            { className: "circuit-field" },
-            h("label", null, "Number of sets"),
-            h(
-              "div",
-              { className: "cardio-field" },
-              h("input", {
-                type: "number",
-                inputMode: "numeric",
-                min: "1",
-                step: "1",
-                value: circuitSets,
-                onChange: e => setCircuitSets(e.target.value),
-                placeholder: "0"
-              }),
-              h("span", { className: "unit" }, "sets")
-            )
-          )
-        ),
-        h(
-          "div",
-          { className: "form-actions" },
-          h(
-            Btn,
-            { onClick: logExercise, disabled: !canLog },
-            logging ? "Logging…" : "Log"
-          )
-        )
-      );
-    }
-
-    const canLog = sets.some(s => Number(s.reps) > 0) && !logging;
     return h(
       Panel,
-      { title: selected, action: backAction, titleBg: color },
+      {
+        title: isOther ? "Other exercise" : selected.name,
+        titleBg: CAT_COLORS[isOther ? otherCat : selected.cat],
+        action: h(
+          "button",
+          { className: "panel-back", onClick: backToList },
+          h(IconArrowL, { size: 12 }),
+          "All exercises"
+        )
+      },
       isOther &&
         h(
           "div",
@@ -2356,146 +2298,173 @@ function StrengthLog({
             h("input", {
               type: "text",
               value: otherName,
-              onChange: e => setOtherName(e.target.value),
-              placeholder: "e.g. Lateral lunge"
+              placeholder: "e.g. Face pulls",
+              onChange: e => setOtherName(e.target.value)
             })
           )
         ),
-      h(
-        "div",
-        { className: "set-table" },
-        h(
-          "div",
-          { className: `set-row set-head${showWeight ? "" : " reps-only"}` },
-          h("span", { className: "set-idx mono" }, "#"),
-          showWeight && h("span", { className: "set-kg mono" }, "kg"),
-          h("span", { className: "set-reps mono" }, "reps"),
-          h("span", { className: "set-del-h" })
-        ),
-        sets.map((s, i) =>
-          h(
+      isCircuit
+        ? h(
             "div",
-            {
-              key: i,
-              className: `set-row${showWeight ? "" : " reps-only"}`
-            },
-            h("span", { className: "set-idx mono" }, i + 1),
-            showWeight &&
-              h("input", {
-                className: "set-input mono",
-                type: "number",
-                inputMode: "decimal",
-                min: "0",
-                step: "any",
-                value: s.weight_kg,
-                onChange: e => updateSet(i, "weight_kg", e.target.value),
-                placeholder: "0"
-              }),
-            h("input", {
-              className: "set-input mono",
-              type: "number",
-              inputMode: "numeric",
-              min: "0",
-              step: "1",
-              value: s.reps,
-              onChange: e => updateSet(i, "reps", e.target.value),
-              placeholder: "0"
-            }),
+            { className: "circuit-form" },
             h(
-              "button",
-              {
-                className: "set-del",
-                onClick: () => removeSet(i),
-                disabled: sets.length === 1
-              },
-              h(IconTrash, { size: 13 })
+              "div",
+              { className: "circuit-field" },
+              h("label", null, "Sets"),
+              h(
+                "div",
+                { className: "cardio-field" },
+                h("input", {
+                  type: "number",
+                  inputMode: "numeric",
+                  value: circuit.sets,
+                  onChange: e =>
+                    setCircuit({ ...circuit, sets: e.target.value })
+                })
+              )
+            ),
+            h(
+              "div",
+              { className: "circuit-field" },
+              h("label", null, "Minutes per set"),
+              h(
+                "div",
+                { className: "cardio-field" },
+                h("input", {
+                  type: "number",
+                  inputMode: "decimal",
+                  value: circuit.minutes,
+                  onChange: e =>
+                    setCircuit({ ...circuit, minutes: e.target.value })
+                })
+              )
             )
           )
-        )
-      ),
-      h(
-        "button",
-        { className: "add-set", onClick: addSet },
-        h(IconPlus, { size: 14 }),
-        " ",
-        h("span", null, "Add set")
-      ),
+        : h(
+            React.Fragment,
+            null,
+            h(
+              "div",
+              { className: "set-table" },
+              h(
+                "div",
+                {
+                  className: `set-row set-head${repsOnly ? " reps-only" : ""}`
+                },
+                h("span", { className: "set-idx" }, "#"),
+                !repsOnly && h("span", { className: "set-kg" }, "kg"),
+                h("span", { className: "set-reps" }, "reps"),
+                h("span", null)
+              ),
+              rows.map((r, i) =>
+                h(
+                  "div",
+                  {
+                    key: i,
+                    className: `set-row${repsOnly ? " reps-only" : ""}`
+                  },
+                  h("span", { className: "set-idx mono" }, i + 1),
+                  !repsOnly &&
+                    h("input", {
+                      className: "set-input mono",
+                      type: "number",
+                      inputMode: "decimal",
+                      placeholder: "kg",
+                      value: r.weight,
+                      onChange: e => updateSet(i, "weight", e.target.value)
+                    }),
+                  h("input", {
+                    className: "set-input mono",
+                    type: "number",
+                    inputMode: "numeric",
+                    placeholder: "reps",
+                    value: r.reps,
+                    onChange: e => updateSet(i, "reps", e.target.value)
+                  }),
+                  h(
+                    "button",
+                    {
+                      className: "set-del",
+                      onClick: () => removeSet(i),
+                      disabled: rows.length === 1
+                    },
+                    h(IconTrash, { size: 13 })
+                  )
+                )
+              )
+            ),
+            h(
+              "button",
+              { className: "add-set", onClick: addSet },
+              h(IconPlus, { size: 13 }),
+              "Add set"
+            )
+          ),
       h(
         "div",
         { className: "form-actions" },
-        h(
-          Btn,
-          { onClick: logExercise, disabled: !canLog },
-          logging ? "Logging…" : "Log"
-        )
+        h(Btn, { onClick: logExercise, disabled: !canLog }, "Log exercise")
       )
     );
   }
 
-  // ── Exercise list view ──
+  // ---- Exercise list view ----------------------------------------------------
   const todayCounts = {};
   for (const s of todaySets) {
     todayCounts[s.exercise_name] = (todayCounts[s.exercise_name] || 0) + 1;
   }
-  const fiveDaysAgoMs = Date.now() - 5 * 86400000;
-  const recentlyDone = name => {
-    const iso = exerciseDict[name] && exerciseDict[name].last_used_at;
-    return iso && new Date(iso).getTime() > fiveDaysAgoMs;
-  };
 
   return h(
     React.Fragment,
     null,
-    activeSession &&
-      h(SessionQueue, {
-        session: activeSession,
-        onSelectExercise: (name, nSets) => selectExercise(name, nSets),
-        onEndSession
-      }),
     CATEGORIES.map(cat => {
-      const catExs = EXERCISES.filter(
-        e => e.cat === cat.id && !e.hidden && !e.isOther
-      );
-      const color = CAT_COLORS[cat.id];
+      const list = EXERCISES.filter(e => e.cat === cat.id && !e.hidden);
       return h(
         "div",
         { key: cat.id, className: "cat-group" },
         h(
           "div",
-          { className: "cat-header", style: { background: color } },
+          {
+            className: "cat-header mono",
+            style: { background: CAT_COLORS[cat.id] }
+          },
           cat.label.toUpperCase()
         ),
-        catExs.map(ex => {
-          const count = todayCounts[ex.name];
-          const recent = recentlyDone(ex.name);
+        list.map(ex => {
+          const count = todayCounts[ex.name] || 0;
+          const recentlyDone = count > 0;
           return h(
             "button",
             {
               key: ex.name,
               className: "exercise-btn",
-              style: { borderLeftColor: color },
-              onClick: () => selectExercise(ex.name)
+              style: recentlyDone
+                ? { borderLeftColor: CAT_COLORS[cat.id] }
+                : undefined,
+              onClick: () => selectExercise(ex, cat.id)
             },
             h("span", { className: "ex-name" }, ex.name),
             h(
-              "span",
+              "div",
               { className: "ex-badges" },
-              recent && h("span", { className: "badge-tick" }, "✓"),
+              recentlyDone && h("span", { className: "badge-tick" }, "✓"),
               count > 0 &&
                 h("span", { className: "badge-count mono" }, count)
             )
           );
         }),
-        // FIX (v3): the Other button passes its category through, so custom
-        // exercises are coloured + counted under the category they came from.
+        // Every category gets an "Other" entry that carries THIS category.
         h(
           "button",
           {
             className: "exercise-btn exercise-other",
-            style: { borderLeftColor: color },
-            onClick: () => selectExercise("Other", null, cat.id)
+            onClick: () =>
+              selectExercise(
+                EXERCISES.find(e => e.isOther),
+                cat.id
+              )
           },
-          h("span", { className: "ex-name mono" }, "Other")
+          h("span", { className: "ex-name" }, "Other…")
         )
       );
     })
@@ -2503,60 +2472,56 @@ function StrengthLog({
 }
 
 // =============================================================================
-// SessionQueue — active session panel rendered at top of strength log
+// Active session queue (Log tab) — the 4 picked exercises with done ticks.
 // =============================================================================
-function SessionQueue({ session, onSelectExercise, onEndSession }) {
-  const completed = session.completed || [];
-  const total = session.exercises.length;
-  const doneCount = completed.length;
-  const allDone = doneCount === total && total > 0;
-  const headBg = allDone ? "#3A7D52" : undefined;
+function SessionQueue({ session, onPick, onEnd }) {
+  const remaining = session.exercises.filter(
+    e => !session.done.includes(e.name)
+  ).length;
   return h(
     "div",
     { className: "panel queue-panel" },
     h(
       "div",
-      {
-        className: "panel-head",
-        style: headBg ? { background: headBg } : undefined
-      },
+      { className: "panel-head" },
       h(
         "span",
         { className: "panel-title" },
         session.title,
         " · ",
-        doneCount,
-        "/",
-        total,
-        allDone ? " ✓" : ""
+        remaining,
+        " left"
       ),
       h(
         "button",
-        { className: "panel-back mono", onClick: onEndSession },
-        allDone ? "Done" : "End"
+        { className: "panel-back", onClick: onEnd },
+        "End"
       )
     ),
     h(
       "div",
-      { className: "panel-body queue-body" },
-      session.exercises.map((ex, i) => {
-        const isDone = completed.includes(ex.name);
+      { className: "queue-body" },
+      session.exercises.map(ex => {
+        const done = session.done.includes(ex.name);
         const color = CAT_COLORS[ex.cat];
         return h(
           "button",
           {
-            key: ex.name + i,
-            className: `session-row queue-row${isDone ? " queue-done" : ""}`,
+            key: ex.name,
+            className: `queue-row${done ? " queue-done" : ""}`,
             style: { borderLeftColor: color },
-            onClick: () => !isDone && onSelectExercise(ex.name, ex.sets),
-            disabled: isDone
+            onClick: () => !done && onPick(ex),
+            disabled: done
           },
-          h("span", { className: "queue-mark mono" }, isDone ? "✓" : "·"),
+          h("span", { className: "queue-mark mono" }, done ? "✓" : ""),
           h("span", { className: "session-name" }, ex.name),
           h(
             "span",
-            { className: "session-sets mono" },
-            isDone ? "done" : `${ex.sets}×`
+            {
+              className: "session-cat mono",
+              style: { color, borderColor: color }
+            },
+            h("span", { className: "session-cat-lbl" }, CAT_LABELS[ex.cat])
           )
         );
       })
@@ -2565,148 +2530,114 @@ function SessionQueue({ session, onSelectExercise, onEndSession }) {
 }
 
 // =============================================================================
-// Cardio log (Log tab)
+// Cardio logging (Log tab)
 // =============================================================================
-function CardioLog({
-  dateKey,
-  refreshKey,
-  onChange,
-  pendingCardio,
-  clearPendingCardio
-}) {
+function CardioLog({ dateKey, onLogged, pendingCardio, onPendingConsumed }) {
   const [type, setType] = useState("jog");
   const [duration, setDuration] = useState("");
   const [distance, setDistance] = useState("");
   const [kcal, setKcal] = useState("");
-  const [kcalEdited, setKcalEdited] = useState(false);
-  const [logging, setLogging] = useState(false);
-  const [todaySessions, setTodaySessions] = useState([]);
-  const hasDistance = type === "jog" || type === "run";
+  const [kcalTouched, setKcalTouched] = useState(false);
+  const [distTouched, setDistTouched] = useState(false);
 
+  // Jumping in from the cardio recommendation pre-fills type + duration.
   useEffect(() => {
-    setTodaySessions(storage.get(`cardio:${dateKey}`, []));
-  }, [dateKey, refreshKey]);
-
-  // Apply pending cardio (from Today tab recommendation)
-  useEffect(() => {
-    if (!pendingCardio) return;
-    const t = pendingCardio.type;
-    const d = pendingCardio.duration_min;
-    setType(t);
-    setKcalEdited(false);
-    setDuration(d > 0 ? String(d) : "");
-    if ((t === "jog" || t === "run") && d > 0) {
-      setDistance((d / PACE_MIN_PER_KM[t]).toFixed(1));
-    } else {
-      setDistance("");
+    if (pendingCardio) {
+      setType(pendingCardio.type);
+      setDuration(String(pendingCardio.minutes));
+      setKcalTouched(false);
+      setDistTouched(false);
+      onPendingConsumed();
     }
-    // kcal will be auto-computed by the effect below
-    if (clearPendingCardio) clearPendingCardio();
   }, [pendingCardio]);
 
-  // Recalculate kcal when duration changes (unless manually overridden)
+  const dur = parseFloat(duration);
+
+  // Auto-derive kcal from duration unless the user has typed their own.
   useEffect(() => {
-    if (kcalEdited) return;
-    if (type === "other") {
+    if (kcalTouched) return;
+    if (dur && KCAL_PER_MIN[type]) {
+      setKcal(String(Math.round(dur * KCAL_PER_MIN[type])));
+    } else if (!kcalTouched) {
       setKcal("");
-      return;
     }
-    const dur = Number(duration);
-    if (!dur || dur <= 0) {
-      setKcal("");
-      return;
-    }
-    setKcal(String(Math.round(KCAL_PER_MIN[type] * dur)));
-  }, [type, duration, kcalEdited]);
+  }, [duration, type, kcalTouched]);
 
-  function selectType(t) {
-    setType(t);
-    setKcalEdited(false);
-    setDuration("");
-    setDistance("");
-    setKcal("");
-  }
-  // Duration entered → auto-fill distance
-  function changeDuration(v) {
-    setDuration(v);
-    if (hasDistance) {
-      const dur = Number(v);
-      setDistance(dur > 0 ? (dur / PACE_MIN_PER_KM[type]).toFixed(1) : "");
+  // Auto-derive distance for jog/run from pace unless user typed their own.
+  useEffect(() => {
+    if (distTouched) return;
+    if (dur && PACE_MIN_PER_KM[type]) {
+      setDistance((dur / PACE_MIN_PER_KM[type]).toFixed(1));
+    } else if (!distTouched) {
+      setDistance("");
     }
-  }
-  // Distance entered → auto-fill duration
-  function changeDistance(v) {
-    setDistance(v);
-    const d = Number(v);
-    setDuration(d > 0 ? String(Math.round(d * PACE_MIN_PER_KM[type])) : "");
-  }
-  function changeKcal(v) {
-    setKcal(v);
-    setKcalEdited(true);
-  }
+  }, [duration, type, distTouched]);
 
-  function logCardio() {
-    const dur = Number(duration);
-    const burn = Number(kcal);
-    if (!dur || dur <= 0 || !burn || burn <= 0 || logging) return;
-    setLogging(true);
-    const session = {
+  function log() {
+    if (!dur) return;
+    const entry = {
       id: genId(),
-      started_at: nowISO(),
       type,
       duration_min: dur,
-      kcal_burned: Math.round(burn),
-      source: kcalEdited || type === "other" ? "manual" : "auto"
+      distance_km: distance ? parseFloat(distance) : null,
+      kcal_burned: kcal ? parseInt(kcal, 10) : 0,
+      started_at: nowISO()
     };
-    if (hasDistance && Number(distance) > 0) {
-      session.distance_km = parseFloat(Number(distance).toFixed(1));
-    }
-    const next = [...todaySessions, session];
-    storage.set(`cardio:${dateKey}`, next);
-    setTodaySessions(next);
+    const existing = storage.get(`cardio:${dateKey}`, []);
+    storage.set(`cardio:${dateKey}`, [...existing, entry]);
     setDuration("");
     setDistance("");
     setKcal("");
-    setKcalEdited(false);
-    setLogging(false);
-    if (onChange) onChange();
+    setKcalTouched(false);
+    setDistTouched(false);
+    onLogged();
   }
 
-  const canLog = Number(duration) > 0 && Number(kcal) > 0 && !logging;
   return h(
     Panel,
-    { title: "New cardio" },
+    { title: "Log cardio" },
     h(
       "div",
       { className: "cardio-types" },
-      CARDIO_TYPES.map(({ id, label }) =>
+      CARDIO_TYPES.map(t =>
         h(
           "button",
           {
-            key: id,
-            onClick: () => selectType(id),
-            className: `cardio-type${type === id ? " active" : ""}`
+            key: t.id,
+            className: `cardio-type${type === t.id ? " active" : ""}`,
+            onClick: () => {
+              setType(t.id);
+              setKcalTouched(false);
+              setDistTouched(false);
+            }
           },
-          label
+          t.label
         )
       )
     ),
-    hasDistance &&
+    (type === "jog" || type === "run" || type === "bike") &&
       h(
         "div",
         { className: "distance-row" },
-        h("label", { className: "distance-lbl" }, "Distance"),
+        h(
+          "span",
+          { className: "distance-lbl" },
+          "Distance",
+          PACE_MIN_PER_KM[type] &&
+            h("span", { className: "auto-tag", style: { marginLeft: 6 } }, "auto")
+        ),
         h(
           "div",
           { className: "cardio-field dist-field" },
           h("input", {
             type: "number",
             inputMode: "decimal",
-            min: "0",
-            step: "0.1",
+            placeholder: "0.0",
             value: distance,
-            onChange: e => changeDistance(e.target.value),
-            placeholder: "0.0"
+            onChange: e => {
+              setDistance(e.target.value);
+              setDistTouched(true);
+            }
           }),
           h("span", { className: "unit" }, "km")
         )
@@ -2723,12 +2654,10 @@ function CardioLog({
           { className: "cardio-field" },
           h("input", {
             type: "number",
-            inputMode: "decimal",
-            min: "0",
-            step: "any",
+            inputMode: "numeric",
+            placeholder: "0",
             value: duration,
-            onChange: e => changeDuration(e.target.value),
-            placeholder: "0"
+            onChange: e => setDuration(e.target.value)
           }),
           h("span", { className: "unit" }, "min")
         )
@@ -2739,23 +2668,21 @@ function CardioLog({
         h(
           "label",
           null,
-          "Calories",
-          !kcalEdited &&
-            type !== "other" &&
-            Number(duration) > 0 &&
-            h("span", { className: "auto-tag mono" }, "auto")
+          "Energy",
+          KCAL_PER_MIN[type] && h("span", { className: "auto-tag" }, "auto")
         ),
         h(
           "div",
           { className: "cardio-field" },
           h("input", {
             type: "number",
-            inputMode: "decimal",
-            min: "0",
-            step: "any",
+            inputMode: "numeric",
+            placeholder: "0",
             value: kcal,
-            onChange: e => changeKcal(e.target.value),
-            placeholder: "0"
+            onChange: e => {
+              setKcal(e.target.value);
+              setKcalTouched(true);
+            }
           }),
           h("span", { className: "unit" }, "kcal")
         )
@@ -2764,17 +2691,13 @@ function CardioLog({
     h(
       "div",
       { className: "form-actions" },
-      h(
-        Btn,
-        { onClick: logCardio, disabled: !canLog },
-        logging ? "Logging…" : "Log"
-      )
+      h(Btn, { onClick: log, disabled: !dur }, "Log cardio")
     )
   );
 }
 
 // =============================================================================
-// Log screen (tab)
+// Log screen (tab) — mode segment + stopwatch + active form
 // =============================================================================
 function LogScreen({
   dateKey,
@@ -2782,21 +2705,23 @@ function LogScreen({
   refreshKey,
   onChange,
   pendingExercise,
-  clearPending,
-  activeSession,
-  onEndSession,
-  onCompleteExercise,
+  onPendingConsumed,
   pendingCardio,
-  clearPendingCardio,
+  onPendingCardioConsumed,
+  activeSession,
+  onCompleteExercise,
+  onEndSession,
+  onPickFromQueue,
   sw,
-  swStart,
-  swRest,
-  swEnd
+  onSwStart,
+  onSwRest,
+  onSwEnd
 }) {
   const [mode, setMode] = useState("strength");
+
   useEffect(() => {
-    if (pendingExercise || activeSession) setMode("strength");
-  }, [pendingExercise, activeSession]);
+    if (pendingExercise) setMode("strength");
+  }, [pendingExercise]);
   useEffect(() => {
     if (pendingCardio) setMode("cardio");
   }, [pendingCardio]);
@@ -2814,9 +2739,8 @@ function LogScreen({
           className: `segment-btn${mode === "strength" ? " active" : ""}`,
           onClick: () => setMode("strength")
         },
-        h(IconDumbbell, { size: 15, sw: 1.75 }),
-        " ",
-        h("span", null, "Strength")
+        h(IconDumbbell, { size: 15, sw: 2 }),
+        "Strength"
       ),
       h(
         "button",
@@ -2824,123 +2748,134 @@ function LogScreen({
           className: `segment-btn${mode === "cardio" ? " active" : ""}`,
           onClick: () => setMode("cardio")
         },
-        h(IconActivity, { size: 15, sw: 1.75 }),
-        " ",
-        h("span", null, "Cardio")
+        h(IconActivity, { size: 15, sw: 2 }),
+        "Cardio"
       )
     ),
     mode === "strength" &&
-      h(
-        React.Fragment,
-        null,
-        h(Stopwatch, { sw, onStart: swStart, onRest: swRest, onEnd: swEnd }),
-        h(StrengthLog, {
+      h(Stopwatch, {
+        sw,
+        onStart: onSwStart,
+        onRest: onSwRest,
+        onEnd: onSwEnd
+      }),
+    mode === "strength" &&
+      activeSession &&
+      h(SessionQueue, {
+        session: activeSession,
+        onPick: onPickFromQueue,
+        onEnd: onEndSession
+      }),
+    mode === "strength"
+      ? h(StrengthLog, {
           dateKey,
           refreshKey,
-          onChange,
+          onLogged: onChange,
           pendingExercise,
-          clearPending,
+          onPendingConsumed,
           activeSession,
-          onEndSession,
           onCompleteExercise
         })
-      ),
-    mode === "cardio" &&
-      h(CardioLog, {
-        dateKey,
-        refreshKey,
-        onChange,
-        pendingCardio,
-        clearPendingCardio
-      })
+      : h(CardioLog, {
+          dateKey,
+          onLogged: onChange,
+          pendingCardio,
+          onPendingConsumed: onPendingCardioConsumed
+        })
   );
 }
 
 // =============================================================================
-// Bar chart (SVG, scales via viewBox). Now supports STACKED bars:
-//   data: [{ label, parts: [{ color, value }] }]
-// Single-colour charts simply pass one part per bar.
-// - Avg (of bar totals) sits in the reserved top padding.
-// - Tapping a column toggles the bar's total above it.
+// Summary chart — stacked bars by category (strength) or plain bars (cardio)
 // =============================================================================
-function BarChart({ data, height = 124 }) {
-  const [sel, setSel] = useState(null);
-  useEffect(() => {
-    setSel(null);
-  }, [data]);
+function BarChart({ days, series, avgLabel, unit, colors }) {
+  const [activeIdx, setActiveIdx] = useState(null);
+  const W = 320;
+  const barGap = 2;
+  const padTop = 30;
+  const padBottom = 22;
+  const chartH = 120;
+  const H = chartH + padTop + padBottom;
+  const n = days.length;
+  const barW = (W - barGap * (n - 1)) / n;
 
-  const W = 320,
-    H = height;
-  const pad = { top: 30, bottom: 22, left: 4, right: 4 };
-  const chartW = W - pad.left - pad.right;
-  const chartH = H - pad.top - pad.bottom;
-  const n = data.length || 1;
-  const colW = chartW / n;
-  const barW = Math.max(2, colW - 3);
-
-  const totals = data.map(d =>
-    d.parts.reduce((a, p) => a + (p.value || 0), 0)
+  const totals = days.map((_, i) =>
+    series.reduce((a, s) => a + (s.values[i] || 0), 0)
   );
-  const max = Math.max(1, ...totals);
-  const sum = totals.reduce((a, v) => a + v, 0);
-  const avg = data.length > 0 ? sum / data.length : 0;
-  const avgY = H - pad.bottom - (avg / max) * chartH;
-  const labelEvery = data.length > 16 ? 5 : 1;
+  const max = Math.max(...totals, 1);
+  const nonZero = totals.filter(v => v > 0);
+  const avg =
+    nonZero.length > 0
+      ? nonZero.reduce((a, v) => a + v, 0) / nonZero.length
+      : 0;
+  const avgY = padTop + chartH - (avg / max) * chartH;
 
   return h(
     "svg",
     {
       className: "bar-chart",
       viewBox: `0 0 ${W} ${H}`,
-      preserveAspectRatio: "none",
-      role: "img",
-      "aria-label": "bar chart"
+      onClick: () => setActiveIdx(null)
     },
-    h("line", {
-      x1: pad.left,
-      x2: W - pad.right,
-      y1: H - pad.bottom + 0.5,
-      y2: H - pad.bottom + 0.5,
-      stroke: "#1B1A17",
-      strokeWidth: "1"
-    }),
-    data.map((d, i) => {
-      const total = totals[i];
-      const x = pad.left + i * colW + (colW - barW) / 2;
-      const showLabel = (data.length - 1 - i) % labelEvery === 0;
-      // Stack segments bottom-up from the baseline.
-      let yCursor = H - pad.bottom;
+    days.map((d, i) => {
+      const x = i * (barW + barGap);
+      let y = padTop + chartH;
       const segs = [];
-      for (let p = 0; p < d.parts.length; p++) {
-        const part = d.parts[p];
-        const segH = part.value > 0 ? (part.value / max) * chartH : 0;
-        if (segH > 0) {
-          yCursor -= segH;
-          segs.push(
-            h("rect", {
-              key: p,
-              x,
-              y: yCursor,
-              width: barW,
-              height: segH,
-              fill: part.color
-            })
-          );
-        }
-      }
+      series.forEach((s, si) => {
+        const v = s.values[i] || 0;
+        if (v <= 0) return;
+        const hgt = (v / max) * chartH;
+        y -= hgt;
+        segs.push(
+          h("rect", {
+            key: si,
+            x,
+            y,
+            width: barW,
+            height: hgt,
+            fill: colors[si]
+          })
+        );
+      });
       return h(
-        "g",
-        { key: i },
-        total > 0 && segs,
-        showLabel &&
+        React.Fragment,
+        { key: d.dk },
+        segs,
+        totals[i] > 0 &&
+          activeIdx === i &&
+          h(
+            "text",
+            {
+              x: Math.min(Math.max(x + barW / 2, 14), W - 14),
+              y: padTop + chartH - (totals[i] / max) * chartH - 6,
+              textAnchor: "middle",
+              fontSize: 9.5,
+              fontFamily: "'JetBrains Mono', monospace",
+              fill: "#1B1A17"
+            },
+            totals[i]
+          ),
+        // Invisible tap target covering the full column height.
+        h("rect", {
+          x,
+          y: padTop,
+          width: barW,
+          height: chartH,
+          fill: "transparent",
+          onClick: e => {
+            e.stopPropagation();
+            setActiveIdx(activeIdx === i ? null : i);
+          }
+        }),
+        d.label &&
           h(
             "text",
             {
               x: x + barW / 2,
-              y: H - pad.bottom + 12,
+              y: H - 8,
               textAnchor: "middle",
-              fontSize: "8",
-              fontFamily: "JetBrains Mono, monospace",
+              fontSize: 9,
+              fontFamily: "'JetBrains Mono', monospace",
               fill: "#5C5849"
             },
             d.label
@@ -2948,233 +2883,176 @@ function BarChart({ data, height = 124 }) {
       );
     }),
     avg > 0 &&
-      h("line", {
-        x1: pad.left,
-        x2: W - pad.right,
-        y1: avgY,
-        y2: avgY,
-        stroke: "#1B1A17",
-        strokeWidth: "1",
-        strokeDasharray: "2 3",
-        opacity: "0.55"
-      }),
-    avg > 0 &&
       h(
-        "text",
-        {
-          x: W - pad.right,
-          y: 12,
-          textAnchor: "end",
-          fontSize: "10",
-          fontWeight: "700",
-          fontFamily: "JetBrains Mono, monospace",
-          fill: "#5C5849"
-        },
-        "avg ",
-        Math.round(avg).toLocaleString()
-      ),
-    sel !== null &&
-      data[sel] !== undefined &&
-      (() => {
-        const total = totals[sel];
-        const hgt = total > 0 ? (total / max) * chartH : 0;
-        const cx = pad.left + sel * colW + colW / 2;
-        const barTop = H - pad.bottom - hgt;
-        // Always sit just above the bar. barTop is never less than pad.top
-        // (a full-height bar tops out there), so this never overlaps a bar
-        // and never clips the top of the chart.
-        const ty = barTop - 7;
-        return h(
+        React.Fragment,
+        null,
+        h("line", {
+          x1: 0,
+          y1: avgY,
+          x2: W,
+          y2: avgY,
+          stroke: "#1B1A17",
+          strokeWidth: 1,
+          strokeDasharray: "3 3"
+        }),
+        h(
           "text",
           {
-            x: cx,
-            y: ty,
-            textAnchor: "middle",
-            fontSize: "10",
-            fontWeight: "700",
-            fontFamily: "JetBrains Mono, monospace",
+            x: W,
+            y: Math.max(avgY - 5, 9),
+            textAnchor: "end",
+            fontSize: 9.5,
+            fontFamily: "'JetBrains Mono', monospace",
             fill: "#1B1A17"
           },
-          Math.round(total).toLocaleString()
-        );
-      })(),
-    data.map((_, i) => {
-      const hx = pad.left + i * colW;
-      return h("rect", {
-        key: "hit" + i,
-        x: hx,
-        y: pad.top,
-        width: colW,
-        height: chartH,
-        fill: "transparent",
-        onClick: () => setSel(sel === i ? null : i),
-        style: { cursor: "pointer" }
-      });
-    })
+          `${avgLabel} ${Math.round(avg)}${unit}`
+        )
+      )
   );
 }
 
 // =============================================================================
-// Data panel — export / import JSON backup of everything under the app's
-// localStorage prefix (history, exercise dictionary, active session, settings).
+// Data panel — export / import backup (Summary tab)
 // =============================================================================
 function DataPanel({ onImported }) {
   const fileRef = useRef(null);
-  const [msg, setMsg] = useState("");
+  const [note, setNote] = useState("");
 
   function doExport() {
-    try {
-      const n = downloadBackup();
-      setMsg(`Exported ${n} records.`);
-    } catch (err) {
-      console.error("export", err);
-      setMsg("Export failed.");
-    }
+    const n = downloadBackup();
+    setNote(`Exported ${n} records.`);
+  }
+  function pickFile() {
+    if (fileRef.current) fileRef.current.click();
   }
   function onFile(e) {
     const file = e.target.files && e.target.files[0];
-    e.target.value = ""; // allow re-selecting the same file
+    e.target.value = "";
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
-      let parsed = null;
       try {
-        parsed = JSON.parse(reader.result);
+        const parsed = JSON.parse(reader.result);
+        const ok = window.confirm(
+          "Import backup? Existing days that also exist in the backup will be overwritten."
+        );
+        if (!ok) return;
+        const res = restoreBackup(parsed);
+        if (res.ok) {
+          setNote(`Imported ${res.count} records.`);
+          onImported();
+        } else {
+          setNote("Import failed: not a valid backup file.");
+        }
       } catch {
-        setMsg("Import failed — not a valid JSON file.");
-        return;
-      }
-      if (
-        !parsed ||
-        parsed.app !== "exercise-tracker" ||
-        typeof parsed.data !== "object" ||
-        parsed.data === null
-      ) {
-        setMsg("Import failed — not an exercise-tracker backup.");
-        return;
-      }
-      const n = Object.keys(parsed.data).length;
-      if (
-        !confirm(
-          `Import ${n} records? Entries with the same date/key will be overwritten.`
-        )
-      ) {
-        setMsg("Import cancelled.");
-        return;
-      }
-      const res = restoreBackup(parsed);
-      if (res.ok) {
-        setMsg(`Imported ${res.count} records.`);
-        if (onImported) onImported();
-      } else {
-        setMsg("Import failed.");
+        setNote("Import failed: could not read that file.");
       }
     };
-    reader.onerror = () => setMsg("Import failed — could not read the file.");
     reader.readAsText(file);
   }
 
   return h(
     Panel,
-    { title: "Data", titleBg: "#5C5849" },
+    { title: "Data" },
     h(
       "div",
       { className: "data-actions" },
       h(
-        "button",
-        { className: "btn btn-primary btn-md data-btn", onClick: doExport },
-        h(IconDownload, { size: 13, sw: 2 }),
-        " Export backup"
+        Btn,
+        { onClick: doExport, variant: "primary", sz: "md" },
+        h(IconDownload, { size: 13 }),
+        "Export backup"
       ),
       h(
         "button",
-        {
-          className: "btn btn-md data-btn",
-          onClick: () => fileRef.current && fileRef.current.click()
-        },
-        h(IconUpload, { size: 13, sw: 2 }),
-        " Import"
-      ),
-      h("input", {
-        ref: fileRef,
-        type: "file",
-        accept: "application/json,.json",
-        className: "hidden-file",
-        onChange: onFile
-      })
+        { className: "btn btn-md data-btn", onClick: pickFile },
+        h(IconUpload, { size: 13 }),
+        "Import backup"
+      )
     ),
-    msg && h("div", { className: "data-note mono" }, msg),
+    h("input", {
+      ref: fileRef,
+      type: "file",
+      accept: "application/json,.json",
+      className: "hidden-file",
+      onChange: onFile
+    }),
     h(
       "div",
       { className: "data-note" },
-      "Everything lives in this browser's local storage. Export a backup occasionally — clearing site data (or iOS evicting storage) would otherwise wipe your history."
+      note ||
+        "Backups contain every logged day as JSON. Import merges by day — days in the backup replace the same days here."
     )
   );
 }
 
 // =============================================================================
-// Summary tab — 14- or 30-day rolling view. Strength volume is stacked by
-// category (push / pull / legs / core-iso); cardio kcal is single-colour.
+// Summary tab
 // =============================================================================
 const CARDIO_CHART_COLOR = "#3B6FA0";
+function SummaryTab({ refreshKey, onImported }) {
+  const [range, setRange] = useState(14);
+  const [activeCats, setActiveCats] = useState(
+    () => CATEGORIES.map(c => c.id)
+  );
 
-function SummaryTab({ refreshKey, onChange }) {
-  const [range, setRange] = useState(14); // 14 or 30
-  // Which strength categories are shown in the chart. Tap the legend to filter.
-  const [activeCats, setActiveCats] = useState({
-    push: true,
-    pull: true,
-    legs: true,
-    coreiso: true
-  });
-
-  // Heavy pass: read storage once per range/refresh and keep the full
-  // per-day breakdown. Filtering categories below is cheap and doesn't re-read.
   const daily = useMemo(() => {
     const today = todayKey();
     const out = [];
     for (let i = range - 1; i >= 0; i--) {
       const dk = dateKeyOffset(today, -i);
       const sets = storage.get(`strength:${dk}`, []);
-      const ses = storage.get(`cardio:${dk}`, []);
-      const vols = { push: 0, pull: 0, legs: 0, coreiso: 0 };
-      for (const s of sets) vols[entryCat(s)] += setVolume(s);
-      const kcal = ses.reduce((a, s) => a + (s.kcal_burned || 0), 0);
-      const d = new Date(dk + "T12:00:00");
-      const label = ["S", "M", "T", "W", "T", "F", "S"][d.getDay()];
-      out.push({ label, vols, kcal });
+      const cardio = storage.get(`cardio:${dk}`, []);
+      const perCat = { push: 0, pull: 0, legs: 0, coreiso: 0 };
+      for (const s of sets) {
+        if (s.input_type === IN.CIRCUIT) continue;
+        perCat[entryCat(s)] += 1;
+      }
+      out.push({
+        dk,
+        label:
+          i === 0
+            ? "T"
+            : (range - i) % (range > 14 ? 5 : 2) === 0
+              ? new Date(dk + "T12:00:00")
+                  .getDate()
+                  .toString()
+              : "",
+        perCat,
+        kcal: cardio.reduce((a, s) => a + (s.kcal_burned || 0), 0)
+      });
     }
     return out;
-  }, [refreshKey, range]);
+  }, [range, refreshKey]);
 
-  // Only the selected categories become stacked segments; the chart's totals
-  // and average line then reflect the filtered volume.
-  const strengthData = useMemo(
-    () =>
-      daily.map(d => ({
-        label: d.label,
-        parts: CATEGORIES.filter(c => activeCats[c.id]).map(c => ({
-          color: CAT_COLORS[c.id],
-          value: d.vols[c.id]
-        }))
-      })),
-    [daily, activeCats]
+  const strengthDays = daily.map(d => ({ dk: d.dk, label: d.label }));
+  const strengthSeries = CATEGORIES.filter(c =>
+    activeCats.includes(c.id)
+  ).map(c => ({
+    id: c.id,
+    values: daily.map(d => d.perCat[c.id])
+  }));
+  const strengthColors = CATEGORIES.filter(c =>
+    activeCats.includes(c.id)
+  ).map(c => CAT_COLORS[c.id]);
+
+  const totalSets = daily.reduce(
+    (a, d) =>
+      a +
+      Object.entries(d.perCat)
+        .filter(([cat]) => activeCats.includes(cat))
+        .reduce((b, [, v]) => b + v, 0),
+    0
   );
-  const cardioData = useMemo(
-    () =>
-      daily.map(d => ({
-        label: d.label,
-        parts: [{ color: CARDIO_CHART_COLOR, value: d.kcal }]
-      })),
-    [daily]
-  );
+  const totalKcal = daily.reduce((a, d) => a + d.kcal, 0);
 
   function toggleCat(id) {
     setActiveCats(prev => {
-      const next = { ...prev, [id]: !prev[id] };
-      // Never allow an empty chart — ignore turning off the last category.
-      if (!Object.values(next).some(Boolean)) return prev;
-      return next;
+      if (prev.includes(id)) {
+        const next = prev.filter(c => c !== id);
+        return next.length === 0 ? prev : next; // never allow empty
+      }
+      return [...prev, id];
     });
   }
 
@@ -3190,7 +3068,7 @@ function SummaryTab({ refreshKey, onChange }) {
           className: `segment-btn${range === 14 ? " active" : ""}`,
           onClick: () => setRange(14)
         },
-        h("span", null, "14 days")
+        "14 days"
       ),
       h(
         "button",
@@ -3198,28 +3076,38 @@ function SummaryTab({ refreshKey, onChange }) {
           className: `segment-btn${range === 30 ? " active" : ""}`,
           onClick: () => setRange(30)
         },
-        h("span", null, "30 days")
+        "30 days"
       )
     ),
     h(
       Panel,
-      { title: `Strength · ${range} days` },
-      h(BarChart, { data: strengthData }),
+      { title: "Strength · sets/day" },
+      h(
+        "div",
+        { className: "summary-totals mono" },
+        totalSets,
+        " sets in ",
+        range,
+        " days"
+      ),
+      h(BarChart, {
+        days: strengthDays,
+        series: strengthSeries,
+        avgLabel: "avg",
+        unit: "",
+        colors: strengthColors
+      }),
       h(
         "div",
         { className: "legend" },
         CATEGORIES.map(c => {
-          const on = activeCats[c.id];
+          const on = activeCats.includes(c.id);
           return h(
             "button",
             {
               key: c.id,
               className: `legend-btn${on ? "" : " legend-off"}`,
-              onClick: () => toggleCat(c.id),
-              "aria-pressed": on,
-              title: on
-                ? `Hide ${CAT_LABELS[c.id]}`
-                : `Show ${CAT_LABELS[c.id]}`
+              onClick: () => toggleCat(c.id)
             },
             h("span", {
               className: "legend-swatch",
@@ -3232,55 +3120,62 @@ function SummaryTab({ refreshKey, onChange }) {
     ),
     h(
       Panel,
-      { title: `Cardio · ${range} days`, titleBg: CARDIO_CHART_COLOR },
-      h(BarChart, { data: cardioData })
-    ),
-    h(DataPanel, { onImported: onChange })
-  );
-}
-
-// =============================================================================
-// Bottom nav
-// =============================================================================
-const TABS = [
-  { id: "today", label: "Today", Icon: IconCalendar },
-  { id: "log", label: "Log", Icon: IconPlus },
-  { id: "summary", label: "Summary", Icon: IconActivity }
-];
-function BottomNav({ active, onChange }) {
-  return h(
-    "nav",
-    { className: "bottom-nav" },
-    h(
-      "div",
-      { className: "bottom-nav-inner" },
-      TABS.map(({ id, label, Icon }) => {
-        const on = active === id;
-        return h(
-          "button",
-          {
-            key: id,
-            onClick: () => onChange(id),
-            className: `tab${on ? " tab-active" : ""}`,
-            "aria-label": label,
-            title: label
-          },
-          h(Icon, { size: 22, sw: on ? 2 : 1.75 }),
-          h("span", { className: "tab-label" }, label)
-        );
+      { title: "Cardio · kcal/day" },
+      h(
+        "div",
+        { className: "summary-totals mono" },
+        totalKcal,
+        " kcal in ",
+        range,
+        " days"
+      ),
+      h(BarChart, {
+        days: daily.map(d => ({ dk: d.dk, label: d.label })),
+        series: [{ id: "kcal", values: daily.map(d => d.kcal) }],
+        avgLabel: "avg",
+        unit: " kcal",
+        colors: [CARDIO_CHART_COLOR]
       })
-    )
+    ),
+    h(DataPanel, { onImported })
   );
 }
 
 // =============================================================================
 // App shell
 // =============================================================================
+const TABS = [
+  { id: "today", label: "Today", icon: IconCalendar },
+  { id: "log", label: "Log", icon: IconDumbbell },
+  { id: "summary", label: "Summary", icon: IconActivity }
+];
+function BottomNav({ tab, setTab }) {
+  return h(
+    "nav",
+    { className: "bottom-nav" },
+    h(
+      "div",
+      { className: "bottom-nav-inner" },
+      TABS.map(t =>
+        h(
+          "button",
+          {
+            key: t.id,
+            className: `tab${tab === t.id ? " tab-active" : ""}`,
+            onClick: () => setTab(t.id)
+          },
+          h(t.icon, { size: 20, sw: tab === t.id ? 2 : 1.75 }),
+          h("span", { className: "tab-label" }, t.label)
+        )
+      )
+    )
+  );
+}
+
 const SW_IDLE = {
   phase: "idle",
   totalStartAt: null,
   setStartAt: null,
-  setDoneMs: 0,
   restStartAt: null
 };
 
@@ -3290,76 +3185,60 @@ function App() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [pendingExercise, setPendingExercise] = useState(null);
   const [pendingCardio, setPendingCardio] = useState(null);
-
-  // activeSession persists across reloads (same storage key as v2).
-  // Shape: { title, exercises: [{name, cat, input, sets}], completed: [...] }
+  // Active picked session { title, exercises: [...], done: [names] }.
   const [activeSession, setActiveSession] = useState(() =>
     storage.get("active_session", null)
   );
-
-  // Stopwatch state lives here so it keeps running across tabs and reloads.
+  // Stopwatch lives at App level so it survives tab switches.
   const [sw, setSw] = useState(() => storage.get("stopwatch", SW_IDLE));
 
-  const bump = () => setRefreshKey(x => x + 1);
-
-  // Refresh data when switching tabs (cheap now that storage is sync).
-  useEffect(() => {
-    bump();
-  }, [tab]);
-
-  // Persist activeSession on every change.
-  useEffect(() => {
-    if (activeSession === null) {
-      storage.remove("active_session");
-    } else {
-      storage.set("active_session", activeSession);
-    }
-  }, [activeSession]);
-
-  // Persist stopwatch on every change.
   useEffect(() => {
     storage.set("stopwatch", sw);
   }, [sw]);
+  useEffect(() => {
+    if (activeSession) storage.set("active_session", activeSession);
+    else storage.remove("active_session");
+  }, [activeSession]);
 
-  // Stopwatch handlers
+  function bump() {
+    setRefreshKey(k => k + 1);
+  }
+
   function swStart() {
-    const t = Date.now();
-    setSw(p => ({
-      ...p,
+    const now = Date.now();
+    setSw(prev => ({
       phase: "set",
-      totalStartAt: p.totalStartAt != null ? p.totalStartAt : t,
-      setStartAt: t,
-      setDoneMs: 0,
+      totalStartAt: prev.totalStartAt || now,
+      setStartAt: now,
       restStartAt: null
     }));
   }
   function swRest() {
-    setSw(p => {
-      if (p.phase !== "set") return p;
-      const t = Date.now();
-      return {
-        ...p,
-        phase: "rest",
-        setDoneMs: p.setStartAt ? t - p.setStartAt : 0,
-        setStartAt: null,
-        restStartAt: t
-      };
-    });
+    const now = Date.now();
+    setSw(prev => ({ ...prev, phase: "rest", restStartAt: now }));
   }
   function swEnd() {
-    setSw({ ...SW_IDLE });
+    setSw(SW_IDLE);
   }
 
   function handleSelectExercise(name) {
-    setPendingExercise(name);
+    setPendingExercise({ name, cat: getExercise(name).cat });
     setTab("log");
   }
-  function handleStartCardio(type, durationMin) {
-    setPendingCardio({ type, duration_min: durationMin });
+  function handleStartCardio(type, minutes) {
+    setPendingCardio({ type, minutes });
     setTab("log");
   }
-  function handleStartSession(session) {
-    setActiveSession({ ...session, completed: [] });
+  function handleStartSession(sessionDef) {
+    setActiveSession({
+      title: sessionDef.title,
+      exercises: sessionDef.exercises,
+      done: []
+    });
+    const first = sessionDef.exercises[0];
+    if (first) {
+      setPendingExercise({ name: first.name, cat: first.cat });
+    }
     setTab("log");
   }
   function handleEndSession() {
@@ -3367,11 +3246,11 @@ function App() {
   }
   function handleCompleteExercise(name) {
     setActiveSession(prev => {
-      if (!prev) return null;
-      if (!prev.exercises.some(e => e.name === name)) return prev;
-      const completed = prev.completed || [];
-      if (completed.includes(name)) return prev;
-      return { ...prev, completed: [...completed, name] };
+      if (!prev) return prev;
+      if (prev.done.includes(name)) return prev;
+      const done = [...prev.done, name];
+      if (done.length >= prev.exercises.length) return null; // finished
+      return { ...prev, done };
     });
   }
 
@@ -3403,26 +3282,28 @@ function App() {
           refreshKey,
           onChange: bump,
           pendingExercise,
-          clearPending: () => setPendingExercise(null),
-          activeSession,
-          onEndSession: handleEndSession,
-          onCompleteExercise: handleCompleteExercise,
+          onPendingConsumed: () => setPendingExercise(null),
           pendingCardio,
-          clearPendingCardio: () => setPendingCardio(null),
+          onPendingCardioConsumed: () => setPendingCardio(null),
+          activeSession,
+          onCompleteExercise: handleCompleteExercise,
+          onEndSession: handleEndSession,
+          onPickFromQueue: ex =>
+            setPendingExercise({ name: ex.name, cat: ex.cat }),
           sw,
-          swStart,
-          swRest,
-          swEnd
+          onSwStart: swStart,
+          onSwRest: swRest,
+          onSwEnd: swEnd
         }),
       tab === "summary" &&
-        h(SummaryTab, { refreshKey, onChange: bump })
+        h(SummaryTab, { refreshKey, onImported: bump })
     ),
-    h(BottomNav, { active: tab, onChange: setTab })
+    h(BottomNav, { tab, setTab })
   );
 }
 
-const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(h(App, null));
+ReactDOM.createRoot(document.getElementById("root")).render(h(App));
+
 </script>
 </body>
 </html>
