@@ -808,7 +808,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 //     non-consecutive days. Session shape unchanged (4 exercises × 3 sets
 //     ≈ 8–14 effective sets per muscle per week via fractional counting).
 //   • Cardio: 3 sessions per span (was 5), ~1,400 kcal/week, each 20–45 min
-//     and rotating least-recently-used across jog/run/bike/stairs. Cardio and
+//     and rotating least-recently-used across jog/bike/stairs. Cardio and
 //     strength are recommended independently — neither engine defers to the
 //     other.
 //   • Shared full-rest gate: if the previous 6 days all had activity of any
@@ -1016,10 +1016,11 @@ const CARDIO_SESSIONS_PER_WEEK = 3; // target sessions per 7-day span
 const CARDIO_MAX_SESSION = 600; // cap kcal per session (≈45 min)
 const CARDIO_MIN_SESSION = 250; // sized below this → rest instead (≈20 min)
 const CARDIO_CATCHUP = 0.5; // fraction of last week's miss/surplus to repay
-// Recommendations rotate least-recently-used across this pool (cycling stays
-// in the mix — it interferes least with lifting). One duration clamp applies
-// to every recommended session.
-const CARDIO_REC_TYPES = ["jog", "run", "bike", "stairs"];
+// Recommendations rotate least-recently-used across this pool. Note this is
+// deliberately narrower than CARDIO_TYPES: "run" stays available to log
+// manually, but is never suggested. One duration clamp applies to every
+// recommended session.
+const CARDIO_REC_TYPES = ["jog", "bike", "stairs"];
 const CARDIO_SESSION_MIN_MIN = 20; // session duration clamp (minutes)
 const CARDIO_SESSION_MAX_MIN = 45;
 
@@ -2759,7 +2760,8 @@ function LogScreen({
 // Summary chart — stacked bars by category (strength) or plain bars (cardio)
 // =============================================================================
 // avgLabel/targetLabel are short text prefixes. `target` is a per-day value;
-// pass 0/undefined to hide that line.
+// pass 0/undefined to hide that line. When a target is present the average
+// line and label turn red below it and green at or above it.
 //
 // IMPORTANT: the average is the TRUE per-day mean across every day in the
 // window — total ÷ number of days — so rest days count as zeros and pull the
@@ -2789,6 +2791,11 @@ function BarChart({ days, series, avgLabel, target, targetLabel, colors }) {
   const yOf = v => baseY - (v / max) * chartH;
   const avgY = yOf(avg);
   const targetY = yOf(tgt);
+  // Average is colour-coded against the target: red below, green at/above.
+  // With no target to compare to, it stays neutral ink.
+  const AVG_UNDER = "#C9542A";
+  const AVG_OVER = "#3A7D52";
+  const avgColor = tgt > 0 ? (avg >= tgt ? AVG_OVER : AVG_UNDER) : "#1B1A17";
   // One decimal for small values (sets/day), whole numbers for large (kcal).
   const fmt = v => (v >= 10 ? String(Math.round(v)) : (Math.round(v * 10) / 10).toFixed(1));
 
@@ -2907,8 +2914,8 @@ function BarChart({ days, series, avgLabel, target, targetLabel, colors }) {
           y1: avgY,
           x2: W,
           y2: avgY,
-          stroke: "#1B1A17",
-          strokeWidth: 1,
+          stroke: avgColor,
+          strokeWidth: 1.5,
           strokeDasharray: "3 3"
         }),
         h(
@@ -2919,7 +2926,7 @@ function BarChart({ days, series, avgLabel, target, targetLabel, colors }) {
             textAnchor: "end",
             fontSize: 9.5,
             fontFamily: "'JetBrains Mono', monospace",
-            fill: "#1B1A17"
+            fill: avgColor
           },
           `${avgLabel} ${fmt(avg)}`
         )
@@ -3080,16 +3087,6 @@ function SummaryTab({ refreshKey, onImported }) {
     activeCats.includes(c.id)
   ).map(c => CAT_COLORS[c.id]);
 
-  const totalSets = daily.reduce(
-    (a, d) =>
-      a +
-      Object.entries(d.perCat)
-        .filter(([cat]) => activeCats.includes(cat))
-        .reduce((b, [, v]) => b + v, 0),
-    0
-  );
-  const totalKcal = daily.reduce((a, d) => a + d.kcal, 0);
-
   function toggleCat(id) {
     setActiveCats(prev => {
       if (prev.includes(id)) {
@@ -3138,14 +3135,6 @@ function SummaryTab({ refreshKey, onImported }) {
     h(
       Panel,
       { title: "Strength · sets/day" },
-      h(
-        "div",
-        { className: "summary-totals mono" },
-        totalSets,
-        " sets in ",
-        range,
-        " days"
-      ),
       h(BarChart, {
         days: strengthDays,
         series: strengthSeries,
@@ -3178,14 +3167,6 @@ function SummaryTab({ refreshKey, onImported }) {
     h(
       Panel,
       { title: "Cardio · kcal/day" },
-      h(
-        "div",
-        { className: "summary-totals mono" },
-        totalKcal,
-        " kcal in ",
-        range,
-        " days"
-      ),
       h(BarChart, {
         days: daily.map(d => ({ dk: d.dk, label: d.label })),
         series: [{ id: "kcal", values: daily.map(d => d.kcal) }],
