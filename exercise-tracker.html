@@ -1501,6 +1501,11 @@ function Stopwatch({ sw, onStart, onRest, onEnd }) {
 // strengthShouldRest, so the cardio engine can coordinate with it.
 // =============================================================================
 const SUGGESTED_SETS = 3;
+// A suggested session is 4 exercises: 2 from the least-trained of push/pull,
+// 1 from the other, and 1 from the least-trained of legs/core-iso. Named so
+// the Summary tab can derive the weekly set target from the same numbers the
+// recommendation engine actually uses.
+const SUGGESTED_EXERCISES = 4;
 
 // Order the 4 strength picks so the doubled category isn't consecutive.
 // upper = [A1, A2] (the doubled group), other = [B1], lower = [C1].
@@ -2753,11 +2758,18 @@ function LogScreen({
 // =============================================================================
 // Summary chart — stacked bars by category (strength) or plain bars (cardio)
 // =============================================================================
-function BarChart({ days, series, avgLabel, colors }) {
+// avgLabel/targetLabel are short text prefixes. `target` is a per-day value;
+// pass 0/undefined to hide that line.
+//
+// IMPORTANT: the average is the TRUE per-day mean across every day in the
+// window — total ÷ number of days — so rest days count as zeros and pull the
+// line down. (It is deliberately NOT a mean over only the days you trained,
+// which would answer a different question: "how big is a typical session".)
+function BarChart({ days, series, avgLabel, target, targetLabel, colors }) {
   const [activeIdx, setActiveIdx] = useState(null);
   const W = 320;
   const barGap = 2;
-  const padTop = 40; // reserved strip above the plot for the avg label + chips
+  const padTop = 40; // reserved strip above the plot for line labels + chips
   const padBottom = 22;
   const chartH = 120;
   const H = chartH + padTop + padBottom;
@@ -2769,28 +2781,32 @@ function BarChart({ days, series, avgLabel, colors }) {
   const totals = days.map((_, i) =>
     series.reduce((a, s) => a + (s.values[i] || 0), 0)
   );
-  const max = Math.max(...totals, 1);
-  const nonZero = totals.filter(v => v > 0);
-  const avg =
-    nonZero.length > 0
-      ? nonZero.reduce((a, v) => a + v, 0) / nonZero.length
-      : 0;
-  const avgY = baseY - (avg / max) * chartH;
+  const sum = totals.reduce((a, v) => a + v, 0);
+  const avg = n > 0 ? sum / n : 0; // per DAY, zero-days included
+  const tgt = target > 0 ? target : 0;
+  // Scale to fit the target too, so its line is always on-chart.
+  const max = Math.max(...totals, tgt, 1);
+  const yOf = v => baseY - (v / max) * chartH;
+  const avgY = yOf(avg);
+  const targetY = yOf(tgt);
+  // One decimal for small values (sets/day), whole numbers for large (kcal).
+  const fmt = v => (v >= 10 ? String(Math.round(v)) : (Math.round(v * 10) / 10).toFixed(1));
 
-  // Geometry for the tapped-bar total. Rendered LAST (below), as an opaque
-  // chip, so it sits above the bars, the average line and the axis labels and
-  // can't visually collide with any of them. Clamped horizontally to the
-  // plot and vertically to stay clear of the reserved top band (and thus the
-  // average label that lives there).
+  // Geometry for the tapped-bar total. Rendered LAST, as an opaque chip, so
+  // it paints over the bars and both reference lines. Clamped horizontally to
+  // the plot and vertically to stay below the reserved top strip, so it can
+  // never collide with the avg/target labels that live up there.
   let callout = null;
   if (activeIdx !== null && totals[activeIdx] > 0) {
     const i = activeIdx;
-    const barTopY = baseY - (totals[i] / max) * chartH;
     const txt = String(totals[i]);
     const chipW = txt.length * 6 + 10;
     const chipH = 15;
-    const cx = Math.min(Math.max(i * (barW + barGap) + barW / 2, chipW / 2), W - chipW / 2);
-    let cy = barTopY - 5 - chipH / 2; // float just above the bar
+    const cx = Math.min(
+      Math.max(i * (barW + barGap) + barW / 2, chipW / 2),
+      W - chipW / 2
+    );
+    let cy = yOf(totals[i]) - 5 - chipH / 2; // float just above the bar
     if (cy - chipH / 2 < TOPBAND + 2) cy = TOPBAND + 2 + chipH / 2; // clamp
     callout = { cx, cy, chipW, chipH, txt };
   }
@@ -2853,8 +2869,35 @@ function BarChart({ days, series, avgLabel, colors }) {
           )
       );
     }),
-    // 2) Average line, with its label pinned in the reserved top strip so it
-    //    is always clear of the bars.
+    // 2) Target line (dotted, muted) — label pinned LEFT in the top strip.
+    tgt > 0 &&
+      h(
+        React.Fragment,
+        null,
+        h("line", {
+          x1: 0,
+          y1: targetY,
+          x2: W,
+          y2: targetY,
+          stroke: "#5C5849",
+          strokeWidth: 1,
+          strokeDasharray: "1 3"
+        }),
+        h(
+          "text",
+          {
+            x: 0,
+            y: 12,
+            textAnchor: "start",
+            fontSize: 9.5,
+            fontFamily: "'JetBrains Mono', monospace",
+            fill: "#5C5849"
+          },
+          `${targetLabel || "target"} ${fmt(tgt)}`
+        )
+      ),
+    // 3) Actual average line (dashed, ink) — label pinned RIGHT in the top
+    //    strip, so the two labels sit in opposite corners and can't collide.
     avg > 0 &&
       h(
         React.Fragment,
@@ -2878,10 +2921,10 @@ function BarChart({ days, series, avgLabel, colors }) {
             fontFamily: "'JetBrains Mono', monospace",
             fill: "#1B1A17"
           },
-          `${avgLabel} ${Math.round(avg)}`
+          `${avgLabel} ${fmt(avg)}`
         )
       ),
-    // 3) Tapped-bar total chip — drawn last so it paints over everything else.
+    // 4) Tapped-bar total chip — drawn last so it paints over everything else.
     callout &&
       h(
         React.Fragment,
@@ -3057,6 +3100,18 @@ function SummaryTab({ refreshKey, onImported }) {
     });
   }
 
+  // Per-DAY targets implied by following the recommendations exactly, derived
+  // from the same constants the engines use (computed here, at render time,
+  // so every constant is initialised).
+  //   strength: 3 sessions/wk × 4 exercises × 3 sets = 36 sets/wk ÷ 7
+  //   cardio:   1,400 kcal/wk ÷ 7
+  const strengthTargetPerDay =
+    (STRENGTH_MAX_SESSIONS_7D * SUGGESTED_EXERCISES * SUGGESTED_SETS) / 7;
+  const cardioTargetPerDay = CARDIO_WEEKLY_TARGET / 7;
+  // The strength target is a whole-body number, so it is only meaningful when
+  // every category is shown; hide it while the legend filter is narrowing.
+  const allCatsShown = activeCats.length === CATEGORIES.length;
+
   return h(
     React.Fragment,
     null,
@@ -3094,7 +3149,9 @@ function SummaryTab({ refreshKey, onImported }) {
       h(BarChart, {
         days: strengthDays,
         series: strengthSeries,
-        avgLabel: "avg",
+        avgLabel: "avg/day",
+        target: allCatsShown ? strengthTargetPerDay : 0,
+        targetLabel: "target/day",
         colors: strengthColors
       }),
       h(
@@ -3132,7 +3189,9 @@ function SummaryTab({ refreshKey, onImported }) {
       h(BarChart, {
         days: daily.map(d => ({ dk: d.dk, label: d.label })),
         series: [{ id: "kcal", values: daily.map(d => d.kcal) }],
-        avgLabel: "avg",
+        avgLabel: "avg/day",
+        target: cardioTargetPerDay,
+        targetLabel: "target/day",
         colors: [CARDIO_CHART_COLOR]
       })
     ),
